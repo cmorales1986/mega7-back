@@ -1,6 +1,8 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Pdf;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +27,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/purchaseorders
+        [RequirePermission(Perms.PurchaseOrdersView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -38,6 +41,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/purchaseorders/5
+        [RequirePermission(Perms.PurchaseOrdersView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -55,6 +59,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/purchaseorders/open
+        [RequirePermission(Perms.PurchaseOrdersView)]
         [HttpGet("open")]
         public async Task<IActionResult> GetOpen()
         {
@@ -69,6 +74,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/purchaseorders/{id}/pending
+        [RequirePermission(Perms.PurchaseOrdersView)]
         [HttpGet("{id}/pending")]
         public async Task<IActionResult> GetPending(int id)
         {
@@ -131,6 +137,7 @@ namespace Mega7.API.Controllers
 
 
         // POST: api/purchaseorders
+        [RequirePermission(Perms.PurchaseOrdersCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(PurchaseOrderCreateDto dto)
         {
@@ -216,6 +223,7 @@ namespace Mega7.API.Controllers
         }
 
         // PUT: api/purchaseorders/5
+        [RequirePermission(Perms.PurchaseOrdersEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, PurchaseOrderUpdateDto dto)
         {
@@ -306,6 +314,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/purchaseorders/5/open
+        [RequirePermission(Perms.PurchaseOrdersEdit)]
         [HttpPost("{id}/open")]
         public async Task<IActionResult> Open(int id)
         {
@@ -323,6 +332,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/purchaseorders/5/close
+        [RequirePermission(Perms.PurchaseOrdersEdit)]
         [HttpPost("{id}/close")]
         public async Task<IActionResult> Close(int id)
         {
@@ -337,6 +347,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/purchaseorders/5/cancel
+        [RequirePermission(Perms.PurchaseOrdersCancel)]
         [HttpPost("{id}/cancel")]
         public async Task<IActionResult> Cancel(int id)
         {
@@ -372,6 +383,7 @@ namespace Mega7.API.Controllers
             return $"OC{n:D6}";
         }
 
+        [RequirePermission(Perms.PurchaseOrdersView)]
         [HttpGet("{id}/pdf")]
         public async Task<IActionResult> Pdf(int id, [FromServices] IWebHostEnvironment env)
         {

@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +24,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/StockTransfer
+        [RequirePermission(Perms.StockTransferView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -38,6 +41,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/StockTransfer/5
+        [RequirePermission(Perms.StockTransferView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -60,6 +64,7 @@ namespace Mega7.API.Controllers
             return ((oldQty * oldCost) + (inQty * inCost)) / newQty;
         }
 
+        [RequirePermission(Perms.StockTransferCreate)]
         [HttpPost]
         public async Task<IActionResult> CreateTransfer(StockTransfer transfer)
         {

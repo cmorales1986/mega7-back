@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,7 @@ namespace Mega7.API.Controllers
         // 1) Stock general por producto
         // GET: api/stock/product/5
         // =====================================================
+        [RequirePermission(Perms.StockView)]
         [HttpGet("product/{productId}")]
         public async Task<IActionResult> GetStockByProduct(int productId)
         {
@@ -36,6 +39,7 @@ namespace Mega7.API.Controllers
         // 2) Lotes del producto
         // GET: api/stock/batches/5
         // =====================================================
+        [RequirePermission(Perms.StockView)]
         [HttpGet("batches/{productId}")]
         public async Task<IActionResult> GetBatches(int productId)
         {
@@ -51,6 +55,7 @@ namespace Mega7.API.Controllers
         // 3) Seriales disponibles del producto
         // GET: api/stock/serials/5
         // =====================================================
+        [RequirePermission(Perms.StockView)]
         [HttpGet("serials/{productId}")]
         public async Task<IActionResult> GetSerials(int productId)
         {
@@ -69,6 +74,7 @@ namespace Mega7.API.Controllers
         // - Lote: sum(batch.qty * batch.unitCost)
         // - Serial: sum(serial.unitCost) (qty = count)
         // =====================================================
+        [RequirePermission(Perms.StockView)]
         [HttpGet("valuation")]
         public async Task<IActionResult> GetValuation([FromQuery] int? warehouseId = null)
         {
@@ -204,6 +210,7 @@ namespace Mega7.API.Controllers
         // GET: api/stock/kardex/5
         // (lo dejamos como estaba; si querés lo valorizamos después)
         // =====================================================
+        [RequirePermission(Perms.StockView)]
         [HttpGet("kardex/{productId}")]
         public async Task<IActionResult> GetKardex(int productId)
         {

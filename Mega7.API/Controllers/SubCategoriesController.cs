@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +22,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/subcategories
+        [RequirePermission(Perms.SubCategoriesView)]
         [HttpGet]
         public async Task<IActionResult> Get()
         {
@@ -47,6 +50,7 @@ namespace Mega7.API.Controllers
 
 
         // GET: api/subcategories/category/2 (listar las subcategorías por categoría)
+        [RequirePermission(Perms.SubCategoriesView)]
         [HttpGet("category/{categoryId}")]
         public async Task<IActionResult> GetByCategory(int categoryId)
         {
@@ -59,6 +63,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/subcategories/5
+        [RequirePermission(Perms.SubCategoriesView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -73,6 +78,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/subcategories
+        [RequirePermission(Perms.SubCategoriesCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(SubCategoryCreateDto dto)
         {
@@ -109,6 +115,7 @@ namespace Mega7.API.Controllers
 
 
         // PUT: api/subcategories/5
+        [RequirePermission(Perms.SubCategoriesEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, SubCategoryUpdateDto model)
         {
@@ -132,6 +139,7 @@ namespace Mega7.API.Controllers
         }
 
         // DELETE: api/subcategories/5
+        [RequirePermission(Perms.SubCategoriesDelete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

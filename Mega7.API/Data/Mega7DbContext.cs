@@ -95,6 +95,9 @@ namespace Mega7.API.Data
 
         public DbSet<Tenant> Tenants => Set<Tenant>();
 
+        public DbSet<Permission> Permissions => Set<Permission>();
+        public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -583,6 +586,21 @@ namespace Mega7.API.Data
 
             modelBuilder.Entity<PaymentConcept>()
                 .HasIndex(x => x.Name);
+
+            // ── Permissions ──────────────────────────────────────────────────
+            modelBuilder.Entity<Permission>()
+                .HasIndex(p => p.Code)
+                .IsUnique();
+
+            modelBuilder.Entity<RolePermission>()
+                .HasIndex(rp => new { rp.RoleName, rp.PermissionId })
+                .IsUnique();
+
+            modelBuilder.Entity<RolePermission>()
+                .HasOne(rp => rp.Permission)
+                .WithMany(p => p.RolePermissions)
+                .HasForeignKey(rp => rp.PermissionId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<PaymentMade>()
     .HasOne(x => x.PaymentConcept)

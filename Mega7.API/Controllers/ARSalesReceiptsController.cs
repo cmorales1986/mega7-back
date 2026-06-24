@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +27,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/arsalesreceipts?pendingDeposit=true&customerId=1&from=2026-01-01&to=2026-01-31
+        [RequirePermission(Perms.ARReceiptsView)]
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] bool? pendingDeposit = null,
@@ -71,6 +74,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/arsalesreceipts/5
+        [RequirePermission(Perms.ARReceiptsView)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -85,6 +89,7 @@ namespace Mega7.API.Controllers
 
         // POST: api/arsalesreceipts
         // ✅ crea recibo + aplica pagos a 1..N facturas
+        [RequirePermission(Perms.ARReceiptsCreate)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ARSalesReceiptCreateDto dto)
         {
@@ -263,6 +268,7 @@ namespace Mega7.API.Controllers
             }
         }
 
+        [RequirePermission(Perms.ARReceiptsView)]
         [HttpGet("undeposited")]
         public async Task<IActionResult> GetUndeposited([FromQuery] int? customerId = null)
         {
@@ -283,6 +289,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/arsalesreceipts/deposit
+        [RequirePermission(Perms.ARReceiptsCreate)]
         [HttpPost("deposit")]
         public async Task<ActionResult<ReceiptDepositResultDto>> Deposit([FromBody] ReceiptDepositRequestDto dto)
         {

@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +22,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/warehouses
+        [RequirePermission(Perms.WarehousesView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -31,6 +34,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/warehouses/5
+        [RequirePermission(Perms.WarehousesView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -43,6 +47,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/warehouses
+        [RequirePermission(Perms.WarehousesCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(WarehouseCreateDto model)
         {
@@ -68,6 +73,7 @@ namespace Mega7.API.Controllers
         }
 
         // PUT: api/warehouses/5
+        [RequirePermission(Perms.WarehousesEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, WarehouseUpdateDto model)
         {
@@ -95,6 +101,7 @@ namespace Mega7.API.Controllers
         }
 
         // DELETE: api/warehouses/5
+        [RequirePermission(Perms.WarehousesDelete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

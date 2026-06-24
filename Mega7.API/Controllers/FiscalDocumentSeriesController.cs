@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +21,7 @@ namespace Mega7.API.Controllers
             _ctx = ctx;
         }
 
+        [RequirePermission(Perms.FiscalSeriesView)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] string? documentType = null, [FromQuery] bool onlyActive = false)
         {
@@ -33,6 +36,7 @@ namespace Mega7.API.Controllers
             return Ok(list);
         }
 
+        [RequirePermission(Perms.FiscalSeriesView)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -41,6 +45,7 @@ namespace Mega7.API.Controllers
             return Ok(x);
         }
 
+        [RequirePermission(Perms.FiscalSeriesCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(FiscalDocumentSeriesUpsertDto dto)
         {
@@ -70,6 +75,7 @@ namespace Mega7.API.Controllers
             return Ok(e);
         }
 
+        [RequirePermission(Perms.FiscalSeriesEdit)]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, FiscalDocumentSeriesUpsertDto dto)
         {

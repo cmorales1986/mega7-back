@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -22,6 +24,7 @@ namespace Mega7.API.Controllers
             _periods = periods;
         }
 
+        [RequirePermission(Perms.StockOutputView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -50,6 +53,7 @@ namespace Mega7.API.Controllers
         // GET: api/stockoutput/{id}
         // Detalle (trae líneas, corta ciclos)
         // =========================================================
+        [RequirePermission(Perms.StockOutputView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -73,6 +77,7 @@ namespace Mega7.API.Controllers
         // =========================================================
         // POST: api/stockoutput
         // =========================================================
+        [RequirePermission(Perms.StockOutputCreate)]
         [HttpPost]
         public async Task<IActionResult> CreateOutput(StockOutput output)
         {

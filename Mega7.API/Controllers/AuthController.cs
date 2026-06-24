@@ -37,7 +37,6 @@ namespace Mega7.API.Controllers
             if (string.IsNullOrWhiteSpace(userOrEmail) || string.IsNullOrWhiteSpace(password))
                 return BadRequest("Usuario/Email y contraseña son requeridos.");
 
-            // Case-insensitive
             var uoe = userOrEmail.ToLower();
 
             var user = await _ctx.Users.FirstOrDefaultAsync(u =>
@@ -64,7 +63,9 @@ namespace Mega7.API.Controllers
 
             user.Role = (user.Role ?? "VENTAS").ToUpperInvariant();
 
-            var accessToken = _jwt.GenerateAccessToken(user);
+            var perms = await LoadPermissionsAsync(user.Role);
+
+            var accessToken = _jwt.GenerateAccessToken(user, perms);
             var refreshToken = _jwt.GenerateRefreshToken();
 
             user.RefreshTokenHash = PasswordHasher.Hash(refreshToken);
@@ -83,7 +84,8 @@ namespace Mega7.API.Controllers
                 role = user.Role,
                 mustChangePassword = user.MustChangePassword || expired,
                 passwordExpiresAt = expiresAt,
-                passwordDaysLeft = daysLeft
+                passwordDaysLeft = daysLeft,
+                permissions = perms
             });
         }
 
@@ -127,6 +129,7 @@ namespace Mega7.API.Controllers
             }
 
             user.Role = (user.Role ?? "VENTAS").ToUpperInvariant();
+            var mePerms = await LoadPermissionsAsync(user.Role);
 
             return Ok(new
             {
@@ -137,7 +140,8 @@ namespace Mega7.API.Controllers
                 role = user.Role,
                 mustChangePassword = user.MustChangePassword || expired,
                 passwordExpiresAt = expiresAt,
-                passwordDaysLeft = daysLeft
+                passwordDaysLeft = daysLeft,
+                permissions = mePerms
             });
         }
 
@@ -175,7 +179,8 @@ namespace Mega7.API.Controllers
 
             user.Role = (user.Role ?? "VENTAS").ToUpperInvariant();
 
-            var newAccess = _jwt.GenerateAccessToken(user);
+            var refreshPerms = await LoadPermissionsAsync(user.Role);
+            var newAccess = _jwt.GenerateAccessToken(user, refreshPerms);
             var newRefresh = _jwt.GenerateRefreshToken();
 
             user.RefreshTokenHash = PasswordHasher.Hash(newRefresh);
@@ -312,6 +317,20 @@ namespace Mega7.API.Controllers
             await _ctx.SaveChangesAsync();
 
             return Ok(new { ok = true });
+        }
+
+        // ---------------------------------------------------------
+        // 🔒 HELPER: carga permisos del rol desde la DB
+        // ---------------------------------------------------------
+        private async Task<List<string>> LoadPermissionsAsync(string role)
+        {
+            if (role.ToUpperInvariant() == "ADMIN")
+                return new List<string>(); // ADMIN no necesita perms en el token; el filter lo bypasea
+
+            return await _ctx.RolePermissions
+                .Where(rp => rp.RoleName == role)
+                .Select(rp => rp.Permission.Code)
+                .ToListAsync();
         }
 
         // ---------------------------------------------------------

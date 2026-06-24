@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +15,7 @@ namespace Mega7.API.Controllers
         private readonly Mega7DbContext _ctx;
         public APInvoiceInstallmentsController(Mega7DbContext ctx) => _ctx = ctx;
 
+        [RequirePermission(Perms.APInvoicesView)]
         [HttpGet("by-invoice/{apInvoiceId:int}")]
         public async Task<IActionResult> GetByInvoice(int apInvoiceId)
         {

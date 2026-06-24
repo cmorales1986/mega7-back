@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +22,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/products
+        [RequirePermission(Perms.ProductsView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -36,6 +39,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/products/5
+        [RequirePermission(Perms.ProductsView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -54,6 +58,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/products
+        [RequirePermission(Perms.ProductsCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(Product model)
         {
@@ -68,6 +73,7 @@ namespace Mega7.API.Controllers
         }
 
         // PUT: api/products/5
+        [RequirePermission(Perms.ProductsEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, Product model)
         {
@@ -107,6 +113,7 @@ namespace Mega7.API.Controllers
         }
 
         // DELETE: api/products/5
+        [RequirePermission(Perms.ProductsDelete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -122,6 +129,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/products/batch-serial
+        [RequirePermission(Perms.ProductsView)]
         [HttpGet("batch-serial")]
         public async Task<IActionResult> GetBatchSerial()
         {
@@ -142,6 +150,7 @@ namespace Mega7.API.Controllers
         }
 
         // PUT: api/products/{id}/batch-serial
+        [RequirePermission(Perms.ProductsEdit)]
         [HttpPut("{id}/batch-serial")]
         public async Task<IActionResult> UpdateBatchSerial(
             int id,

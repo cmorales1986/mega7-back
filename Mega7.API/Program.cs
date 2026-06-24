@@ -173,7 +173,9 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<Mega7DbContext>();
+    db.Database.Migrate();
     await UserSeeder.SeedAsync(db);
+    await PermissionSeeder.SeedAsync(db);
 }
 
 app.Run();

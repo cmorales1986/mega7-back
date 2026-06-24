@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +21,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/paymentconcepts?activeOnly=true
+        [RequirePermission(Perms.PaymentConceptsView)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool activeOnly = true)
         {
@@ -36,6 +39,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/paymentconcepts/5
+        [RequirePermission(Perms.PaymentConceptsView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -45,6 +49,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/paymentconcepts
+        [RequirePermission(Perms.PaymentConceptsCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(PaymentConcept model)
         {
@@ -77,6 +82,7 @@ namespace Mega7.API.Controllers
         }
 
         // PUT: api/paymentconcepts/5
+        [RequirePermission(Perms.PaymentConceptsEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, PaymentConcept model)
         {
@@ -115,6 +121,7 @@ namespace Mega7.API.Controllers
 
         // DELETE: api/paymentconcepts/5  (hard delete opcional)
         // Recomendado: desactivar
+        [RequirePermission(Perms.PaymentConceptsDelete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -127,6 +134,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/paymentconcepts/5/deactivate
+        [RequirePermission(Perms.PaymentConceptsDelete)]
         [HttpPost("{id}/deactivate")]
         public async Task<IActionResult> Deactivate(int id)
         {
@@ -141,6 +149,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/paymentconcepts/5/activate
+        [RequirePermission(Perms.PaymentConceptsDelete)]
         [HttpPost("{id}/activate")]
         public async Task<IActionResult> Activate(int id)
         {

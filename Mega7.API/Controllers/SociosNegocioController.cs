@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +21,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/sociosnegocio
+        [RequirePermission(Perms.SociosView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -32,6 +35,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/sociosnegocio/5
+        [RequirePermission(Perms.SociosView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -46,6 +50,7 @@ namespace Mega7.API.Controllers
             return Ok(socio);
         }
 
+        [RequirePermission(Perms.SociosCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(SocioNegocio model)
         {
@@ -80,6 +85,7 @@ namespace Mega7.API.Controllers
             return CreatedAtAction(nameof(Get), new { id = model.Id }, model);
         }
 
+        [RequirePermission(Perms.SociosEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, SocioNegocio model)
         {
@@ -137,6 +143,7 @@ namespace Mega7.API.Controllers
             return NoContent();
         }
 
+        [RequirePermission(Perms.SociosDelete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -156,6 +163,7 @@ namespace Mega7.API.Controllers
             return NoContent();
         }
 
+        [RequirePermission(Perms.SociosView)]
         [HttpGet("proveedores")]
         public async Task<IActionResult> GetSuppliers()
         {
@@ -167,6 +175,7 @@ namespace Mega7.API.Controllers
             return Ok(suppliers);
         }
 
+        [RequirePermission(Perms.SociosView)]
         [HttpGet("clientes")]
         public async Task<IActionResult> GetCustomers()
         {
@@ -178,6 +187,7 @@ namespace Mega7.API.Controllers
             return Ok(customers);
         }
 
+        [RequirePermission(Perms.SociosView)]
         [HttpGet("buscar-ruc/{ruc}")]
         public async Task<IActionResult> GetByRUC(string ruc)
         {
@@ -186,6 +196,7 @@ namespace Mega7.API.Controllers
             return Ok(socio);
         }
 
+        [RequirePermission(Perms.SociosView)]
         [HttpGet("buscar/{texto}")]
         public async Task<IActionResult> Search(string texto)
         {
@@ -196,6 +207,7 @@ namespace Mega7.API.Controllers
             return Ok(list);
         }
 
+        [RequirePermission(Perms.SociosEdit)]
         [HttpPost("{id}/sucursales")]
         public async Task<IActionResult> AddSucursal(int id, SocioNegocioSucursal model)
         {

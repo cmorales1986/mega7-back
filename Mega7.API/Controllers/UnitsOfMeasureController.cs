@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +21,7 @@ namespace Mega7.API.Controllers
             _ctx = ctx;
         }
 
+        [RequirePermission(Perms.UnitsView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -26,6 +29,7 @@ namespace Mega7.API.Controllers
             return Ok(units);
         }
 
+        [RequirePermission(Perms.UnitsView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -37,6 +41,7 @@ namespace Mega7.API.Controllers
         }
 
 
+        [RequirePermission(Perms.UnitsCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(UnitOfMeasureCreateDto model)
         {
@@ -57,6 +62,7 @@ namespace Mega7.API.Controllers
             return CreatedAtAction(nameof(Get), new { id = unit.Id }, unit);
         }
 
+        [RequirePermission(Perms.UnitsEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UnitOfMeasureUpdateDto model)
         {
@@ -80,6 +86,7 @@ namespace Mega7.API.Controllers
             return NoContent();
         }
 
+        [RequirePermission(Perms.UnitsDelete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

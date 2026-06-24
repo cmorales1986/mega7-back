@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +21,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/creditterms
+        [RequirePermission(Perms.CreditTermsView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -31,6 +34,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/creditterms/5
+        [RequirePermission(Perms.CreditTermsView)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -40,6 +44,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/creditterms
+        [RequirePermission(Perms.CreditTermsCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(CreditTerm model)
         {
@@ -62,6 +67,7 @@ namespace Mega7.API.Controllers
         }
 
         // PUT: api/creditterms/5
+        [RequirePermission(Perms.CreditTermsEdit)]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, CreditTerm model)
         {
@@ -90,6 +96,7 @@ namespace Mega7.API.Controllers
 
         // DELETE: api/creditterms/5
         // (Recomendado: desactivar, no borrar)
+        [RequirePermission(Perms.CreditTermsDelete)]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

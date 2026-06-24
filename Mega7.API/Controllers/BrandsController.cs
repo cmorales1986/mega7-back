@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +22,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/brands
+        [RequirePermission(Perms.BrandsView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -31,6 +34,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/brands/5
+        [RequirePermission(Perms.BrandsView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -43,6 +47,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/brands
+        [RequirePermission(Perms.BrandsCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(BrandCreateDto model)
         {
@@ -65,6 +70,7 @@ namespace Mega7.API.Controllers
         }
 
         // PUT: api/brands/5
+        [RequirePermission(Perms.BrandsEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, BrandUpdateDto model)
         {
@@ -88,6 +94,7 @@ namespace Mega7.API.Controllers
         }
 
         // DELETE: api/brands/5
+        [RequirePermission(Perms.BrandsDelete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

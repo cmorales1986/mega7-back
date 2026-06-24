@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,7 @@ namespace Mega7.API.Controllers
         // GET: api/cuotero/summary?from=2025-07-01&to=2026-03-31&customerId=123
         // Lista clientes con cuotas + contadores y montos
         // =========================
+        [RequirePermission(Perms.SalesParamsView)]
         [HttpGet("summary")]
         public async Task<IActionResult> Summary(
             [FromQuery] DateTime? from = null,
@@ -112,6 +115,7 @@ namespace Mega7.API.Controllers
         // filas = facturas
         // celda = cuota del mes (PDO / monto) + status
         // =========================
+        [RequirePermission(Perms.SalesParamsView)]
         [HttpGet("matrix")]
         public async Task<IActionResult> Matrix(
             [FromQuery] int customerId,

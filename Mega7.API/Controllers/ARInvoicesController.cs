@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -23,6 +25,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/arinvoices?status=OPEN&includeCancelled=false
+        [RequirePermission(Perms.ARInvoicesView)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] string? status = null, [FromQuery] bool includeCancelled = false)
         {
@@ -72,6 +75,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/arinvoices/{id}
+        [RequirePermission(Perms.ARInvoicesView)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -103,6 +107,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/arinvoices/by-sales-order/123
+        [RequirePermission(Perms.ARInvoicesView)]
         [HttpGet("by-sales-order/{salesOrderId:int}")]
         public async Task<IActionResult> GetBySalesOrder(int salesOrderId)
         {
@@ -115,6 +120,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/arinvoices/{id}/installments
+        [RequirePermission(Perms.ARInvoicesView)]
         [HttpGet("{id:int}/installments")]
         public async Task<IActionResult> GetInstallments(int id)
         {
@@ -146,6 +152,7 @@ namespace Mega7.API.Controllers
         // - Count <= 1 => crédito simple (SIN cuotas), solo DueDate
         // - Count >= 2 => genera cuotas parejas (ajuste en la última) y DueDate = última cuota
         // - Soporta 2 esquemas: INTERVAL y DAY_OF_MONTH (clamp al último día del mes)
+        [RequirePermission(Perms.ARInvoicesGenerateInstallments)]
         [HttpPost("{id:int}/installments/generate")]
         public async Task<IActionResult> GenerateInstallments(int id, [FromBody] ARInvoiceGenerateInstallmentsDto dto)
         {
@@ -301,6 +308,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/arinvoices/{id}/cancel
+        [RequirePermission(Perms.ARInvoicesCancel)]
         [HttpPost("{id:int}/cancel")]
         public async Task<IActionResult> Cancel(int id, [FromBody] ARInvoiceCancelDto? dto)
         {
@@ -347,6 +355,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/arinvoices/{id}/reopen
+        [RequirePermission(Perms.ARInvoicesReopen)]
         [HttpPost("{id:int}/reopen")]
         public async Task<IActionResult> Reopen(int id, [FromBody] ARInvoiceReopenDto? dto)
         {

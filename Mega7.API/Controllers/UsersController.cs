@@ -1,4 +1,5 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Utils;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -23,6 +24,7 @@ namespace Mega7.API.Controllers
         // -----------------------------
         // GET: api/users
         // -----------------------------
+        [RequirePermission(Perms.UsersView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -45,6 +47,7 @@ namespace Mega7.API.Controllers
         // -----------------------------
         // GET: api/users/{id}
         // -----------------------------
+        [RequirePermission(Perms.UsersView)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -68,6 +71,7 @@ namespace Mega7.API.Controllers
         // -----------------------------
         public record ChangeRoleRequest(string Role);
 
+        [RequirePermission(Perms.UsersEdit)]
         [HttpPut("{id:int}/role")]
         public async Task<IActionResult> ChangeRole(int id, ChangeRoleRequest req)
         {
@@ -96,6 +100,7 @@ namespace Mega7.API.Controllers
         // -----------------------------
         public record ChangeActiveRequest(bool IsActive);
 
+        [RequirePermission(Perms.UsersDeactivate)]
         [HttpPut("{id:int}/active")]
         public async Task<IActionResult> ChangeActive(int id, ChangeActiveRequest req)
         {
@@ -120,6 +125,7 @@ namespace Mega7.API.Controllers
         // DELETE: api/users/{id}
         // (opcional, yo prefiero desactivar)
         // -----------------------------
+        [RequirePermission(Perms.UsersDeactivate)]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -141,6 +147,7 @@ namespace Mega7.API.Controllers
             return Ok(new { ok = true });
         }
 
+        [RequirePermission(Perms.UsersEdit)]
         [HttpPost("{id:int}/reset-password")]
         public async Task<IActionResult> ResetPassword(int id)
         {

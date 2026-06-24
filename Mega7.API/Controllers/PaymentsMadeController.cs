@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -26,6 +28,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/paymentsmade
+        [RequirePermission(Perms.PaymentsMadeView)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool includeCancelled = false)
         {
@@ -65,6 +68,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/paymentsmade/5
+        [RequirePermission(Perms.PaymentsMadeView)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -118,6 +122,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/paymentsmade
+        [RequirePermission(Perms.PaymentsMadeView)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PaymentMadeCreateDto dto)
         {
@@ -294,6 +299,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/paymentsmade/5/cancel
+        [RequirePermission(Perms.PaymentsMadeView)]
         [HttpPost("{id:int}/cancel")]
         public async Task<IActionResult> Cancel(int id, [FromBody] CancelDto? dto)
         {

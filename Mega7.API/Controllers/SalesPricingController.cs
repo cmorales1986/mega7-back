@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Mega7.SHARED.Enums;
@@ -27,6 +29,7 @@ namespace Mega7.API.Controllers
         // 1) CALCULAR
         // POST: api/salespricing/calculate
         // ==========================
+        [RequirePermission(Perms.SalesParamsView)]
         [HttpPost("calculate")]
         public async Task<IActionResult> Calculate([FromBody] PriceCalcRequest req)
         {
@@ -39,6 +42,7 @@ namespace Mega7.API.Controllers
         // ==========================
 
         // GET: api/salespricing/params/global
+        [RequirePermission(Perms.SalesParamsView)]
         [HttpGet("params/global")]
         public async Task<IActionResult> GetGlobalParams()
         {
@@ -52,6 +56,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/salespricing/params/customer/5
+        [RequirePermission(Perms.SalesParamsView)]
         [HttpGet("params/customer/{customerId:int}")]
         public async Task<IActionResult> GetCustomerParams(int customerId)
         {
@@ -66,6 +71,7 @@ namespace Mega7.API.Controllers
 
         // POST: api/salespricing/params/global
         // crea o actualiza el global (DTO)
+        [RequirePermission(Perms.SalesParamsEdit)]
         [HttpPost("params/global")]
         public async Task<IActionResult> UpsertGlobalParams([FromBody] SalesPricingParamsUpsertDto dto)
         {
@@ -99,6 +105,7 @@ namespace Mega7.API.Controllers
 
         // POST: api/salespricing/params/customer/5
         // crea o actualiza override por cliente (DTO)
+        [RequirePermission(Perms.SalesParamsEdit)]
         [HttpPost("params/customer/{customerId:int}")]
         public async Task<IActionResult> UpsertCustomerParams(int customerId, [FromBody] SalesPricingParamsUpsertDto dto)
         {
@@ -131,6 +138,7 @@ namespace Mega7.API.Controllers
         }
 
         // DELETE (soft): api/salespricing/params/customer/5
+        [RequirePermission(Perms.SalesParamsEdit)]
         [HttpDelete("params/customer/{customerId:int}")]
         public async Task<IActionResult> DisableCustomerParams(int customerId)
         {
@@ -164,6 +172,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/salespricing/credit-term-markups?customerId=5
+        [RequirePermission(Perms.SalesParamsView)]
         [HttpGet("credit-term-markups")]
         public async Task<IActionResult> GetCreditTermMarkups([FromQuery] int? customerId)
         {
@@ -215,6 +224,7 @@ namespace Mega7.API.Controllers
 
         // PUT: api/salespricing/credit-term-markups/bulk?customerId=5
         // Si customerId = null => actualiza global
+        [RequirePermission(Perms.SalesParamsEdit)]
         [HttpPut("credit-term-markups/bulk")]
         public async Task<IActionResult> BulkUpsertCreditTermMarkups(
             [FromQuery] int? customerId,
@@ -263,6 +273,7 @@ namespace Mega7.API.Controllers
 
         // DELETE (soft) ALL scope rules: api/salespricing/credit-term-markups/clear?customerId=5
         // Si customerId null => borra global
+        [RequirePermission(Perms.SalesParamsEdit)]
         [HttpDelete("credit-term-markups/clear")]
         public async Task<IActionResult> ClearCreditTermMarkups([FromQuery] int? customerId)
         {
@@ -284,6 +295,7 @@ namespace Mega7.API.Controllers
         // Helpers / Suggest price
         // ==========================
 
+        [RequirePermission(Perms.SalesParamsView)]
         [HttpPost("suggest-unit-price")]
         public async Task<IActionResult> SuggestUnitPrice([FromBody] SuggestUnitPriceRequestDto req)
         {

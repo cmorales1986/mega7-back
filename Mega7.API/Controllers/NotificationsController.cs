@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.DTOs;
+using Mega7.API.Utils;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +29,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/notifications/summary
+        [RequirePermission(Perms.NotificationsView)]
         [HttpGet("summary")]
         public async Task<IActionResult> GetSummary()
         {
@@ -75,6 +78,7 @@ namespace Mega7.API.Controllers
             });
         }
 
+        [RequirePermission(Perms.NotificationsView)]
         [HttpPost("dismiss")]
         public async Task<IActionResult> Dismiss([FromBody] Mega7.API.DTOs.NotificationDismissDto dto)
         {
@@ -109,6 +113,7 @@ namespace Mega7.API.Controllers
 
 
         // POST: api/notifications/mark-read
+        [RequirePermission(Perms.NotificationsView)]
         [HttpPost("mark-read")]
         public async Task<IActionResult> MarkRead([FromBody] string key)
         {
@@ -138,6 +143,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/notifications/mark-all-read
+        [RequirePermission(Perms.NotificationsView)]
         [HttpPost("mark-all-read")]
         public async Task<IActionResult> MarkAllRead()
         {

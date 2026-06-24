@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +20,7 @@ namespace Mega7.API.Controllers
             _ctx = ctx;
         }
 
+        [RequirePermission(Perms.SociosView)]
         [HttpGet("socio/{socioId}")]
         public async Task<IActionResult> GetBySocio(int socioId)
         {
@@ -28,6 +31,7 @@ namespace Mega7.API.Controllers
             return Ok(list);
         }
 
+        [RequirePermission(Perms.SociosCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(SocioNegocioSucursal model)
         {
@@ -36,6 +40,7 @@ namespace Mega7.API.Controllers
             return Ok(model);
         }
 
+        [RequirePermission(Perms.SociosEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, SocioNegocioSucursal model)
         {
@@ -55,6 +60,7 @@ namespace Mega7.API.Controllers
             return NoContent();
         }
 
+        [RequirePermission(Perms.SociosDelete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

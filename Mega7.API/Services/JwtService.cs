@@ -38,19 +38,23 @@ public class JwtService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public string GenerateAccessToken(User user)
+    public string GenerateAccessToken(User user, IEnumerable<string>? permissionCodes = null)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-        new Claim(JwtRegisteredClaimNames.Sub, user.Username),
-        new Claim("uid", user.Id.ToString()),
-        new Claim("name", user.FullName),
-        new Claim(JwtRegisteredClaimNames.Email, user.Email),
-        new Claim(ClaimTypes.Role, (user.Role ?? "VENTAS").ToUpperInvariant())
-    };
+            new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+            new Claim("uid", user.Id.ToString()),
+            new Claim("name", user.FullName),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(ClaimTypes.Role, (user.Role ?? "VENTAS").ToUpperInvariant())
+        };
+
+        if (permissionCodes != null)
+            foreach (var code in permissionCodes)
+                claims.Add(new Claim("perm", code));
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],

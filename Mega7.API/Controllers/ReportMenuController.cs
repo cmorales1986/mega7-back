@@ -1,10 +1,14 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ReportMenuController : ControllerBase
@@ -40,6 +44,7 @@ public class ReportMenuController : ControllerBase
         return allowed.Contains(userRole);
     }
 
+    [RequirePermission(Perms.ReportMenuView)]
     [HttpGet]
     public async Task<ActionResult<List<ReportMenuItemDto>>> Get()
     {

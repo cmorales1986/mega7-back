@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +30,7 @@ namespace Mega7.API.Controllers
             _logger = logger;
         }
 
+        [RequirePermission(Perms.PurchaseReceiptsView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -78,6 +81,7 @@ namespace Mega7.API.Controllers
         }
 
 
+        [RequirePermission(Perms.PurchaseReceiptsView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -146,6 +150,7 @@ namespace Mega7.API.Controllers
 
 
         // POST: api/purchasereceipts
+        [RequirePermission(Perms.PurchaseReceiptsCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(PurchaseReceiptCreateDto dto)
         {
@@ -367,6 +372,7 @@ namespace Mega7.API.Controllers
         }
 
             
+        [RequirePermission(Perms.PurchaseReceiptsEdit)]
         [HttpPost("{id}/documents/upsert")]
         public async Task<IActionResult> UpsertDocument(int id, PurchaseReceiptUpsertDocDto dto)
         {
@@ -410,6 +416,7 @@ namespace Mega7.API.Controllers
             return Ok(receipt.Documents);
         }
 
+        [RequirePermission(Perms.PurchaseReceiptsEdit)]
         [HttpPut("{id}/documents")]
         public async Task<IActionResult> UpdateDocuments(int id, [FromBody] UpdatePurchaseReceiptDocumentsRequest req)
         {
@@ -481,6 +488,7 @@ namespace Mega7.API.Controllers
             return Ok(new { ok = true });
         }
 
+        [RequirePermission(Perms.PurchaseReceiptsEdit)]
         [HttpPut("{id}/pricing")]
         public async Task<IActionResult> UpdatePricing(int id, [FromBody] UpdatePurchaseReceiptPricingRequest req)
         {
@@ -538,6 +546,7 @@ namespace Mega7.API.Controllers
             return Ok(new { ok = true, doc.SubTotal, doc.TaxTotal, doc.Total });
         }
 
+        [RequirePermission(Perms.PurchaseReceiptsEdit)]
         [HttpPost("{id}/cancel")]
         public async Task<IActionResult> Cancel(int id, [FromBody] PurchaseReceiptCancelDto dto)
         {
@@ -664,6 +673,7 @@ namespace Mega7.API.Controllers
         }
 
 
+        [RequirePermission(Perms.PurchaseReceiptsView)]
         [HttpGet("{id}/pdf")]
         public async Task<IActionResult> Pdf(int id)
         {
@@ -688,6 +698,7 @@ namespace Mega7.API.Controllers
         }
 
 
+        [RequirePermission(Perms.PurchaseReceiptsConfirm)]
         [HttpPost("{id}/invoice")]
         public async Task<IActionResult> UpsertInvoice(int id, [FromBody] PurchaseReceiptInvoiceDto dto)
         {
@@ -793,6 +804,7 @@ namespace Mega7.API.Controllers
         }
 
 
+        [RequirePermission(Perms.PurchaseReceiptsEdit)]
         [HttpPost("{id}/invoice/clear")]
         public async Task<IActionResult> ClearInvoice(int id, [FromBody] PurchaseReceiptInvoiceClearDto? dto)
         {

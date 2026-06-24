@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.DTOs;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +23,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/categories
+        [RequirePermission(Perms.CategoriesView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -32,6 +35,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/categories/5
+        [RequirePermission(Perms.CategoriesView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -44,6 +48,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/categories
+        [RequirePermission(Perms.CategoriesCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(CategoryCreateDto dto)
         {
@@ -69,6 +74,7 @@ namespace Mega7.API.Controllers
 
 
         // PUT: api/categories/5
+        [RequirePermission(Perms.CategoriesEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, CategoryUpdateDto model)
         {
@@ -86,6 +92,7 @@ namespace Mega7.API.Controllers
 
 
         // DELETE: api/categories/5
+        [RequirePermission(Perms.CategoriesDelete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

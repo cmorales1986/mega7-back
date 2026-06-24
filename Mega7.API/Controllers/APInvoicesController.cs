@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -23,6 +25,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/apinvoices?status=OPEN&includeCancelled=false&supplierId=2&onlyWithBalance=true
+        [RequirePermission(Perms.APInvoicesView)]
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] string? status = null,
@@ -84,6 +87,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/apinvoices/{id}
+        [RequirePermission(Perms.APInvoicesView)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -116,6 +120,7 @@ namespace Mega7.API.Controllers
 
         // GET: api/apinvoices/{id}/lines
         // GET: api/apinvoices/{id}/lines
+        [RequirePermission(Perms.APInvoicesView)]
         [HttpGet("{id:int}/lines")]
         public async Task<IActionResult> GetLines(int id)
         {
@@ -182,6 +187,7 @@ namespace Mega7.API.Controllers
 
 
         // GET: api/apinvoices/by-receipt/123
+        [RequirePermission(Perms.APInvoicesView)]
         [HttpGet("by-receipt/{receiptId:int}")]
         public async Task<IActionResult> GetByReceipt(int receiptId)
         {
@@ -194,6 +200,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/apinvoices/{id}/installments
+        [RequirePermission(Perms.APInvoicesView)]
         [HttpGet("{id:int}/installments")]
         public async Task<IActionResult> GetInstallments(int id)
         {
@@ -224,6 +231,7 @@ namespace Mega7.API.Controllers
 
         // POST: api/apinvoices/{id}/installments/generate?count=3&creditDays=0
         // Genera cuotas "parejas" (con ajuste en la última) y setea DueDate del header como última cuota.
+        [RequirePermission(Perms.APInvoicesCreate)]
         [HttpPost("{id:int}/installments/generate")]
         public async Task<IActionResult> GenerateInstallments(
             int id,
@@ -315,6 +323,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/apinvoices/{id}/cancel   ✅ (ANTES estaba mal: era ARInvoices adentro de APInvoicesController)
+        [RequirePermission(Perms.APInvoicesCancel)]
         [HttpPost("{id:int}/cancel")]
         public async Task<IActionResult> Cancel(int id, [FromBody] APInvoiceCancelDto? dto)
         {
@@ -373,6 +382,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/apinvoices/{id}/reopen  ✅ (ANTES estaba mal: era ARInvoices adentro de APInvoicesController)
+        [RequirePermission(Perms.APInvoicesCreate)]
         [HttpPost("{id:int}/reopen")]
         public async Task<IActionResult> Reopen(int id, [FromBody] APInvoiceReopenDto? dto)
         {
@@ -429,6 +439,7 @@ namespace Mega7.API.Controllers
 
         // POST: api/apinvoices/service
         // POST: api/apinvoices/service
+        [RequirePermission(Perms.APInvoicesCreate)]
         [HttpPost("service")]
         public async Task<IActionResult> CreateServiceInvoice([FromBody] APServiceInvoiceCreateDto dto)
         {

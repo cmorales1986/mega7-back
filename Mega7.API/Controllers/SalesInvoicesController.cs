@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mega7.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class SalesInvoicesController : ControllerBase
@@ -25,6 +27,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/salesinvoices
+        [RequirePermission(Perms.SalesInvoicesView)]
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] bool includeCancelled = false,
@@ -108,6 +111,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/salesinvoices/{id}/pdf
+        [RequirePermission(Perms.SalesInvoicesPrint)]
         [HttpGet("{id:int}/pdf")]
         public async Task<IActionResult> Pdf(int id, [FromServices] InvoicePdfService pdfSvc)
         {
@@ -123,6 +127,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/salesinvoices/{id}
+        [RequirePermission(Perms.SalesInvoicesView)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -197,6 +202,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/salesinvoices/{id}/cancel
+        [RequirePermission(Perms.SalesInvoicesCancel)]
         [HttpPost("{id:int}/cancel")]
         public async Task<IActionResult> Cancel(int id, [FromBody] ARInvoiceCancelDto? dto)
         {
@@ -239,6 +245,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/salesinvoices
+        [RequirePermission(Perms.SalesInvoicesCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(SalesInvoiceCreateDto dto)
         {

@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +25,7 @@ namespace Mega7.API.Controllers
         // GET: api/reports/sales-vs-collections?year=2026
         // - sales: suma de ARInvoices.Total por InvoiceDate del mes (excluye CANCELLED)
         // - collected: suma de ARInvoicePayments.Amount por PaymentDate del mes (excluye IsCancelled)
+        [RequirePermission(Perms.ReportsView)]
         [HttpGet("sales-vs-collections")]
         public async Task<IActionResult> SalesVsCollections([FromQuery] int? year = null)
         {
@@ -97,6 +100,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/reports/sales-invoice/123/pdf
+        [RequirePermission(Perms.ReportsView)]
         [HttpGet("sales-invoice/{id}/pdf")]
         public async Task<IActionResult> SalesInvoicePdf(int id)
         {
@@ -108,6 +112,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/reports/sales-receipt/123/pdf
+        [RequirePermission(Perms.ReportsView)]
         [HttpGet("sales-receipt/{id}/pdf")]
         public async Task<IActionResult> SalesReceiptPdf(int id)
         {

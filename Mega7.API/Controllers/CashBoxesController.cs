@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +27,7 @@ namespace Mega7.API.Controllers
         // =========================
         // CASH BOXES (ABM)
         // =========================
+        [RequirePermission(Perms.CashBoxesView)]
         [HttpGet]
         public async Task<IActionResult> GetCashBoxes()
         {
@@ -36,6 +39,7 @@ namespace Mega7.API.Controllers
             return Ok(list);
         }
 
+        [RequirePermission(Perms.CashBoxesCreate)]
         [HttpPost]
         public async Task<IActionResult> CreateCashBox(CashBoxUpsertDto dto)
         {
@@ -53,6 +57,7 @@ namespace Mega7.API.Controllers
             return Ok(model);
         }
 
+        [RequirePermission(Perms.CashBoxesEdit)]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateCashBox(int id, CashBoxUpsertDto dto)
         {
@@ -70,6 +75,7 @@ namespace Mega7.API.Controllers
             return NoContent();
         }
 
+        [RequirePermission(Perms.CashBoxesEdit)]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteCashBox(int id)
         {
@@ -92,6 +98,7 @@ namespace Mega7.API.Controllers
         // =========================
         // CATEGORIES (ABM)
         // =========================
+        [RequirePermission(Perms.CashBoxesView)]
         [HttpGet("categories")]
         public async Task<IActionResult> GetCategories()
         {
@@ -103,6 +110,7 @@ namespace Mega7.API.Controllers
             return Ok(list);
         }
 
+        [RequirePermission(Perms.CashBoxesCreate)]
         [HttpPost("categories")]
         public async Task<IActionResult> CreateCategory(CashCategoryUpsertDto dto)
         {
@@ -120,6 +128,7 @@ namespace Mega7.API.Controllers
             return Ok(model);
         }
 
+        [RequirePermission(Perms.CashBoxesEdit)]
         [HttpPut("categories/{id:int}")]
         public async Task<IActionResult> UpdateCategory(int id, CashCategoryUpsertDto dto)
         {
@@ -137,6 +146,7 @@ namespace Mega7.API.Controllers
             return NoContent();
         }
 
+        [RequirePermission(Perms.CashBoxesEdit)]
         [HttpDelete("categories/{id:int}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
@@ -156,6 +166,7 @@ namespace Mega7.API.Controllers
         // SESSIONS (Apertura/Cierre)
         // =========================
         // POST api/cashboxes/{id}/open
+        [RequirePermission(Perms.CashBoxesCreate)]
         [HttpPost("{id:int}/open")]
         public async Task<IActionResult> OpenSession(int id, CashSessionOpenDto dto)
         {
@@ -190,6 +201,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST api/cashboxes/{id}/close
+        [RequirePermission(Perms.CashBoxesEdit)]
         [HttpPost("{id:int}/close")]
         public async Task<IActionResult> CloseSession(int id, CashSessionCloseDto dto)
         {
@@ -234,6 +246,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET api/cashboxes/sessions?date=YYYY-MM-DD
+        [RequirePermission(Perms.CashBoxesView)]
         [HttpGet("sessions")]
         public async Task<IActionResult> GetSessions([FromQuery] DateTime? date = null)
         {
@@ -267,6 +280,7 @@ namespace Mega7.API.Controllers
         // =========================
         // MOVEMENTS
         // =========================
+        [RequirePermission(Perms.CashBoxesView)]
         [HttpGet("movements")]
         public async Task<IActionResult> GetMovements([FromQuery] int? cashBoxId, [FromQuery] DateTime? from, [FromQuery] DateTime? to)
         {
@@ -312,6 +326,7 @@ namespace Mega7.API.Controllers
             return Ok(list);
         }
 
+        [RequirePermission(Perms.CashBoxesCreate)]
         [HttpPost("movements")]
         public async Task<IActionResult> CreateMovement(CashMovementCreateDto dto)
         {
@@ -390,6 +405,7 @@ namespace Mega7.API.Controllers
             return Ok(tmov);
         }
 
+        [RequirePermission(Perms.CashBoxesEdit)]
         [HttpPost("movements/{id:int}/cancel")]
         public async Task<IActionResult> CancelMovement(int id, [FromBody] string? reason = null)
         {
@@ -414,6 +430,7 @@ namespace Mega7.API.Controllers
         // BALANCES (saldo actual por caja)
         // =========================
         // GET api/cashboxes/balances?asOf=2026-01-06
+        [RequirePermission(Perms.CashBoxesView)]
         [HttpGet("balances")]
         public async Task<ActionResult<List<CashBoxBalanceDto>>> GetBalances([FromQuery] DateTime? asOf = null)
         {

@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -22,6 +24,7 @@ namespace Mega7.API.Controllers
         // =========================================================
         // GET: api/periods
         // =========================================================
+        [RequirePermission(Perms.PeriodsView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -37,6 +40,7 @@ namespace Mega7.API.Controllers
         // =========================================================
         // GET: api/periods/5
         // =========================================================
+        [RequirePermission(Perms.PeriodsView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -51,6 +55,7 @@ namespace Mega7.API.Controllers
         // =========================================================
         // POST: api/periods
         // =========================================================
+        [RequirePermission(Perms.PeriodsCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(PeriodCreateDto model)
         {
@@ -97,6 +102,7 @@ namespace Mega7.API.Controllers
         // PUT: api/periods/5
         // - Permite ajustar IsActive/IsOpen (si querés), y recalcula fechas si cambian Year/Month
         // =========================================================
+        [RequirePermission(Perms.PeriodsCreate)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, PeriodUpdateDto model)
         {
@@ -158,6 +164,7 @@ namespace Mega7.API.Controllers
         // =========================================================
         // POST: api/periods/5/close
         // =========================================================
+        [RequirePermission(Perms.PeriodsClose)]
         [HttpPost("{id}/close")]
         public async Task<IActionResult> Close(int id)
         {
@@ -183,6 +190,7 @@ namespace Mega7.API.Controllers
         // POST: api/periods/5/open
         // (Opcional: reabrir)
         // =========================================================
+        [RequirePermission(Perms.PeriodsOpen)]
         [HttpPost("{id}/open")]
         public async Task<IActionResult> Open(int id)
         {
@@ -209,6 +217,7 @@ namespace Mega7.API.Controllers
         // Recomendación: si ya lo usás en movimientos, NO borrar.
         // Acá hago "soft delete" (IsActive=false).
         // =========================================================
+        [RequirePermission(Perms.PeriodsDeactivate)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

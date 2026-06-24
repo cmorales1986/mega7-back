@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +27,7 @@ namespace Mega7.API.Controllers
         // =========================
         // BANKS (ABM)
         // =========================
+        [RequirePermission(Perms.BanksView)]
         [HttpGet]
         public async Task<IActionResult> GetBanks()
         {
@@ -35,6 +38,7 @@ namespace Mega7.API.Controllers
             return Ok(list);
         }
 
+        [RequirePermission(Perms.BanksView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetBank(int id)
         {
@@ -46,6 +50,7 @@ namespace Mega7.API.Controllers
             return Ok(bank);
         }
 
+        [RequirePermission(Perms.BanksCreate)]
         [HttpPost]
         public async Task<IActionResult> CreateBank(BankUpsertDto dto)
         {
@@ -65,6 +70,7 @@ namespace Mega7.API.Controllers
             return CreatedAtAction(nameof(GetBank), new { id = model.Id }, model);
         }
 
+        [RequirePermission(Perms.BanksEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBank(int id, BankUpsertDto dto)
         {
@@ -83,6 +89,7 @@ namespace Mega7.API.Controllers
             return NoContent();
         }
 
+        [RequirePermission(Perms.BanksEdit)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBank(int id)
         {
@@ -102,6 +109,7 @@ namespace Mega7.API.Controllers
         // =========================
         // ACCOUNTS
         // =========================
+        [RequirePermission(Perms.BanksView)]
         [HttpGet("accounts")]
         public async Task<IActionResult> GetAccounts()
         {
@@ -114,6 +122,7 @@ namespace Mega7.API.Controllers
             return Ok(list);
         }
 
+        [RequirePermission(Perms.BanksView)]
         [HttpGet("accounts/{id}")]
         public async Task<IActionResult> GetAccount(int id)
         {
@@ -125,6 +134,7 @@ namespace Mega7.API.Controllers
             return Ok(acc);
         }
 
+        [RequirePermission(Perms.BanksCreate)]
         [HttpPost("accounts")]
         public async Task<IActionResult> CreateAccount(BankAccountUpsertDto dto)
         {
@@ -157,6 +167,7 @@ namespace Mega7.API.Controllers
             return CreatedAtAction(nameof(GetAccount), new { id = model.Id }, model);
         }
 
+        [RequirePermission(Perms.BanksEdit)]
         [HttpPut("accounts/{id}")]
         public async Task<IActionResult> UpdateAccount(int id, BankAccountUpsertDto dto)
         {
@@ -188,6 +199,7 @@ namespace Mega7.API.Controllers
             return NoContent();
         }
 
+        [RequirePermission(Perms.BanksEdit)]
         [HttpDelete("accounts/{id}")]
         public async Task<IActionResult> DeleteAccount(int id)
         {
@@ -209,6 +221,7 @@ namespace Mega7.API.Controllers
         // =========================
         // MOVEMENTS
         // =========================
+        [RequirePermission(Perms.BanksView)]
         [HttpGet("movements")]
         public async Task<IActionResult> GetMovements(
             [FromQuery] int? accountId,
@@ -241,6 +254,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET /banks/accounts/balances?asOf=2026-01-06
+        [RequirePermission(Perms.BanksView)]
         [HttpGet("accounts/balances")]
         public async Task<ActionResult<List<BankAccountBalanceDto>>> GetAccountBalances([FromQuery] DateTime? asOf = null)
         {
@@ -331,6 +345,7 @@ namespace Mega7.API.Controllers
             return Ok(result);
         }
 
+        [RequirePermission(Perms.BanksCreate)]
         [HttpPost("movements")]
         public async Task<IActionResult> CreateMovement(BankMovementCreateDto dto)
         {
@@ -411,6 +426,7 @@ namespace Mega7.API.Controllers
             return Ok(mov);
         }
 
+        [RequirePermission(Perms.BanksEdit)]
         [HttpPost("movements/{id}/cancel")]
         public async Task<IActionResult> CancelMovement(int id)
         {
@@ -431,6 +447,7 @@ namespace Mega7.API.Controllers
         // =========================
         // BALANCE (por cuenta y fecha)
         // =========================
+        [RequirePermission(Perms.BanksView)]
         [HttpGet("accounts/{id}/balance")]
         public async Task<IActionResult> GetAccountBalance(int id, [FromQuery] DateTime? at)
         {

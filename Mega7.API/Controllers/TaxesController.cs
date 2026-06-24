@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +21,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/taxes
+        [RequirePermission(Perms.TaxesView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -31,6 +34,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/taxes/5
+        [RequirePermission(Perms.TaxesView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -45,6 +49,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/taxes
+        [RequirePermission(Perms.TaxesCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(Tax model)
         {
@@ -64,6 +69,7 @@ namespace Mega7.API.Controllers
         }
 
         // PUT: api/taxes/5
+        [RequirePermission(Perms.TaxesEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, Tax model)
         {
@@ -87,6 +93,7 @@ namespace Mega7.API.Controllers
         }
 
         // DELETE: api/taxes/5
+        [RequirePermission(Perms.TaxesDelete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

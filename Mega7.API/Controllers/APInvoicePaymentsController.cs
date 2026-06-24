@@ -1,5 +1,7 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -22,6 +24,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/apinvoicepayments/by-invoice/12
+        [RequirePermission(Perms.APPaymentsView)]
         [HttpGet("by-invoice/{apInvoiceId:int}")]
         public async Task<IActionResult> GetByInvoice(int apInvoiceId)
         {
@@ -55,6 +58,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/apinvoicepayments/{apInvoiceId}/pay
+        [RequirePermission(Perms.APPaymentsCreate)]
         [HttpPost("{apInvoiceId:int}/pay")]
         public async Task<IActionResult> Pay(int apInvoiceId, [FromBody] APInvoicePayDto dto)
         {
@@ -156,6 +160,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/apinvoicepayments/{paymentId}/cancel
+        [RequirePermission(Perms.APPaymentsCancel)]
         [HttpPost("{paymentId:int}/cancel")]
         public async Task<IActionResult> CancelPayment(int paymentId, [FromBody] APInvoiceCancelPaymentDto? dto)
         {

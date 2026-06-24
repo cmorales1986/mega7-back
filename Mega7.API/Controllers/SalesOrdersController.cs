@@ -1,6 +1,8 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.Pdf;
 using Mega7.API.Services;
+using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
 using Mega7.SHARED.Enums;
@@ -30,6 +32,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/salesorders
+        [RequirePermission(Perms.SalesOrdersView)]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -43,6 +46,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/salesorders/5
+        [RequirePermission(Perms.SalesOrdersView)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -60,6 +64,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/salesorders/open
+        [RequirePermission(Perms.SalesOrdersView)]
         [HttpGet("open")]
         public async Task<IActionResult> GetOpen()
         {
@@ -74,6 +79,7 @@ namespace Mega7.API.Controllers
         }
 
         // GET: api/salesorders/{id}/pending  (para futura facturación parcial)
+        [RequirePermission(Perms.SalesOrdersView)]
         [HttpGet("{id}/pending")]
         public async Task<IActionResult> GetPending(int id)
         {
@@ -135,6 +141,7 @@ namespace Mega7.API.Controllers
             });
         }
 
+        [RequirePermission(Perms.SalesOrdersView)]
         [HttpGet("{id}/pdf")]
         public async Task<IActionResult> Pdf(int id)
         {
@@ -224,6 +231,7 @@ namespace Mega7.API.Controllers
             public decimal LineTotal { get; set; }
         }
 
+        [RequirePermission(Perms.SalesOrdersView)]
         [HttpPost("pricing-options/simulate")]
         public async Task<IActionResult> SimulatePricingOptions([FromBody] SimulateSalesOrderPricingOptionsRequestDto req)
         {
@@ -384,6 +392,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/salesorders
+        [RequirePermission(Perms.SalesOrdersCreate)]
         [HttpPost]
         public async Task<IActionResult> Create(SalesOrderCreateDto dto)
         {
@@ -537,6 +546,7 @@ namespace Mega7.API.Controllers
         }
 
         // PUT: api/salesorders/5
+        [RequirePermission(Perms.SalesOrdersEdit)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, SalesOrderUpdateDto dto)
         {
@@ -685,6 +695,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/salesorders/5/open
+        [RequirePermission(Perms.SalesOrdersEdit)]
         [HttpPost("{id}/open")]
         public async Task<IActionResult> Open(int id)
         {
@@ -703,6 +714,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/salesorders/5/close
+        [RequirePermission(Perms.SalesOrdersEdit)]
         [HttpPost("{id}/close")]
         public async Task<IActionResult> Close(int id)
         {
@@ -717,6 +729,7 @@ namespace Mega7.API.Controllers
         }
 
         // POST: api/salesorders/5/cancel
+        [RequirePermission(Perms.SalesOrdersCancel)]
         [HttpPost("{id}/cancel")]
         public async Task<IActionResult> Cancel(int id)
         {
@@ -751,6 +764,7 @@ namespace Mega7.API.Controllers
         // PREVIEW PDF (sin guardar)
         // POST: api/salesorders/quote-pdf-preview
         // ==========================================
+        [RequirePermission(Perms.SalesOrdersView)]
         [HttpPost("quote-pdf-preview")]
         public async Task<IActionResult> QuotePdfPreview([FromBody] QuotePdfPreviewRequestDto req)
         {

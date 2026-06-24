@@ -1,4 +1,6 @@
-﻿using Mega7.API.Data;
+using Mega7.API.Attributes;
+using Mega7.API.Data;
+using Mega7.API.Utils;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +20,7 @@ namespace Mega7.API.Controllers
             _ctx = ctx;
         }
 
-        // ✅ Para hoy: obtener “la empresa activa” (la primera activa)
+        [RequirePermission(Perms.TenantsView)]
         [HttpGet("active")]
         public async Task<IActionResult> GetActive()
         {
@@ -33,7 +35,7 @@ namespace Mega7.API.Controllers
             return Ok(tenant);
         }
 
-        // ✅ Upsert simple: si no existe, crea; si existe, actualiza
+        [RequirePermission(Perms.TenantsEdit)]
         [HttpPost("active")]
         public async Task<IActionResult> UpsertActive(Tenant model)
         {
@@ -55,8 +57,6 @@ namespace Mega7.API.Controllers
             tenant.Address = model.Address;
             tenant.Email = model.Email;
             tenant.Phone = model.Phone;
-
-            // futuro (si mandás)
             tenant.LogoUrl = model.LogoUrl;
             tenant.PrimaryColor = model.PrimaryColor;
             tenant.SecondaryColor = model.SecondaryColor;

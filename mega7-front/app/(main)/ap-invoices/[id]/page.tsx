@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -27,6 +27,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef, GridRowId } from "@mui/x-data-grid";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -122,7 +123,7 @@ export default function APInvoiceDetailPage() {
       setInstallments((ins.data ?? []) as InstallmentRow[]);
       setPayments((p.data ?? []) as PaymentRow[]);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar CxP", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar CxP"), "error");
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
@@ -31,6 +31,7 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import type { GridColDef, GridRenderCellParams, GridRowId } from "@mui/x-data-grid";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -239,7 +240,7 @@ export default function CuoteroClientesPage() {
       setSummary(Array.isArray(r.data?.items) ? r.data.items : []);
       setSummaryRange({ from: r.data.from, to: r.data.to });
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message ?? "Error", "error");
+      Swal.fire("Error", toErrorMsg(e, "Error"), "error");
     } finally {
       setLoading(false);
     }
@@ -255,7 +256,7 @@ export default function CuoteroClientesPage() {
       setSelectedCustomer({ id: customerId, name: customerName });
       setView("matrix");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message ?? "Error", "error");
+      Swal.fire("Error", toErrorMsg(e, "Error"), "error");
     } finally {
       setLoading(false);
     }
@@ -268,7 +269,7 @@ export default function CuoteroClientesPage() {
       setInvoiceDetail(r.data);
       setOpenInvoice(true);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message ?? "Error", "error");
+      Swal.fire("Error", toErrorMsg(e, "Error"), "error");
     } finally {
       setLoading(false);
     }

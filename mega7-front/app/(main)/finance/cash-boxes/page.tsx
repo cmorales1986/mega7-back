@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -50,6 +50,7 @@ import type {
 } from "@mui/x-data-grid";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -306,7 +307,7 @@ export default function CashBoxesPage() {
       if (tab === "movements") await loadMovements();
       Swal.fire("OK", "Datos refrescados", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message ?? "Error", "error");
+      Swal.fire("Error", toErrorMsg(e, "Error"), "error");
     } finally {
       setLoading(false);
     }
@@ -319,7 +320,7 @@ export default function CashBoxesPage() {
         await loadBasics();
         await Promise.all([loadBalances(), loadSessions()]);
       } catch (e: any) {
-        Swal.fire("Error", e?.response?.data ?? e?.message ?? "Error", "error");
+        Swal.fire("Error", toErrorMsg(e, "Error"), "error");
       } finally {
         setLoading(false);
       }
@@ -402,7 +403,7 @@ export default function CashBoxesPage() {
       await loadBalances();
       Swal.fire("OK", "Guardado.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -423,7 +424,7 @@ export default function CashBoxesPage() {
       await loadBalances();
       Swal.fire("OK", "Eliminada.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -460,7 +461,7 @@ export default function CashBoxesPage() {
       await loadBasics();
       Swal.fire("OK", "Guardado.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -480,7 +481,7 @@ export default function CashBoxesPage() {
       await loadBasics();
       Swal.fire("OK", "Eliminada.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -549,7 +550,7 @@ export default function CashBoxesPage() {
       await Promise.all([loadMovements(), loadBalances(), loadSessions()]);
       Swal.fire("OK", "Movimiento registrado.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -573,7 +574,7 @@ export default function CashBoxesPage() {
       await Promise.all([loadMovements(), loadBalances(), loadSessions()]);
       Swal.fire("OK", "Cancelado.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -617,7 +618,7 @@ export default function CashBoxesPage() {
       await Promise.all([loadSessions(), loadBalances()]);
       Swal.fire("OK", "Caja abierta.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -640,7 +641,7 @@ export default function CashBoxesPage() {
       await Promise.all([loadSessions(), loadBalances()]);
       Swal.fire("OK", "Caja cerrada.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 

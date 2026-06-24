@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -32,6 +32,7 @@ import {
 // ✅ componentes base
 import { PageShell, Chip } from "@/components/ui/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 
@@ -93,7 +94,7 @@ export default function ProveedorDetailPage() {
       const res = await api.get(`/sociosnegocio/${socioId}`);
       setSocio(res.data ?? null);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar el proveedor", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar el proveedor"), "error");
     }
     setLoadingSocio(false);
   }
@@ -104,7 +105,7 @@ export default function ProveedorDetailPage() {
       const res = await api.get(`/socionegociosucursales/socio/${socioId}`);
       setSucursales(res.data ?? []);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar sucursales", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar sucursales"), "error");
     }
     setLoadingSuc(false);
   }
@@ -194,7 +195,7 @@ export default function ProveedorDetailPage() {
       setOpenModal(false);
       await loadSucursales();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo guardar sucursal.", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo guardar sucursal."), "error");
     }
     setSaving(false);
   }
@@ -216,7 +217,7 @@ export default function ProveedorDetailPage() {
       await api.delete(`/socionegociosucursales/${row.id}`);
       await loadSucursales();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo eliminar.", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo eliminar."), "error");
     }
   }
 

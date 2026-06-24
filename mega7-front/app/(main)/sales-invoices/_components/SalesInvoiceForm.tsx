@@ -273,7 +273,7 @@ export default function SalesInvoiceForm() {
       Swal.fire("OK", "Factura creada.", "success");
       router.push(`/sales-invoices/${Number(newId)}`);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message ?? "No se pudo crear factura", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo crear factura"), "error");
     } finally {
       setLoading(false);
     }

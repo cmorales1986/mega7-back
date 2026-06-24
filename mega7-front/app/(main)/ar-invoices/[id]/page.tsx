@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ import {
 // ✅ Premium shell
 import { PageShell, Chip } from "@/components/ui/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
+import { toErrorMsg } from "@/lib/api-error";
 
 const fmtPY = new Intl.NumberFormat("es-PY");
 const money = (n: any) => fmtPY.format(Number(n || 0));
@@ -135,7 +136,7 @@ export default function ARInvoiceDetailPage() {
     } catch (e: any) {
       Swal.fire(
         "Error",
-        e?.response?.data ?? "No se pudo cargar detalle",
+        toErrorMsg(e, "No se pudo cargar detalle"),
         "error"
       );
     } finally {

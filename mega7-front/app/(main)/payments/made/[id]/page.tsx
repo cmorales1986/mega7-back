@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -14,6 +14,7 @@ import { PageShell, Chip } from "@/components/ui/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
 
 import { ArrowLeft, Printer, HandCoins, ListChecks, Ban } from "lucide-react";
+import { toErrorMsg } from "@/lib/api-error";
 
 const fmtPY = new Intl.NumberFormat("es-PY");
 const money = (n: any) => fmtPY.format(Number(n ?? 0));
@@ -74,7 +75,7 @@ export default function PaymentMadeDetailPage() {
       const res = await api.get(`/paymentsmade/${id}`);
       setData(res.data ?? null);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar el pago", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar el pago"), "error");
     } finally {
       setLoading(false);
     }
@@ -98,7 +99,7 @@ export default function PaymentMadeDetailPage() {
       await Swal.fire("OK", "Pago anulado.", "success");
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo anular", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo anular"), "error");
     } finally {
       setLoading(false);
     }

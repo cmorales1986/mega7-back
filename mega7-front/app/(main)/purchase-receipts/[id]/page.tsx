@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, RefreshCcw, Pencil, ReceiptText } from "lucide-react";
 
 import { getPurchaseReceiptById } from "@/features/purchasing/purchase-receipts/api";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -40,7 +41,7 @@ export default function PurchaseReceiptDetailPage() {
       const data = await getPurchaseReceiptById(idNum);
       setDoc(data);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar"), "error");
       setDoc(null);
     } finally {
       setLoading(false);

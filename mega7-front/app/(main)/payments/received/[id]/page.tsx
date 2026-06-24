@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -14,6 +14,7 @@ import { PageShell, Chip } from "@/components/ui/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
 
 import { ArrowLeft, Printer, ReceiptText, ListChecks } from "lucide-react";
+import { toErrorMsg } from "@/lib/api-error";
 
 const fmtPY = new Intl.NumberFormat("es-PY");
 
@@ -69,7 +70,7 @@ export default function PaymentReceivedDetailPage() {
       const res = await api.get(`/arsalesreceipts/${id}`);
       setData(res.data ?? null);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar el recibo", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar el recibo"), "error");
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-// app/stock-transfer/[id]/page.tsx
+﻿// app/stock-transfer/[id]/page.tsx
 "use client";
 
 import Swal from "sweetalert2";
@@ -17,6 +17,7 @@ import { getProducts, getTransferById } from "@/features/inventory/stock-transfe
 import { mapTransferDetail } from "@/features/inventory/stock-transfer/mappers";
 import type { StockTransferDetailUI } from "@/features/inventory/stock-transfer/types";
 import { fmtPY, fmtDatePY, splitSerials } from "@/features/inventory/stock-transfer/utils";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 
@@ -58,7 +59,7 @@ export default function StockTransferDetailPage() {
       const raw = await getTransferById(idNum);
       setTransfer(mapTransferDetail(raw, pMap, idNum));
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar la transferencia", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar la transferencia"), "error");
       setTransfer(null);
     }
     setLoading(false);

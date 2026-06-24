@@ -21,6 +21,7 @@ import {
   RefreshCcw,
 } from "lucide-react";
 
+import { toErrorMsg } from "@/lib/api-error";
 import { motion } from "framer-motion";
 import {
   ResponsiveContainer,
@@ -204,30 +205,39 @@ export default function DashboardPage() {
     }
   };
 
+  const safeGet = async <T,>(url: string, fallback: T): Promise<T> => {
+    try {
+      const res = await api.get<T>(url);
+      return res.data ?? fallback;
+    } catch (e: any) {
+      // 403 = sin permiso → devolver vacío silenciosamente
+      if (e?.response?.status === 403 || e?.response?.status === 401) return fallback;
+      throw e;
+    }
+  };
+
   const loadDashboard = async () => {
     setLoading(true);
     try {
-      const [banksRes, kpiRes] = await Promise.all([
-        api.get("/banks/accounts/balances"),
-        api.get("/dashboard/kpis"),
+      const [banks, kpiData] = await Promise.all([
+        safeGet<BankBalanceRow[]>("/banks/accounts/balances", []),
+        safeGet<KpiResponse>("/dashboard/kpis", {
+          arTotal: 0,
+          apTotal: 0,
+          overdueCustomers: 0,
+          salesThisMonth: 0,
+        }),
       ]);
 
-      setBankRows(
-        (Array.isArray(banksRes.data) ? banksRes.data : []) as BankBalanceRow[]
-      );
-
+      setBankRows(Array.isArray(banks) ? banks : []);
       setKpi({
-        arTotal: Number(kpiRes.data?.arTotal ?? 0),
-        apTotal: Number(kpiRes.data?.apTotal ?? 0),
-        overdueCustomers: Number(kpiRes.data?.overdueCustomers ?? 0),
-        salesThisMonth: Number(kpiRes.data?.salesThisMonth ?? 0),
+        arTotal: Number(kpiData?.arTotal ?? 0),
+        apTotal: Number(kpiData?.apTotal ?? 0),
+        overdueCustomers: Number(kpiData?.overdueCustomers ?? 0),
+        salesThisMonth: Number(kpiData?.salesThisMonth ?? 0),
       });
     } catch (e: any) {
-      Swal.fire(
-        "Error",
-        e?.response?.data ?? e?.message ?? "No se pudo cargar dashboard",
-        "error"
-      );
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar el dashboard"), "error");
     } finally {
       setLoading(false);
     }

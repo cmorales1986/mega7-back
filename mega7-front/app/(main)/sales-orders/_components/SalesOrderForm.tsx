@@ -588,7 +588,7 @@ export default function SalesOrderForm({ mode, editingId, onSaved, onCancel }: P
 
       setQuoteDirty(false);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message ?? "No se pudo simular", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo simular"), "error");
     } finally {
       setQuoteLoading(false);
     }
@@ -648,7 +648,7 @@ export default function SalesOrderForm({ mode, editingId, onSaved, onCancel }: P
         "success"
       );
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e?.message ?? "No se pudo aplicar", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo aplicar"), "error");
     } finally {
       setLoading(false);
     }

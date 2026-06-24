@@ -69,8 +69,9 @@ namespace Mega7.API.Controllers
             if (exists)
                 return BadRequest("Ya existe un período para ese Año/Mes.");
 
-            var start = new DateTime(model.Year, model.Month, 1);
-            var end = start.AddMonths(1).AddDays(-1);
+            var start = new DateTime(model.Year, model.Month, 1, 12, 0, 0, DateTimeKind.Utc);
+            var end = new DateTime(model.Year, model.Month, 1, 12, 0, 0, DateTimeKind.Utc)
+                          .AddMonths(1).AddDays(-1);
 
             var period = new Period
             {
@@ -123,8 +124,9 @@ namespace Mega7.API.Controllers
             // Si cambió Year/Month, recalcular fechas
             if (period.Year != model.Year || period.Month != model.Month)
             {
-                var start = new DateTime(model.Year, model.Month, 1);
-                var end = start.AddMonths(1).AddDays(-1);
+                var start = new DateTime(model.Year, model.Month, 1, 12, 0, 0, DateTimeKind.Utc);
+                var end = new DateTime(model.Year, model.Month, 1, 12, 0, 0, DateTimeKind.Utc)
+                              .AddMonths(1).AddDays(-1);
 
                 period.Year = model.Year;
                 period.Month = model.Month;

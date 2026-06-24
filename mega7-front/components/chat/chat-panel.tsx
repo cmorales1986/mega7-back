@@ -70,7 +70,7 @@ export function ChatPanel() {
       {/* Panel de chat */}
       {isOpen && (
         <div
-          className="fixed bottom-20 left-4 z-[1000] w-80 flex flex-col rounded-2xl shadow-2xl border border-gray-200 overflow-hidden bg-white"
+          className="fixed bottom-20 right-6 z-[1000] w-80 flex flex-col rounded-2xl shadow-2xl border border-gray-200 overflow-hidden bg-white"
           style={{ height: "460px" }}
         >
           {/* Header */}
@@ -174,7 +174,7 @@ export function ChatPanel() {
       {/* Botón flotante */}
       <button
         onClick={() => setIsOpen((v) => !v)}
-        className="fixed bottom-4 left-4 z-[1000] w-12 h-12 rounded-full bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow-lg flex items-center justify-center transition hover:scale-105 active:scale-95"
+        className="fixed bottom-6 right-6 z-[1000] w-12 h-12 rounded-full bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow-lg flex items-center justify-center transition hover:scale-105 active:scale-95"
         title="Chat del equipo"
       >
         <MessageCircle size={22} />

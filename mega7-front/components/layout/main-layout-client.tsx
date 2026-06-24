@@ -2,8 +2,6 @@
 
 import Sidebar from "@/components/layout/sidebar";
 import Navbar from "@/components/layout/navbar";
-import { FloatingReportsButton } from "@/components/ui/floating-reports-button";
-import { FloatingPriceButton } from "@/components/ui/floating-price-button";
 import { AuthProvider } from "@/contexts/auth-context";
 import { ChatPanel } from "@/components/chat/chat-panel";
 
@@ -25,8 +23,6 @@ export default function MainLayoutClient({
           </main>
         </div>
 
-        <FloatingPriceButton />
-        <FloatingReportsButton />
         <ChatPanel />
       </div>
     </AuthProvider>

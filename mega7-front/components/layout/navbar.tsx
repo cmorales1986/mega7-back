@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/auth-context";
@@ -15,13 +15,17 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 
-import { ChevronDown, LogOut, User, Users, Settings, Shield } from "lucide-react";
+import { ChevronDown, LogOut, User, Users, Settings, Shield, BarChart3, Calculator } from "lucide-react";
 import { NotificationBell } from "@/components/navbar/notification-bell";
+import { ReportsSidePanel } from "@/components/ui/reports-side-panel";
+import { PriceSimulatorSheet } from "@/components/ui/price-simulator-sheet";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAdmin } = useAuth();
+  const [reportsOpen, setReportsOpen] = useState(false);
+  const [priceOpen, setPriceOpen] = useState(false);
 
   const title = useMemo(() => {
     const clean = pathname.replace("/", "");
@@ -49,6 +53,7 @@ export default function Navbar() {
   const role = (user?.role || "").toUpperCase();
 
   return (
+    <>
     <header
       className="w-full h-16 flex items-center justify-between px-6 border-b shadow
         bg-gradient-to-r from-[#C5A05A] to-[#d8b56c] text-white"
@@ -56,6 +61,24 @@ export default function Navbar() {
       <h1 className="text-lg font-semibold tracking-wide">{title}</h1>
 
       <div className="flex items-center gap-3">
+        {/* Reportes */}
+        <button
+          onClick={() => setReportsOpen(true)}
+          title="Reportes"
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-500 hover:bg-emerald-600 text-white transition shadow"
+        >
+          <BarChart3 size={18} />
+        </button>
+
+        {/* Simulador de precios */}
+        <button
+          onClick={() => setPriceOpen(true)}
+          title="Simulador de precios"
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-500 hover:bg-emerald-600 text-white transition shadow"
+        >
+          <Calculator size={18} />
+        </button>
+
         <NotificationBell />
 
         <DropdownMenu>
@@ -121,5 +144,9 @@ export default function Navbar() {
         </DropdownMenu>
       </div>
     </header>
+
+    <ReportsSidePanel open={reportsOpen} onClose={() => setReportsOpen(false)} />
+    <PriceSimulatorSheet open={priceOpen} onClose={() => setPriceOpen(false)} />
+  </>
   );
 }

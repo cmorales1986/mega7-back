@@ -9,10 +9,15 @@ const apiTarget = process.env.API_PROXY_TARGET ?? "http://localhost:5063";
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
-      // Proxy de todo lo que empiece con /api → backend .NET
+      // Proxy REST API
       {
         source: "/api/:path*",
         destination: `${apiTarget}/api/:path*`,
+      },
+      // Proxy SignalR hubs (negociación HTTP + long-polling)
+      {
+        source: "/hubs/:path*",
+        destination: `${apiTarget}/hubs/:path*`,
       },
     ];
   },

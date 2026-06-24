@@ -80,10 +80,9 @@ namespace Mega7.API.Controllers
 
             var role = req.Role.Trim().ToUpperInvariant();
 
-            // Roles válidos
-            var allowed = new HashSet<string> { "ADMIN", "SUPERVISOR", "CAJERO", "VENTAS" };
-            if (!allowed.Contains(role))
-                return BadRequest("Role inválido. Use: ADMIN, SUPERVISOR, CAJERO, VENTAS.");
+            // Valida contra los roles registrados en la tabla AppRoles
+            if (!await _ctx.AppRoles.AnyAsync(r => r.Name == role))
+                return BadRequest($"Rol '{role}' no existe. Crealo primero en la gestión de roles.");
 
             var u = await _ctx.Users.FindAsync(id);
             if (u == null) return NotFound();

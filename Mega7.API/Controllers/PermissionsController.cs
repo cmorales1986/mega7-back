@@ -43,24 +43,13 @@ namespace Mega7.API.Controllers
         [HttpGet("roles")]
         public async Task<IActionResult> GetRoles()
         {
-            // Roles con permisos asignados
-            var fromPerms = await _ctx.RolePermissions
-                .Select(rp => rp.RoleName)
-                .Distinct()
+            var roles = await _ctx.AppRoles
+                .AsNoTracking()
+                .OrderBy(r => r.Name)
+                .Select(r => r.Name)
                 .ToListAsync();
 
-            // Roles en uso por usuarios reales
-            var fromUsers = await _ctx.Users
-                .Where(u => u.Role != null)
-                .Select(u => u.Role!)
-                .Distinct()
-                .ToListAsync();
-
-            var all = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "USER", "VENTAS" };
-            foreach (var r in fromPerms) all.Add(r);
-            foreach (var r in fromUsers) all.Add(r);
-
-            return Ok(all.OrderBy(r => r));
+            return Ok(roles);
         }
 
         // PUT api/permissions/role/{roleName} — reemplaza los permisos de un rol

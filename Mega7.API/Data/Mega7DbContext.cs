@@ -98,11 +98,17 @@ namespace Mega7.API.Data
         public DbSet<Permission> Permissions => Set<Permission>();
         public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
+        public DbSet<AppRole> AppRoles => Set<AppRole>();
+
         public DbSet<Message> Messages => Set<Message>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<AppRole>()
+                .HasIndex(r => r.Name)
+                .IsUnique();
 
             // 👉 StockEntryLine → Warehouse (NO CASCADE)
             modelBuilder.Entity<StockEntryLine>()

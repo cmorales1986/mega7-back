@@ -27,6 +27,8 @@ import {
   FileText,
   Users,
   Shield,
+  Percent,
+  CalendarClock,
 } from "lucide-react";
 
 export type MenuItem = {
@@ -125,6 +127,8 @@ export const menu: MenuItem[] = [
       { title: "Ventas", href: "/settings/sales-params", icon: Coins },
       { title: "Series fiscales", href: "/fiscal-document-series", icon: ReceiptText },
       { title: "Conceptos de Pagos", href: "/settings/payment-concepts", icon: ReceiptText },
+      { title: "Impuestos", href: "/settings/taxes", icon: Percent },
+      { title: "Condiciones de Crédito", href: "/settings/credit-terms", icon: CalendarClock },
     ],
   },
 

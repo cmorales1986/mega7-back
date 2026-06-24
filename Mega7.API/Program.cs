@@ -185,6 +185,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
     await UserSeeder.SeedAsync(db);
     await PermissionSeeder.SeedAsync(db);
+    await ReportMenuSeeder.SeedAsync(db);
 }
 
 app.Run();

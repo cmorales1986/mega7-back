@@ -8,7 +8,11 @@ import {
   ArrowRight,
   FileText,
   LayoutGrid,
-  Warehouse
+  Warehouse,
+  BarChart3,
+  CalendarCheck,
+  TrendingUp,
+  AlertTriangle,
 } from "lucide-react";
 
 const iconMap: Record<string, any> = {
@@ -21,7 +25,11 @@ const iconMap: Record<string, any> = {
   ArrowRight,
   FileText,
   LayoutGrid,
-  Warehouse
+  Warehouse,
+  BarChart3,
+  CalendarCheck,
+  TrendingUp,
+  AlertTriangle,
 };
 
 export function getLucideIcon(name?: string | null) {

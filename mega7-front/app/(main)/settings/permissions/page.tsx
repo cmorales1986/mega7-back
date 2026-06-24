@@ -56,11 +56,13 @@ export default function PermissionsPage() {
       .catch(() => toast.error("Error cargando permisos del sistema"));
   }, []);
 
-  // Cargar roles disponibles
+  // Cargar roles disponibles (excluye ADMIN, sus permisos no son configurables)
   useEffect(() => {
     api.get<string[]>("/permissions/roles")
       .then((r) => {
-        const sorted = r.data.sort();
+        const sorted = r.data
+          .filter((role) => role.toUpperCase() !== "ADMIN")
+          .sort();
         setRoles(sorted);
         if (sorted.length > 0) setSelectedRole(sorted[0]);
       })

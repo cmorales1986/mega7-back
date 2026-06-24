@@ -39,17 +39,26 @@ namespace Mega7.API.Controllers
             return Ok(new { roleName, permissions = codes });
         }
 
-        // GET api/permissions/roles — lista de roles con al menos 1 permiso (+ USER y VENTAS por defecto)
+        // GET api/permissions/roles — todos los roles conocidos del sistema
         [HttpGet("roles")]
         public async Task<IActionResult> GetRoles()
         {
-            var rolesWithPerms = await _ctx.RolePermissions
+            // Roles con permisos asignados
+            var fromPerms = await _ctx.RolePermissions
                 .Select(rp => rp.RoleName)
                 .Distinct()
                 .ToListAsync();
 
+            // Roles en uso por usuarios reales
+            var fromUsers = await _ctx.Users
+                .Where(u => u.Role != null)
+                .Select(u => u.Role!)
+                .Distinct()
+                .ToListAsync();
+
             var all = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "USER", "VENTAS" };
-            foreach (var r in rolesWithPerms) all.Add(r);
+            foreach (var r in fromPerms) all.Add(r);
+            foreach (var r in fromUsers) all.Add(r);
 
             return Ok(all.OrderBy(r => r));
         }

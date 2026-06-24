@@ -105,8 +105,6 @@ type Me = {
   role: string;
 };
 
-const ROLES = ["ADMIN", "SUPERVISOR", "CAJERO", "VENTAS"] as const;
-
 // =====================
 // Page
 // =====================
@@ -116,6 +114,7 @@ export default function UsersPage() {
 
   const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState("");
+  const [availableRoles, setAvailableRoles] = useState<string[]>(["ADMIN", "SUPERVISOR", "CAJERO", "VENTAS"]);
 
   // =====================
   // Loaders
@@ -130,10 +129,20 @@ export default function UsersPage() {
     setUsers((Array.isArray(res.data) ? res.data : []).filter(Boolean) as UserRow[]);
   };
 
+  const loadRoles = async () => {
+    try {
+      const res = await api.get<string[]>("/permissions/roles");
+      const roles = (Array.isArray(res.data) ? res.data : []).map((r: string) => r.toUpperCase());
+      if (roles.length > 0) setAvailableRoles(roles.sort());
+    } catch {
+      // usa el default si falla
+    }
+  };
+
   const refreshAll = async () => {
     setLoading(true);
     try {
-      await Promise.all([loadMe(), loadUsers()]);
+      await Promise.all([loadMe(), loadUsers(), loadRoles()]);
       Swal.fire("OK", "Datos refrescados", "success");
     } catch (e: any) {
       Swal.fire("Error", e?.response?.data ?? e.message, "error");
@@ -148,9 +157,6 @@ export default function UsersPage() {
       try {
         await loadMe();
 
-        // ✅ si no es admin, afuera
-        const role = String((me as any)?.role ?? "").toUpperCase();
-        // (nota: como me se setea luego, verificamos con request directo)
         const meRes = await api.get("/auth/me");
         const r = String(meRes.data?.role ?? "").toUpperCase();
         if (r !== "ADMIN") {
@@ -158,7 +164,7 @@ export default function UsersPage() {
           return;
         }
 
-        await loadUsers();
+        await Promise.all([loadUsers(), loadRoles()]);
       } catch (e: any) {
         Swal.fire("Error", e?.response?.data ?? e.message, "error");
       } finally {
@@ -198,7 +204,7 @@ export default function UsersPage() {
   // =====================
   const changeRole = async (u: UserRow) => {
     const inputOptions: Record<string, string> = {};
-    ROLES.forEach((r) => (inputOptions[r] = r));
+    availableRoles.forEach((r) => (inputOptions[r] = r));
 
     const { value } = await Swal.fire({
       title: "Cambiar rol",

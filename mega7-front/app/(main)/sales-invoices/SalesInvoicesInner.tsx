@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -26,6 +26,7 @@ import {
 
 // ✅ tus componentes base
 import { PageShell, Chip } from "@/components/ui/page-shell";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -90,7 +91,7 @@ export default function SalesInvoicesInner() {
 
       setRows((data.filter(Boolean) as Row[]) ?? []);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar facturas", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar facturas"), "error");
     } finally {
       setLoading(false);
     }
@@ -135,7 +136,7 @@ export default function SalesInvoicesInner() {
       window.open(url, "_blank", "noopener,noreferrer");
       setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo abrir PDF", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo abrir PDF"), "error");
     }
   };
 
@@ -158,7 +159,7 @@ export default function SalesInvoicesInner() {
       Swal.fire("OK", "Factura cancelada", "success");
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cancelar", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cancelar"), "error");
     }
   };
 

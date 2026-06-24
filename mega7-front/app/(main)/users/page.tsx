@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -34,6 +34,7 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import type { GridColDef, GridRenderCellParams, GridRowId } from "@mui/x-data-grid";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 
@@ -105,7 +106,7 @@ export default function UsersPage() {
     try {
       await Promise.all([loadUsers(), loadRoles()]);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     } finally {
       setLoading(false);
     }
@@ -120,7 +121,7 @@ export default function UsersPage() {
         if (r !== "ADMIN") { window.location.href = "/dashboard"; return; }
         await Promise.all([loadUsers(), loadRoles()]);
       } catch (e: any) {
-        Swal.fire("Error", e?.response?.data ?? e.message, "error");
+        Swal.fire("Error", toErrorMsg(e), "error");
       } finally {
         setLoading(false);
       }
@@ -173,7 +174,7 @@ export default function UsersPage() {
       await loadUsers();
       Swal.fire("OK", "Rol actualizado", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -193,7 +194,7 @@ export default function UsersPage() {
       await api.put(`/users/${u.id}/active`, { isActive: next });
       await loadUsers();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -219,7 +220,7 @@ export default function UsersPage() {
       });
       await loadUsers();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -235,7 +236,7 @@ export default function UsersPage() {
       setNewRoleDesc("");
       await loadRoles();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     } finally {
       setSavingRole(false);
     }
@@ -261,7 +262,7 @@ export default function UsersPage() {
       await api.delete(`/approles/${role.id}`);
       await loadRoles();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 

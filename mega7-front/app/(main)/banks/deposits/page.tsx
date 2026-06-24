@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -44,6 +44,7 @@ import {
   Eye,
   HandCoins,
 } from "lucide-react";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -93,16 +94,6 @@ function emptySelectionModel(): GridRowSelectionModel {
   return { type: "include", ids: new Set<GridRowId>() } as GridRowSelectionModel;
 }
 
-const toErrorMessage = (e: any, fallback: string) => {
-  const data = e?.response?.data;
-  if (!data) return fallback;
-  if (typeof data === "string") return data;
-  try {
-    return JSON.stringify(data);
-  } catch {
-    return fallback;
-  }
-};
 
 const accLabel = (a: BankAccountRow) => {
   const bank = (a.bankName ?? "").trim();
@@ -187,7 +178,7 @@ export default function BankDepositsPage() {
       // reset selection
       setSelection(emptySelectionModel());
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar recaudaciones"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar recaudaciones"), "error");
     } finally {
       setLoading(false);
     }
@@ -275,7 +266,7 @@ export default function BankDepositsPage() {
 
       await loadUndeposited();
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo realizar el depósito"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo realizar el depósito"), "error");
     }
   };
 

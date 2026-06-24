@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -22,6 +22,7 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import type { GridColDef, GridRenderCellParams, GridRowId } from "@mui/x-data-grid";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -84,7 +85,7 @@ export default function SalesOrdersPage() {
 
       setRows((data.filter(Boolean) as SalesOrder[]) ?? []);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar órdenes de venta", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar órdenes de venta"), "error");
     } finally {
       setLoading(false);
     }
@@ -117,7 +118,7 @@ export default function SalesOrdersPage() {
       Swal.fire("OK", "Actualizado", "success");
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo ejecutar acción", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo ejecutar acción"), "error");
     }
   };
 

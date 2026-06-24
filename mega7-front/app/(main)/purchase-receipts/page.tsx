@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Plus, RefreshCcw, Eye, ReceiptText, Pencil } from "lucide-react";
 
 import { listPurchaseReceipts } from "@/features/purchasing/purchase-receipts/api";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -33,7 +34,7 @@ export default function PurchaseReceiptsListPage() {
       const data = await listPurchaseReceipts();
       setRows(data ?? []);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar"), "error");
       setRows([]);
     } finally {
       setLoading(false);

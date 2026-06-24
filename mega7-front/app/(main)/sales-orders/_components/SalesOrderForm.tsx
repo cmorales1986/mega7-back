@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -42,6 +42,7 @@ import {
   RefreshCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toErrorMsg } from "@/lib/api-error";
 
 const fmtPY = new Intl.NumberFormat("es-PY");
 const uid = () => Math.random().toString(36).slice(2);
@@ -366,7 +367,7 @@ export default function SalesOrderForm({ mode, editingId, onSaved, onCancel }: P
         await loadLookups();
         await loadDocIfEdit();
       } catch (e: any) {
-        Swal.fire("Error", e?.response?.data ?? "No se pudo cargar datos", "error");
+        Swal.fire("Error", toErrorMsg(e, "No se pudo cargar datos"), "error");
       } finally {
         setLoading(false);
       }
@@ -714,7 +715,7 @@ export default function SalesOrderForm({ mode, editingId, onSaved, onCancel }: P
         else router.push("/sales-orders");
       }
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo guardar", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo guardar"), "error");
     } finally {
       setLoading(false);
     }
@@ -789,7 +790,7 @@ export default function SalesOrderForm({ mode, editingId, onSaved, onCancel }: P
 
       window.URL.revokeObjectURL(url);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo generar el PDF", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo generar el PDF"), "error");
     } finally {
       setLoading(false);
     }

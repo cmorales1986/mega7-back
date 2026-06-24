@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -28,6 +28,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
 
 import { RefreshCcw, Plus, Pencil, Trash2, Settings2 } from "lucide-react";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 
@@ -41,16 +42,6 @@ type PaymentConcept = {
   createdAt?: string | null;
 };
 
-const toErrorMessage = (e: any, fallback: string) => {
-  const data = e?.response?.data;
-  if (!data) return fallback;
-  if (typeof data === "string") return data;
-  if (typeof data?.message === "string") return data.message;
-  if (typeof data?.title === "string" && typeof data?.detail === "string")
-    return `${data.title}\n${data.detail}`;
-  if (typeof data?.title === "string") return data.title;
-  try { return JSON.stringify(data); } catch { return fallback; }
-};
 
 export default function PaymentConceptsPage() {
   const [rows, setRows] = useState<PaymentConcept[]>([]);
@@ -88,7 +79,7 @@ export default function PaymentConceptsPage() {
       const data = Array.isArray(res.data) ? res.data : [];
       setRows((data.filter(Boolean) as PaymentConcept[]) ?? []);
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar conceptos"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar conceptos"), "error");
     } finally {
       setLoading(false);
     }
@@ -158,7 +149,7 @@ export default function PaymentConceptsPage() {
       resetForm();
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo guardar"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo guardar"), "error");
     } finally {
       setLoading(false);
     }
@@ -180,7 +171,7 @@ export default function PaymentConceptsPage() {
       await api.post(`/paymentconcepts/${row.id}/deactivate`);
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo desactivar"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo desactivar"), "error");
     } finally {
       setLoading(false);
     }
@@ -203,7 +194,7 @@ export default function PaymentConceptsPage() {
       await api.delete(`/paymentconcepts/${row.id}`);
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo eliminar"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo eliminar"), "error");
     } finally {
       setLoading(false);
     }

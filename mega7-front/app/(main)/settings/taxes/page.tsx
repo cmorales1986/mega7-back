@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -28,6 +28,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
 
 import { RefreshCcw, Plus, Pencil, Trash2, Percent } from "lucide-react";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 
@@ -37,16 +38,6 @@ type Tax = {
   rate: number;
 };
 
-const toErrorMessage = (e: any, fallback: string) => {
-  const data = e?.response?.data;
-  if (!data) return fallback;
-  if (typeof data === "string") return data;
-  if (typeof data?.message === "string") return data.message;
-  if (typeof data?.title === "string" && typeof data?.detail === "string")
-    return `${data.title}\n${data.detail}`;
-  if (typeof data?.title === "string") return data.title;
-  try { return JSON.stringify(data); } catch { return fallback; }
-};
 
 export default function TaxesPage() {
   const [rows, setRows] = useState<Tax[]>([]);
@@ -70,7 +61,7 @@ export default function TaxesPage() {
       const res = await api.get<Tax[]>("/taxes");
       setRows(Array.isArray(res.data) ? res.data : []);
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar impuestos"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar impuestos"), "error");
     } finally {
       setLoading(false);
     }
@@ -121,7 +112,7 @@ export default function TaxesPage() {
       resetForm();
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo guardar"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo guardar"), "error");
     } finally {
       setLoading(false);
     }
@@ -144,7 +135,7 @@ export default function TaxesPage() {
       await api.delete(`/taxes/${row.id}`);
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo eliminar"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo eliminar"), "error");
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -28,6 +28,7 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import type { GridColDef, GridRenderCellParams, GridRowId } from "@mui/x-data-grid";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -118,7 +119,7 @@ export default function ARInvoicesPage() {
     } catch (e: any) {
       Swal.fire(
         "Error",
-        e?.response?.data ?? "No se pudo cargar Cuentas por Cobrar",
+        toErrorMsg(e, "No se pudo cargar Cuentas por Cobrar"),
         "error"
       );
     } finally {
@@ -165,7 +166,7 @@ export default function ARInvoicesPage() {
       Swal.fire("OK", "CxC cancelada.", "success");
       loadData();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cancelar", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cancelar"), "error");
     }
   };
 
@@ -187,7 +188,7 @@ export default function ARInvoicesPage() {
       Swal.fire("OK", "CxC reabierta.", "success");
       loadData();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo reabrir", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo reabrir"), "error");
     }
   };
 

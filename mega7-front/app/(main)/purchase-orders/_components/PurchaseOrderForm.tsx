@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 // ✅ tus componentes base
 import { PageShell } from "@/components/ui/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
+import { toErrorMsg } from "@/lib/api-error";
 
 const fmtPY = new Intl.NumberFormat("es-PY");
 
@@ -190,7 +191,7 @@ export default function PurchaseOrderForm({ editingId }: { editingId?: number })
         await loadLookups();
         await loadDocIfEdit();
       } catch (e: any) {
-        Swal.fire("Error", e?.response?.data ?? "No se pudo cargar datos", "error");
+        Swal.fire("Error", toErrorMsg(e, "No se pudo cargar datos"), "error");
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -280,7 +281,7 @@ export default function PurchaseOrderForm({ editingId }: { editingId?: number })
 
       router.push("/purchase-orders");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo guardar", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo guardar"), "error");
     }
   };
 

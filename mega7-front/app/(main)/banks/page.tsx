@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -46,6 +46,7 @@ import type {
 } from "@mui/x-data-grid";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -241,7 +242,7 @@ export default function BanksPage() {
         (Array.isArray(bal.data) ? bal.data : []).filter(Boolean) as BankAccountBalance[]
       );
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     } finally {
       setLoading(false);
     }
@@ -267,7 +268,7 @@ export default function BanksPage() {
         (Array.isArray(res.data) ? res.data : []).filter(Boolean) as BankMovement[]
       );
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     } finally {
       setLoading(false);
     }
@@ -378,7 +379,7 @@ export default function BanksPage() {
       await loadAll();
       Swal.fire("OK", "Guardado.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -398,7 +399,7 @@ export default function BanksPage() {
       await loadAll();
       Swal.fire("OK", "Eliminado.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -467,7 +468,7 @@ export default function BanksPage() {
       await loadAll();
       Swal.fire("OK", "Cuenta guardada.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -487,7 +488,7 @@ export default function BanksPage() {
       await loadAll();
       Swal.fire("OK", "Eliminada.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -555,7 +556,7 @@ export default function BanksPage() {
       await loadBalances();
       Swal.fire("OK", "Movimiento registrado.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 
@@ -576,7 +577,7 @@ export default function BanksPage() {
       await loadBalances();
       Swal.fire("OK", "Cancelado.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? e.message, "error");
+      Swal.fire("Error", toErrorMsg(e), "error");
     }
   };
 

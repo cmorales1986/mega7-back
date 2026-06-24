@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -27,6 +27,7 @@ import {
 // ✅ tus componentes base
 import { PageShell, Chip } from "@/components/ui/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
+import { toErrorMsg } from "@/lib/api-error";
 
 const fmtPY = new Intl.NumberFormat("es-PY");
 
@@ -147,7 +148,7 @@ export default function SalesInvoiceForm() {
       try {
         await loadOrders();
       } catch (e: any) {
-        Swal.fire("Error", e?.response?.data ?? "No se pudo cargar OV", "error");
+        Swal.fire("Error", toErrorMsg(e, "No se pudo cargar OV"), "error");
       }
     })();
   }, []);

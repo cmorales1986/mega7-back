@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
@@ -40,6 +40,7 @@ import {
 // ✅ componentes base
 import { PageShell, Chip } from "@/components/ui/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -404,7 +405,7 @@ export default function StockEntryNewPage() {
 
       Swal.fire("Ok", "Recepción importada. Revisá costos/lotes/series antes de guardar.", "success");
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo importar la recepción.", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo importar la recepción."), "error");
     }
     setPrLoading(false);
   };

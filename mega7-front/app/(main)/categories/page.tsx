@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -31,6 +31,7 @@ import { esES } from "@mui/x-data-grid/locales";
 // Exportación
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 
@@ -61,7 +62,7 @@ export default function CategoriesPage() {
       const res = await api.get("/categories");
       setCategories(Array.isArray(res.data) ? res.data : []);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar categorías", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar categorías"), "error");
     } finally {
       setLoading(false);
     }
@@ -155,7 +156,7 @@ export default function CategoriesPage() {
       setOpenModal(false);
       loadData();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo guardar", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo guardar"), "error");
     }
   }
 
@@ -178,7 +179,7 @@ export default function CategoriesPage() {
       Swal.fire("Eliminado", "Categoría eliminada", "success");
       loadData();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo eliminar", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo eliminar"), "error");
     }
   }
 

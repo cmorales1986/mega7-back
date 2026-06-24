@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -50,6 +50,7 @@ import {
   Sparkles,
   Eye,
 } from "lucide-react";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -128,36 +129,6 @@ type APInvoiceLine = {
   lineTotal: number;
 };
 
-// =================== HELPERS ===================
-const toErrorMessage = (e: any, fallback: string) => {
-  const data = e?.response?.data;
-  if (!data) return fallback;
-  if (typeof data === "string") return data;
-  if (typeof data?.message === "string") return data.message;
-
-  if (typeof data?.title === "string" && typeof data?.detail === "string") {
-    return `${data.title}\n${data.detail}`;
-  }
-  if (typeof data?.title === "string") return data.title;
-
-  if (data?.errors && typeof data.errors === "object") {
-    try {
-      const lines: string[] = [];
-      for (const k of Object.keys(data.errors)) {
-        const arr = (data.errors as any)[k];
-        if (Array.isArray(arr)) lines.push(`${k}: ${arr.join(", ")}`);
-        else lines.push(`${k}: ${String(arr)}`);
-      }
-      if (lines.length) return lines.join("\n");
-    } catch {}
-  }
-
-  try {
-    return JSON.stringify(data);
-  } catch {
-    return fallback;
-  }
-};
 
 // compat selection model (v5/v6/v7)
 function toSelectedIds(model: GridRowSelectionModel): GridRowId[] {
@@ -287,7 +258,7 @@ export default function NewPaymentMadePage() {
         setViewLines([]);
       }
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar la factura"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar la factura"), "error");
       setViewOpen(false);
     } finally {
       setViewLoading(false);
@@ -310,7 +281,7 @@ export default function NewPaymentMadePage() {
       const data = Array.isArray(res.data) ? res.data : res.data?.items ?? [];
       setConcepts((data.filter(Boolean) as PaymentConcept[]) ?? []);
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar conceptos"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar conceptos"), "error");
     }
   };
 
@@ -320,7 +291,7 @@ export default function NewPaymentMadePage() {
       const data = Array.isArray(res.data) ? res.data : [];
       setSuppliers((data.filter(Boolean) as Supplier[]) ?? []);
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar proveedores"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar proveedores"), "error");
     }
   };
 
@@ -369,7 +340,7 @@ export default function NewPaymentMadePage() {
       setTargetInstallmentMap({});
       setApplyExcessToNextMap({});
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar facturas CxP"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar facturas CxP"), "error");
     } finally {
       setLoading(false);
     }
@@ -536,7 +507,7 @@ export default function NewPaymentMadePage() {
       await Swal.fire("OK", "Pago registrado.", "success");
       window.location.href = "/payments/made";
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo registrar pago"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo registrar pago"), "error");
     }
   };
 

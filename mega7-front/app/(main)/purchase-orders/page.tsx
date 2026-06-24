@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -30,6 +30,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -68,7 +69,7 @@ export default function PurchaseOrdersPage() {
     } catch (e: any) {
       Swal.fire(
         "Error",
-        e?.response?.data ?? "No se pudo cargar órdenes",
+        toErrorMsg(e, "No se pudo cargar órdenes"),
         "error"
       );
     } finally {
@@ -116,7 +117,7 @@ export default function PurchaseOrdersPage() {
     } catch (e: any) {
       Swal.fire(
         "Error",
-        e?.response?.data ?? "No se pudo ejecutar acción",
+        toErrorMsg(e, "No se pudo ejecutar acción"),
         "error"
       );
     }
@@ -148,7 +149,7 @@ export default function PurchaseOrdersPage() {
         "Error",
         e?.response?.status === 401
           ? "No autorizado. Iniciá sesión de nuevo."
-          : e?.response?.data ?? "No se pudo abrir el PDF",
+          : toErrorMsg(e, "No se pudo abrir el PDF"),
         "error"
       );
     }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -41,6 +41,7 @@ import {
 // ✅ componentes base
 import { PageShell, Chip } from "@/components/ui/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 
@@ -240,7 +241,7 @@ export default function SociosProveedoresPage() {
       setOpenModal(false);
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo guardar.", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo guardar."), "error");
     }
     setSaving(false);
   }
@@ -274,7 +275,7 @@ export default function SociosProveedoresPage() {
       await api.put(`/sociosnegocio/${row.id}`, payload);
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo actualizar estado.", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo actualizar estado."), "error");
     }
   }
 
@@ -295,7 +296,7 @@ export default function SociosProveedoresPage() {
       await api.delete(`/sociosnegocio/${row.id}`);
       await loadData();
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo eliminar.", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo eliminar."), "error");
     }
   }
 

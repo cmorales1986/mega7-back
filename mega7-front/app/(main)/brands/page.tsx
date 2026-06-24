@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -29,6 +29,7 @@ import { esES } from "@mui/x-data-grid/locales";
 // Exportación
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 
@@ -68,7 +69,7 @@ export default function BrandsPage() {
     } catch (e: any) {
       Swal.fire(
         "Error",
-        e?.response?.data ?? "No se pudieron cargar las marcas",
+        toErrorMsg(e, "No se pudieron cargar las marcas"),
         "error"
       );
     } finally {
@@ -182,7 +183,7 @@ export default function BrandsPage() {
         Swal.fire("Eliminado", "Marca eliminada", "success");
         loadData();
       } catch (e: any) {
-        Swal.fire("Error", e?.response?.data ?? "No se pudo eliminar", "error");
+        Swal.fire("Error", toErrorMsg(e, "No se pudo eliminar"), "error");
       }
     });
   }

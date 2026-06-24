@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -22,6 +22,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
 
 import { RefreshCcw, Eye, Plus, Printer, Inbox } from "lucide-react";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -70,7 +71,7 @@ export default function PaymentsReceivedPage() {
 
       setRows((data.filter(Boolean) as ReceiptRow[]) ?? []);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar Recibos", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar Recibos"), "error");
     } finally {
       setLoading(false);
     }

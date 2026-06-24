@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -24,6 +24,7 @@ import { esES } from "@mui/x-data-grid/locales";
 // Export
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -114,7 +115,7 @@ export default function APInvoicesPage() {
 
       setRows((data.filter(Boolean) as APInvoiceRow[]) ?? []);
     } catch (e: any) {
-      Swal.fire("Error", e?.response?.data ?? "No se pudo cargar Cuentas por Pagar", "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar Cuentas por Pagar"), "error");
     } finally {
       setLoading(false);
     }

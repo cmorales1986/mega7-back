@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -46,6 +46,7 @@ import {
 // ✅ tus componentes base
 import { PageShell, Chip } from "@/components/ui/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
+import { toErrorMsg } from "@/lib/api-error";
 
 type SalesOrderOpen = {
   id: number;
@@ -186,16 +187,6 @@ const moneyToNumber = (s: string) => {
 const money = (n: number) => fmtPY.format(Number(n || 0));
 
 // ===== SweetAlert safe message =====
-const toErrorMessage = (e: any, fallback: string) => {
-  const data = e?.response?.data;
-  if (!data) return fallback;
-  if (typeof data === "string") return data;
-  try {
-    return JSON.stringify(data);
-  } catch {
-    return fallback;
-  }
-};
 
 // ✅ label corto para el combo (prioriza seriesName)
 const seriesLabel = (s: FiscalSeries) =>
@@ -295,7 +286,7 @@ export default function NewSalesInvoicePage() {
       if (series.length === 1) setFiscalSeriesId(series[0].id);
       else setFiscalSeriesId(null);
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar datos"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar datos"), "error");
     }
   };
 
@@ -384,7 +375,7 @@ export default function NewSalesInvoicePage() {
     } catch (e: any) {
       setPendingDoc(null);
       setLines([]);
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar pendientes"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar pendientes"), "error");
     } finally {
       setLoading(false);
     }
@@ -768,7 +759,7 @@ export default function NewSalesInvoicePage() {
 
       router.push("/sales-invoices");
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo guardar la factura"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo guardar la factura"), "error");
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -15,6 +15,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
 
 import { RefreshCcw, Plus, Eye, Truck } from "lucide-react";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -86,7 +87,7 @@ export default function StockTransferListPage() {
     } catch (e: any) {
       Swal.fire(
         "Error",
-        e?.response?.data ?? "No se pudo cargar transferencias",
+        toErrorMsg(e, "No se pudo cargar transferencias"),
         "error"
       );
       setRows([]);

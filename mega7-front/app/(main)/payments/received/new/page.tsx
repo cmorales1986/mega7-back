@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -34,6 +34,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { esES } from "@mui/x-data-grid/locales";
 
 import { ArrowLeft, Save, ReceiptText, RefreshCcw, Sparkles } from "lucide-react";
+import { toErrorMsg } from "@/lib/api-error";
 
 const muiTheme = createTheme({}, esES);
 const fmtPY = new Intl.NumberFormat("es-PY");
@@ -75,41 +76,8 @@ type InstallmentRow = {
   isPaid: boolean;
 };
 
-// =================== HELPERS ===================
 
 // ✅ SweetAlert: asegurar string
-const toErrorMessage = (e: any, fallback: string) => {
-  const data = e?.response?.data;
-
-  if (!data) return fallback;
-  if (typeof data === "string") return data;
-
-  if (typeof data?.message === "string") return data.message;
-
-  // ASP.NET ProblemDetails
-  if (typeof data?.title === "string" && typeof data?.detail === "string") {
-    return `${data.title}\n${data.detail}`;
-  }
-  if (typeof data?.title === "string") return data.title;
-
-  if (data?.errors && typeof data.errors === "object") {
-    try {
-      const lines: string[] = [];
-      for (const k of Object.keys(data.errors)) {
-        const arr = (data.errors as any)[k];
-        if (Array.isArray(arr)) lines.push(`${k}: ${arr.join(", ")}`);
-        else lines.push(`${k}: ${String(arr)}`);
-      }
-      if (lines.length) return lines.join("\n");
-    } catch {}
-  }
-
-  try {
-    return JSON.stringify(data);
-  } catch {
-    return fallback;
-  }
-};
 
 // ✅ MUI selection model cambia según versión:
 // - v5/v6: GridRowSelectionModel = GridRowId[]
@@ -182,7 +150,7 @@ export default function NewReceivedPaymentPage() {
       const data = Array.isArray(res.data) ? res.data : [];
       setCustomers((data.filter(Boolean) as Customer[]) ?? []);
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar clientes"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar clientes"), "error");
     }
   };
 
@@ -210,7 +178,7 @@ export default function NewReceivedPaymentPage() {
       setTargetInstallmentMap({});
       setApplyExcessToNextMap({});
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo cargar facturas"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo cargar facturas"), "error");
     } finally {
       setLoading(false);
     }
@@ -327,7 +295,7 @@ export default function NewReceivedPaymentPage() {
       await Swal.fire("OK", "Cobro registrado.", "success");
       window.location.href = "/payments/received";
     } catch (e: any) {
-      Swal.fire("Error", toErrorMessage(e, "No se pudo registrar cobro"), "error");
+      Swal.fire("Error", toErrorMsg(e, "No se pudo registrar cobro"), "error");
     }
   };
 

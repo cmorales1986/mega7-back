@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -30,6 +30,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import { toErrorMsg } from "@/lib/api-error";
 
 const fmtPY = new Intl.NumberFormat("es-PY");
 const onlyDigits = (s: string) => (s ?? "").replace(/[^\d]/g, "");
@@ -69,33 +70,6 @@ type LineUI = {
   unitUI: string; // money formatted digits
 };
 
-const toErrorMessage = (e: any, fallback: string) => {
-  const data = e?.response?.data;
-  if (!data) return fallback;
-  if (typeof data === "string") return data;
-  if (typeof data?.message === "string") return data.message;
-  if (typeof data?.title === "string" && typeof data?.detail === "string")
-    return `${data.title}\n${data.detail}`;
-  if (typeof data?.title === "string") return data.title;
-
-  if (data?.errors && typeof data.errors === "object") {
-    try {
-      const lines: string[] = [];
-      for (const k of Object.keys(data.errors)) {
-        const arr = (data.errors as any)[k];
-        if (Array.isArray(arr)) lines.push(`${k}: ${arr.join(", ")}`);
-        else lines.push(`${k}: ${String(arr)}`);
-      }
-      if (lines.length) return lines.join("\n");
-    } catch {}
-  }
-
-  try {
-    return JSON.stringify(data);
-  } catch {
-    return fallback;
-  }
-};
 
 const uid = () =>
   Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -132,7 +106,7 @@ export default function NewServiceAPInvoicePage() {
     } catch (e: any) {
       Swal.fire(
         "Error",
-        toErrorMessage(e, "No se pudo cargar proveedores"),
+        toErrorMsg(e, "No se pudo cargar proveedores"),
         "error"
       );
     }
@@ -238,7 +212,7 @@ export default function NewServiceAPInvoicePage() {
     } catch (e: any) {
       Swal.fire(
         "Error",
-        toErrorMessage(e, "No se pudo crear la factura de servicio"),
+        toErrorMsg(e, "No se pudo crear la factura de servicio"),
         "error"
       );
     }

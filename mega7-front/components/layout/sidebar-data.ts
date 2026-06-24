@@ -9,9 +9,7 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowLeftRight,
-  BarChart,
   BookOpen,
-  History,
   User,
   Coins,
   ShoppingCart,
@@ -26,10 +24,22 @@ import {
   BanknoteArrowDown,
   BanknoteArrowUp,
   BanknoteArrowDownIcon,
-  FileText
+  FileText,
+  Users,
+  Shield,
 } from "lucide-react";
 
-export const menu = [
+export type MenuItem = {
+  title: string;
+  isSection?: boolean;
+  adminOnly?: boolean;
+  icon?: any;
+  color?: string;
+  href?: string;
+  children?: { title: string; href: string; icon: any }[];
+};
+
+export const menu: MenuItem[] = [
   {
     title: "Dashboard",
     icon: Home,
@@ -43,11 +53,11 @@ export const menu = [
     color: "text-blue-600",
     children: [
       { title: "Manejo Cajas", href: "/finance/cash-boxes", icon: Boxes },
-      { title: "Periodos Contables", href: "/periods", icon: ClipboardList },  
+      { title: "Periodos Contables", href: "/periods", icon: ClipboardList },
     ],
   },
 
-    {
+  {
     title: "Bancos y Tesorería",
     icon: Landmark,
     color: "text-red-600",
@@ -80,7 +90,7 @@ export const menu = [
     ],
   },
 
-   {
+  {
     title: "Pagos",
     icon: CircleDollarSignIcon,
     color: "text-yellow-500",
@@ -101,7 +111,7 @@ export const menu = [
     ],
   },
 
-  // ✅ SEPARADOR / TÍTULO
+  // ── Datos Maestros ──────────────────────────────────────────────────────────
   {
     title: "Datos Maestros",
     isSection: true,
@@ -142,5 +152,28 @@ export const menu = [
       { title: "Cuotero Clientes", href: "/socios-negocio/clientes/cuotas", icon: CalendarMinus2 },
       { title: "Proveedores", href: "/socios-negocio/proveedores", icon: User },
     ],
+  },
+
+  // ── Administración (solo ADMIN) ────────────────────────────────────────────
+  {
+    title: "Administración",
+    isSection: true,
+    adminOnly: true,
+  },
+
+  {
+    title: "Usuarios",
+    icon: Users,
+    color: "text-gray-600",
+    href: "/users",
+    adminOnly: true,
+  },
+
+  {
+    title: "Permisos",
+    icon: Shield,
+    color: "text-gray-600",
+    href: "/settings/permissions",
+    adminOnly: true,
   },
 ];

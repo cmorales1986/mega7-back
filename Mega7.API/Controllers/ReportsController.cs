@@ -14,12 +14,12 @@ namespace Mega7.API.Controllers
     public class ReportsController : ControllerBase
     {
         private readonly Mega7DbContext _ctx;
-        private readonly ReportingProxy _proxy;
+        private readonly InvoicePdfService _pdf;
 
-        public ReportsController(Mega7DbContext ctx, ReportingProxy proxy)
+        public ReportsController(Mega7DbContext ctx, InvoicePdfService pdf)
         {
             _ctx = ctx;
-            _proxy = proxy;
+            _pdf = pdf;
         }
 
         // GET: api/reports/sales-vs-collections?year=2026
@@ -104,11 +104,8 @@ namespace Mega7.API.Controllers
         [HttpGet("sales-invoice/{id}/pdf")]
         public async Task<IActionResult> SalesInvoicePdf(int id)
         {
-            var pdf = await _proxy.RenderSalesInvoicePdfAsync(id, _ctx);
-
-            // nombre sugerido
-            var fileName = $"FV_{id}.pdf";
-            return File(pdf, "application/pdf", fileName);
+            var pdfBytes = await _pdf.RenderSalesInvoicePdf(id);
+            return File(pdfBytes, "application/pdf", $"FV_{id}.pdf");
         }
 
         // GET: api/reports/sales-receipt/123/pdf
@@ -116,9 +113,8 @@ namespace Mega7.API.Controllers
         [HttpGet("sales-receipt/{id}/pdf")]
         public async Task<IActionResult> SalesReceiptPdf(int id)
         {
-            var pdf = await _proxy.RenderSalesReceiptPdfAsync(id, _ctx);
-            var fileName = $"RECIBO_{id}.pdf";
-            return File(pdf, "application/pdf", fileName);
+            var pdfBytes = await _pdf.RenderSalesReceiptPdf(id);
+            return File(pdfBytes, "application/pdf", $"RECIBO_{id}.pdf");
         }
     }
 }

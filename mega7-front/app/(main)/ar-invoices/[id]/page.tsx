@@ -15,6 +15,7 @@ import {
   ListChecks,
   CreditCard,
   List,
+  Printer,
 } from "lucide-react";
 
 // ✅ Premium shell
@@ -91,6 +92,17 @@ export default function ARInvoiceDetailPage() {
   const id = Number(params?.id);
 
   const [loading, setLoading] = useState(false);
+
+  const openPdf = async () => {
+    try {
+      const res = await api.get(`/reports/sales-invoice/${id}/pdf`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+    } catch {
+      // silencioso — el usuario verá que no se abrió nada
+    }
+  };
 
   const [ar, setAr] = useState<ARInvoice | null>(null);
   const [payments, setPayments] = useState<ARPayment[]>([]);
@@ -209,6 +221,14 @@ export default function ARInvoiceDetailPage() {
               <List className="mr-2 h-4 w-4" /> Cobros recibidos
             </Button>
           </Link>
+
+          <Button
+            onClick={openPdf}
+            disabled={!ar}
+            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+          >
+            <Printer className="mr-2 h-4 w-4" /> Imprimir PDF
+          </Button>
         </>
       }
     >

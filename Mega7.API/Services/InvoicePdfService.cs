@@ -1,5 +1,6 @@
 using Mega7.API.Data;
 using Mega7.API.Pdf;
+using Mega7.SHARED.Entities;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 
@@ -16,20 +17,34 @@ public class InvoicePdfService
         _env = env;
     }
 
+    private string LogoPath => Path.Combine(_env.ContentRootPath, "Reports", "logo.png");
+
     public async Task<byte[]> RenderSalesInvoicePdf(int id)
     {
         var inv = await _ctx.ARInvoices
             .AsNoTracking()
             .Include(x => x.Lines)
             .Include(x => x.Customer)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id)
+            ?? throw new Exception($"Factura {id} no existe.");
 
-        if (inv == null) throw new Exception("Factura no existe.");
+        return new SalesInvoicePdf(inv, LogoPath).GeneratePdf();
+    }
 
-        var logoPath = Path.Combine(_env.ContentRootPath, "Reports", "logo.png");
+    public async Task<byte[]> RenderSalesReceiptPdf(int receiptId)
+    {
+        var r = await _ctx.Set<ARSalesReceipt>()
+            .AsNoTracking()
+            .Include(x => x.Lines)
+            .FirstOrDefaultAsync(x => x.Id == receiptId)
+            ?? throw new Exception($"Recibo {receiptId} no existe.");
 
-        // QuestPDF (liviano, sin Chromium): genera el PDF en memoria.
-        var document = new SalesInvoicePdf(inv, logoPath);
-        return document.GeneratePdf();
+        var invIds   = r.Lines.Select(l => l.ARInvoiceId).Distinct().ToList();
+        var invoices = await _ctx.ARInvoices
+            .AsNoTracking()
+            .Where(i => invIds.Contains(i.Id))
+            .ToListAsync();
+
+        return new SalesReceiptPdf(r, invoices, LogoPath).GeneratePdf();
     }
 }

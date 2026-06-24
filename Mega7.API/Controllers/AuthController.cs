@@ -340,11 +340,16 @@ namespace Mega7.API.Controllers
         {
             var isProd = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production";
 
+            // En producción usamos SameSite=None para que SignalR pueda conectarse
+            // directamente a Railway desde el frontend en Vercel (cross-site).
+            // AllowCredentials() en CORS protege contra CSRF.
+            var sameSite = isProd ? SameSiteMode.None : SameSiteMode.Lax;
+
             Response.Cookies.Append("access_token", accessToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = isProd,
-                SameSite = SameSiteMode.Lax,
+                SameSite = sameSite,
                 Expires = DateTimeOffset.UtcNow.AddMinutes(15),
                 MaxAge = TimeSpan.FromMinutes(15),
                 Path = "/"

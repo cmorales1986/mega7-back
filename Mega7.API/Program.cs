@@ -1,5 +1,6 @@
 using Mega7.API.Data;
 using Mega7.API.Filters;
+using Mega7.API.Hubs;
 using Mega7.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -132,18 +133,25 @@ builder.Services.AddScoped<InvoicePdfService>();
 builder.Services.AddScoped<FiscalNumberService>();
 builder.Services.AddScoped<ReportingProxy>();
 
+// CORS: lee los orígenes desde la variable de entorno Cors__AllowedOrigins (separados por coma).
+// En Railway agregar: Cors__AllowedOrigins=https://tu-app.vercel.app,http://localhost:3000
+var allowedOrigins = (builder.Configuration["Cors:AllowedOrigins"] ?? "http://localhost:3000")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWasm",
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:3000")  // URL Blazor WASM
+                .WithOrigins(allowedOrigins)
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
         });
 });
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -169,6 +177,7 @@ app.UseCors("AllowWasm");
 app.UseAuthentication();  
 app.UseAuthorization();   
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
 using (var scope = app.Services.CreateScope())
 {

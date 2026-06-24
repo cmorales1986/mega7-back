@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
 
@@ -165,6 +166,9 @@ export default function FiscalDocumentSeriesPage() {
     }
   };
 
+  const canCreate = usePermission("FiscalDocumentSeries.Create");
+  const canEdit = usePermission("FiscalDocumentSeries.Edit");
+
   const columns: GridColDef[] = useMemo(
     () => [
       { field: "id", headerName: "ID", width: 80 },
@@ -202,13 +206,15 @@ export default function FiscalDocumentSeriesPage() {
         width: 120,
         sortable: false,
         renderCell: (p) => (
-          <Button variant="outline" className="bg-white" onClick={() => openEdit(p.row)}>
-            <Pencil className="h-4 w-4 mr-2" /> Editar
-          </Button>
+          canEdit ? (
+            <Button variant="outline" className="bg-white" onClick={() => openEdit(p.row)}>
+              <Pencil className="h-4 w-4 mr-2" /> Editar
+            </Button>
+          ) : null
         ),
       },
     ],
-    []
+    [canEdit]
   );
 
   return (
@@ -221,9 +227,11 @@ export default function FiscalDocumentSeriesPage() {
           <Button variant="outline" onClick={load} disabled={loading}>
             <RefreshCcw className="h-4 w-4 mr-2" /> Refrescar
           </Button>
-          <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white" onClick={openAdd}>
-            <Plus className="h-4 w-4 mr-2" /> Nuevo
-          </Button>
+          {canCreate && (
+            <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white" onClick={openAdd}>
+              <Plus className="h-4 w-4 mr-2" /> Nuevo
+            </Button>
+          )}
         </>
       }
     >

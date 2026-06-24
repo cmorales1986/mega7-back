@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Link from "next/link";
 import Swal from "sweetalert2";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -42,6 +43,9 @@ export default function PurchaseReceiptsListPage() {
   useEffect(() => {
     load();
   }, []);
+
+  const canCreate = usePermission("PurchaseReceipts.Create");
+  const canEdit = usePermission("PurchaseReceipts.Edit");
 
   const columns: GridColDef[] = useMemo(
     () => [
@@ -86,17 +90,19 @@ export default function PurchaseReceiptsListPage() {
                   <Eye className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href={`/purchase-receipts/${id}/edit`}>
-                <Button size="sm" variant="outline" className="bg-white">
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              </Link>
+              {canEdit && (
+                <Link href={`/purchase-receipts/${id}/edit`}>
+                  <Button size="sm" variant="outline" className="bg-white">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </Link>
+              )}
             </div>
           );
         },
       },
     ],
-    []
+    [canEdit]
   );
 
   return (
@@ -106,11 +112,13 @@ export default function PurchaseReceiptsListPage() {
       subtitle="Listado de recepciones (sin PDF; luego BoldReports)."
       right={
         <div className="flex gap-2">
-          <Link href="/purchase-receipts/new">
-            <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white">
-              <Plus className="mr-2 h-4 w-4" /> Nueva
-            </Button>
-          </Link>
+          {canCreate && (
+            <Link href="/purchase-receipts/new">
+              <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white">
+                <Plus className="mr-2 h-4 w-4" /> Nueva
+              </Button>
+            </Link>
+          )}
           <Button variant="outline" className="bg-white" onClick={load}>
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>

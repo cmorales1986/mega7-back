@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
@@ -179,6 +180,9 @@ export default function SalesInvoicesInner() {
     return "";
   }, [filter, overdue, overdueParam, includeCancelled]);
 
+  const canCreate = usePermission("SalesInvoices.Create");
+  const canCancelPerm = usePermission("SalesInvoices.Cancel");
+
   const cols: GridColDef<Row>[] = [
     { field: "docNumber", headerName: "N°", flex: 0.6, minWidth: 80 },
     {
@@ -244,7 +248,7 @@ export default function SalesInvoicesInner() {
       renderCell: (p: GridRenderCellParams<Row>) => {
         const row = p.row;
         const st = (row.status ?? "").toUpperCase();
-        const canCancel = st !== "CANCELLED" && st !== "PAID";
+        const canCancelRow = st !== "CANCELLED" && st !== "PAID";
 
         return (
           <div className="w-full h-full flex items-center justify-center gap-2">
@@ -268,16 +272,18 @@ export default function SalesInvoicesInner() {
               <Printer className="h-4 w-4" />
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 w-8 p-0"
-              disabled={!canCancel}
-              onClick={() => cancel(row.id)}
-              title={canCancel ? "Cancelar" : "No se puede (PAID/CANCELLED)"}
-            >
-              <Ban className="h-4 w-4" />
-            </Button>
+            {canCancelPerm && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                disabled={!canCancelRow}
+                onClick={() => cancel(row.id)}
+                title={canCancelRow ? "Cancelar" : "No se puede (PAID/CANCELLED)"}
+              >
+                <Ban className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         );
       },
@@ -313,13 +319,15 @@ export default function SalesInvoicesInner() {
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
 
-          <Button
-            onClick={() => router.push("/sales-invoices/new")}
-            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
-            disabled={loading}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Nueva FV
-          </Button>
+          {canCreate && (
+            <Button
+              onClick={() => router.push("/sales-invoices/new")}
+              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+              disabled={loading}
+            >
+              <Plus className="mr-2 h-4 w-4" /> Nueva FV
+            </Button>
+          )}
         </>
       }
     >

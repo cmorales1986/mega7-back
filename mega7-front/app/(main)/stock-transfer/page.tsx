@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Link from "next/link";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
@@ -126,6 +127,8 @@ export default function StockTransferListPage() {
     return { docs, lines, qty };
   }, [filtered]);
 
+  const canCreate = usePermission("StockTransfer.Create");
+
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 90 },
     {
@@ -183,12 +186,14 @@ export default function StockTransferListPage() {
             Refrescar
           </Button>
 
-          <Button asChild className="bg-blue-600 text-white">
-            <Link href="/stock-transfer/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Nueva
-            </Link>
-          </Button>
+          {canCreate && (
+            <Button asChild className="bg-blue-600 text-white">
+              <Link href="/stock-transfer/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Nueva
+              </Link>
+            </Button>
+          )}
         </div>
       }
     >

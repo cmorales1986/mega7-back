@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import { api } from "@/lib/api";
 import Swal from "sweetalert2";
 
@@ -186,6 +187,10 @@ export default function BrandsPage() {
     });
   }
 
+  const canCreate = usePermission("Brands.Create");
+  const canEdit = usePermission("Brands.Edit");
+  const canDelete = usePermission("Brands.Delete");
+
   // ================= DATAGRID =========================
   const columns: GridColDef<Brand>[] = [
     { field: "name", headerName: "Nombre", flex: 1, minWidth: 240 },
@@ -216,25 +221,29 @@ export default function BrandsPage() {
       align: "center",
       renderCell: (params) => (
         <div className="w-full h-full flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openEdit(params.row)}
-            className="h-9 w-9 p-0"
-            title="Editar"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
+          {canEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openEdit(params.row)}
+              className="h-9 w-9 p-0"
+              title="Editar"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 w-9 p-0 hover:bg-red-100 border-red-300 text-red-600"
-            onClick={() => deleteBrand(params.row.id)}
-            title="Eliminar"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {canDelete && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 w-9 p-0 hover:bg-red-100 border-red-300 text-red-600"
+              onClick={() => deleteBrand(params.row.id)}
+              title="Eliminar"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -281,13 +290,15 @@ export default function BrandsPage() {
               <FileDown className="mr-2 h-4 w-4" /> CSV
             </Button>
 
-            <Button
-              onClick={openCreate}
-              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nueva
-            </Button>
+            {canCreate && (
+              <Button
+                onClick={openCreate}
+                className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Nueva
+              </Button>
+            )}
           </>
         }
       />

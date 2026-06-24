@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -218,6 +219,10 @@ export default function SubCategoriesPage() {
     });
   }
 
+  const canCreate = usePermission("Subcategories.Create");
+  const canEdit = usePermission("Subcategories.Edit");
+  const canDelete = usePermission("Subcategories.Delete");
+
   // ===================== COLUMNAS DATAGRID =====================
   const columns = [
     { field: "code", headerName: "Código", width: 120 },
@@ -247,22 +252,26 @@ export default function SubCategoriesPage() {
       width: 150,
       renderCell: (params: any) => (
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openEdit(params.row)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
+          {canEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openEdit(params.row)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="hover:bg-red-100 border-red-300 text-red-600"
-            onClick={() => deleteRow(params.row.id)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {canDelete && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="hover:bg-red-100 border-red-300 text-red-600"
+              onClick={() => deleteRow(params.row.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -283,9 +292,11 @@ export default function SubCategoriesPage() {
             <FileDown className="mr-2 h-4 w-4" /> CSV
           </Button>
 
-          <Button onClick={openCreate} className="bg-[#C5A05A] text-white">
-            <Plus className="mr-2 h-4 w-4" /> Nueva
-          </Button>
+          {canCreate && (
+            <Button onClick={openCreate} className="bg-[#C5A05A] text-white">
+              <Plus className="mr-2 h-4 w-4" /> Nueva
+            </Button>
+          )}
         </div>
       </div>
 

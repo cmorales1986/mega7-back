@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
 
@@ -127,6 +128,9 @@ export default function PaymentsMadePage() {
     }
   };
 
+  const canCreate = usePermission("APPayments.Create");
+  const canCancel = usePermission("APPayments.Cancel");
+
   const cols: GridColDef<PaymentMadeRow>[] = [
     { field: "id", headerName: "ID", width: 90 },
 
@@ -192,16 +196,18 @@ export default function PaymentsMadePage() {
               <Printer className="h-4 w-4" />
             </Button>
 
-            <Button
-              variant="destructive"
-              size="sm"
-              className="h-9 w-9 p-0"
-              title="Anular"
-              disabled={isCancelled}
-              onClick={() => cancelDoc(p.row.id)}
-            >
-              <Ban className="h-4 w-4" />
-            </Button>
+            {canCancel && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-9 w-9 p-0"
+                title="Anular"
+                disabled={isCancelled}
+                onClick={() => cancelDoc(p.row.id)}
+              >
+                <Ban className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         );
       },
@@ -241,11 +247,13 @@ export default function PaymentsMadePage() {
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
 
-          <Link href="/payments/made/new">
-            <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
-              <Plus className="mr-2 h-4 w-4" /> Nuevo pago
-            </Button>
-          </Link>
+          {canCreate && (
+            <Link href="/payments/made/new">
+              <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+                <Plus className="mr-2 h-4 w-4" /> Nuevo pago
+              </Button>
+            </Link>
+          )}
         </>
       }
     >

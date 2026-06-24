@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Link from "next/link";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
@@ -278,6 +279,8 @@ export default function BankDepositsPage() {
     }
   };
 
+  const canCreate = usePermission("BankDeposits.Create");
+
   const cols: GridColDef<ReceiptRow>[] = [
     { field: "id", headerName: "ID", width: 90 },
     {
@@ -362,14 +365,16 @@ export default function BankDepositsPage() {
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
 
-          <Button
-            onClick={doDeposit}
-            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
-            disabled={selectedIds.length === 0 || !bankAccountId}
-            title={!bankAccountId ? "Seleccioná una cuenta bancaria" : "Depositar"}
-          >
-            <Save className="mr-2 h-4 w-4" /> Depositar
-          </Button>
+          {canCreate && (
+            <Button
+              onClick={doDeposit}
+              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+              disabled={selectedIds.length === 0 || !bankAccountId}
+              title={!bankAccountId ? "Seleccioná una cuenta bancaria" : "Depositar"}
+            >
+              <Save className="mr-2 h-4 w-4" /> Depositar
+            </Button>
+          )}
         </>
       }
     >

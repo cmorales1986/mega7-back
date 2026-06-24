@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
 
@@ -94,6 +95,8 @@ export default function PaymentsReceivedPage() {
     });
   }, [rows, search]);
 
+  const canCreate = usePermission("ARPayments.Create");
+
   const cols: GridColDef<ReceiptRow>[] = [
     { field: "id", headerName: "ID", width: 90 },
     {
@@ -183,11 +186,13 @@ export default function PaymentsReceivedPage() {
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
 
-          <Link href="/payments/received/new">
-            <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
-              <Plus className="mr-2 h-4 w-4" /> Nuevo cobro
-            </Button>
-          </Link>
+          {canCreate && (
+            <Link href="/payments/received/new">
+              <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+                <Plus className="mr-2 h-4 w-4" /> Nuevo cobro
+              </Button>
+            </Link>
+          )}
         </>
       }
     >

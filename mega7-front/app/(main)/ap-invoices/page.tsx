@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -179,6 +180,8 @@ export default function APInvoicesPage() {
     saveAs(blob, "CuentasPorPagar.csv");
   };
 
+  const canCreate = usePermission("APInvoices.Create");
+
   // ========= DATAGRID COLUMNS =========
   const cols: GridColDef<APInvoiceRow>[] = [
     { field: "id", headerName: "ID", width: 80 },
@@ -306,11 +309,13 @@ export default function APInvoicesPage() {
             </Button>
           </Link>
 
-          <Link href="/payments/made/new">
-            <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
-              <HandCoins className="mr-2 h-4 w-4" /> Nuevo pago
-            </Button>
-          </Link>
+          {canCreate && (
+            <Link href="/payments/made/new">
+              <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+                <HandCoins className="mr-2 h-4 w-4" /> Nuevo pago
+              </Button>
+            </Link>
+          )}
         </>
       }
     >

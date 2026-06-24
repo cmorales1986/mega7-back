@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
 
@@ -482,6 +483,8 @@ export default function SalesParamsPage() {
 
   const selectedCustomer = customers.find((c) => c.id === customerId);
 
+  const canEdit = usePermission("SalesParams.Edit");
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* PAGE HEADER */}
@@ -620,13 +623,15 @@ export default function SalesParamsPage() {
               title="Parámetros Globales"
               subtitle="Defaults del sistema (se aplican si el cliente no tiene override)."
               right={
-                <Button
-                  onClick={saveGlobalParams}
-                  disabled={loading}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  <Save className="mr-2 h-4 w-4" /> Guardar Global
-                </Button>
+                canEdit ? (
+                  <Button
+                    onClick={saveGlobalParams}
+                    disabled={loading}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <Save className="mr-2 h-4 w-4" /> Guardar Global
+                  </Button>
+                ) : undefined
               }
             />
 
@@ -737,13 +742,15 @@ export default function SalesParamsPage() {
               title="Crédito por Términos (Global)"
               subtitle="Por cada CreditTerm (días), definí el recargo % sobre costo."
               right={
-                <Button
-                  onClick={saveGlobalCreditBulk}
-                  disabled={loading}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  <Save className="mr-2 h-4 w-4" /> Guardar Tramos Global
-                </Button>
+                canEdit ? (
+                  <Button
+                    onClick={saveGlobalCreditBulk}
+                    disabled={loading}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <Save className="mr-2 h-4 w-4" /> Guardar Tramos Global
+                  </Button>
+                ) : undefined
               }
             />
 
@@ -799,22 +806,24 @@ export default function SalesParamsPage() {
               title="Override por Cliente"
               subtitle="Estos valores reemplazan los globales para el cliente seleccionado."
               right={
-                <>
-                  <Button
-                    onClick={saveCustomerParams}
-                    disabled={loading || !customerId}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
-                  >
-                    <Save className="mr-2 h-4 w-4" /> Guardar Override
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={clearCustomerParams}
-                    disabled={loading || !customerId || !custParamsExists}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" /> Quitar
-                  </Button>
-                </>
+                canEdit ? (
+                  <>
+                    <Button
+                      onClick={saveCustomerParams}
+                      disabled={loading || !customerId}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      <Save className="mr-2 h-4 w-4" /> Guardar Override
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={clearCustomerParams}
+                      disabled={loading || !customerId || !custParamsExists}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Quitar
+                    </Button>
+                  </>
+                ) : undefined
               }
             />
 
@@ -925,13 +934,15 @@ export default function SalesParamsPage() {
               title="Crédito por Términos (Cliente)"
               subtitle="Definí recargos por término que sobreescriben el global."
               right={
-                <Button
-                  onClick={saveCustomerCreditBulk}
-                  disabled={loading || !customerId}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  <Save className="mr-2 h-4 w-4" /> Guardar Tramos Cliente
-                </Button>
+                canEdit ? (
+                  <Button
+                    onClick={saveCustomerCreditBulk}
+                    disabled={loading || !customerId}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <Save className="mr-2 h-4 w-4" /> Guardar Tramos Cliente
+                  </Button>
+                ) : undefined
               }
             />
 

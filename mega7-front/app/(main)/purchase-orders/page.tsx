@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
@@ -161,6 +162,10 @@ export default function PurchaseOrdersPage() {
     return c;
   }, [rows]);
 
+  const canCreate = usePermission("PurchaseOrders.Create");
+  const canEditPerm = usePermission("PurchaseOrders.Edit");
+  const canCancel = usePermission("PurchaseOrders.Cancel");
+
   const cols: GridColDef<PurchaseOrder>[] = [
     { field: "docNumber", headerName: "N°", flex: 0.8, minWidth: 120 },
     {
@@ -222,7 +227,7 @@ export default function PurchaseOrdersPage() {
       align: "center",
       renderCell: (p: GridRenderCellParams<PurchaseOrder>) => {
         const row = p.row;
-        const canEdit = row.status === "DRAFT";
+        const canEditRow = row.status === "DRAFT";
 
         return (
           <div className="w-full h-full flex items-center justify-center gap-2">
@@ -236,16 +241,18 @@ export default function PurchaseOrdersPage() {
               <FileSearch className="h-4 w-4" />
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 p-0 bg-white"
-              disabled={!canEdit}
-              onClick={() => router.push(`/purchase-orders/${row.id}/edit`)}
-              title={canEdit ? "Editar" : "Solo DRAFT"}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
+            {canEditPerm && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0 bg-white"
+                disabled={!canEditRow}
+                onClick={() => router.push(`/purchase-orders/${row.id}/edit`)}
+                title={canEditRow ? "Editar" : "Solo DRAFT"}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
 
             <Button
               variant="outline"
@@ -269,16 +276,18 @@ export default function PurchaseOrdersPage() {
               <Lock className="h-4 w-4" />
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 p-0 bg-white"
-              disabled={row.status === "CLOSED"}
-              onClick={() => action(row.id, "cancel")}
-              title="Cancelar"
-            >
-              <XCircle className="h-4 w-4" />
-            </Button>
+            {canCancel && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0 bg-white"
+                disabled={row.status === "CLOSED"}
+                onClick={() => action(row.id, "cancel")}
+                title="Cancelar"
+              >
+                <XCircle className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         );
       },
@@ -305,12 +314,14 @@ export default function PurchaseOrdersPage() {
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
 
-          <Button
-            onClick={() => router.push("/purchase-orders/new")}
-            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Nueva OC
-          </Button>
+          {canCreate && (
+            <Button
+              onClick={() => router.push("/purchase-orders/new")}
+              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Nueva OC
+            </Button>
+          )}
         </>
       }
     >

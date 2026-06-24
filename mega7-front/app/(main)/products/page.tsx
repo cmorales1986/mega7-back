@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -424,6 +425,10 @@ export default function ProductsPage() {
     });
   }
 
+  const canCreate = usePermission("Products.Create");
+  const canEdit = usePermission("Products.Edit");
+  const canDelete = usePermission("Products.Delete");
+
   // ========= DATAGRID COLUMNS =========
   const columns: GridColDef<ProductRow>[] = [
     { field: "code", headerName: "Código", width: 90 },
@@ -505,25 +510,29 @@ export default function ProductsPage() {
       align: "center",
       renderCell: (params) => (
         <div className="w-full h-full flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openEdit(params.row)}
-            className="h-9 w-9 p-0 bg-white"
-            title="Editar"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
+          {canEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openEdit(params.row)}
+              className="h-9 w-9 p-0 bg-white"
+              title="Editar"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 w-9 p-0 bg-white hover:bg-red-50 border-red-300 text-red-600"
-            onClick={() => deleteProduct(params.row.id)}
-            title="Eliminar"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {canDelete && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 w-9 p-0 bg-white hover:bg-red-50 border-red-300 text-red-600"
+              onClick={() => deleteProduct(params.row.id)}
+              title="Eliminar"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -578,13 +587,15 @@ export default function ProductsPage() {
             <FileDown className="mr-2 h-4 w-4" /> CSV
           </Button>
 
-          <Button
-            onClick={openCreate}
-            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo
-          </Button>
+          {canCreate && (
+            <Button
+              onClick={openCreate}
+              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo
+            </Button>
+          )}
         </>
       }
     >

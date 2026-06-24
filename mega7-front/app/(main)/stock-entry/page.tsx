@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import Swal from "sweetalert2";
@@ -194,6 +195,8 @@ export default function StockEntryListPage() {
     saveAs(blob, "StockEntries.csv");
   };
 
+  const canCreate = usePermission("StockEntry.Create");
+
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 80 },
 
@@ -325,13 +328,15 @@ export default function StockEntryListPage() {
             <FileDown className="mr-2 h-4 w-4" /> CSV
           </Button>
 
-          <Button
-            onClick={() => router.push("/stock-entry/new")}
-            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo ingreso
-          </Button>
+          {canCreate && (
+            <Button
+              onClick={() => router.push("/stock-entry/new")}
+              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo ingreso
+            </Button>
+          )}
         </>
       }
     >

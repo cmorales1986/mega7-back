@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
 
@@ -292,6 +293,9 @@ export default function UsersPage() {
     }
   };
 
+  const canEdit = usePermission("Users.Edit");
+  const canDeactivate = usePermission("Users.Deactivate");
+
   // =====================
   // DataGrid columns
   // =====================
@@ -325,29 +329,33 @@ export default function UsersPage() {
         const row = p.row;
         return (
           <div className="w-full h-full flex items-center justify-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 p-0 bg-white"
-              onClick={() => changeRole(row)}
-              title="Cambiar rol"
-            >
-              <Shield className="h-4 w-4" />
-            </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0 bg-white"
+                onClick={() => changeRole(row)}
+                title="Cambiar rol"
+              >
+                <Shield className="h-4 w-4" />
+              </Button>
+            )}
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 p-0 bg-white"
-              onClick={() => toggleActive(row)}
-              title={row.isActive ? "Desactivar" : "Activar"}
-            >
-              {row.isActive ? (
-                <UserX className="h-4 w-4" />
-              ) : (
-                <UserCheck className="h-4 w-4" />
-              )}
-            </Button>
+            {canDeactivate && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0 bg-white"
+                onClick={() => toggleActive(row)}
+                title={row.isActive ? "Desactivar" : "Activar"}
+              >
+                {row.isActive ? (
+                  <UserX className="h-4 w-4" />
+                ) : (
+                  <UserCheck className="h-4 w-4" />
+                )}
+              </Button>
+            )}
 
             <Button
               variant="outline"

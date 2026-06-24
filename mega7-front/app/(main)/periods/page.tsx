@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -262,6 +263,11 @@ export default function PeriodsPage() {
     }
   };
 
+  const canCreate = usePermission("Periods.Create");
+  const canClose = usePermission("Periods.Close");
+  const canOpen = usePermission("Periods.Open");
+  const canDeactivate = usePermission("Periods.Deactivate");
+
   const columns: GridColDef<PeriodRow>[] = [
     { field: "year", headerName: "Año", width: 110 },
     { field: "monthName", headerName: "Mes", width: 160 },
@@ -313,39 +319,45 @@ export default function PeriodsPage() {
         return (
           <div className="w-full h-full flex items-center justify-center gap-2">
             {p.isOpen ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white"
-                onClick={() => closePeriod(p)}
-                disabled={!p.isActive}
-                title={!p.isActive ? "Primero activá el período" : ""}
-              >
-                <Lock className="mr-2 h-4 w-4" />
-                Cerrar
-              </Button>
+              canClose && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white"
+                  onClick={() => closePeriod(p)}
+                  disabled={!p.isActive}
+                  title={!p.isActive ? "Primero activá el período" : ""}
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  Cerrar
+                </Button>
+              )
             ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white"
-                onClick={() => openPeriod(p)}
-                disabled={!p.isActive}
-                title={!p.isActive ? "Primero activá el período" : ""}
-              >
-                <Unlock className="mr-2 h-4 w-4" />
-                Reabrir
-              </Button>
+              canOpen && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white"
+                  onClick={() => openPeriod(p)}
+                  disabled={!p.isActive}
+                  title={!p.isActive ? "Primero activá el período" : ""}
+                >
+                  <Unlock className="mr-2 h-4 w-4" />
+                  Reabrir
+                </Button>
+              )
             )}
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-white"
-              onClick={() => toggleActive(p)}
-            >
-              {p.isActive ? "Desactivar" : "Activar"}
-            </Button>
+            {canDeactivate && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white"
+                onClick={() => toggleActive(p)}
+              >
+                {p.isActive ? "Desactivar" : "Activar"}
+              </Button>
+            )}
           </div>
         );
       },
@@ -388,14 +400,16 @@ export default function PeriodsPage() {
               <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
             </Button>
 
-            <Button
-              onClick={openCreate}
-              disabled={loading}
-              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo Período
-            </Button>
+            {canCreate && (
+              <Button
+                onClick={openCreate}
+                disabled={loading}
+                className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Nuevo Período
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
@@ -298,6 +299,10 @@ export default function SociosProveedoresPage() {
     }
   }
 
+  const canCreate = usePermission("Suppliers.Create");
+  const canEdit = usePermission("Suppliers.Edit");
+  const canDelete = usePermission("Suppliers.Delete");
+
   const columns: GridColDef[] = [
     { field: "code", headerName: "Código", width: 110 },
     { field: "razonSocial", headerName: "Razón Social", flex: 1, minWidth: 280 },
@@ -347,35 +352,41 @@ export default function SociosProveedoresPage() {
               <Eye className="h-4 w-4" />
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 p-0"
-              onClick={() => openEdit(row)}
-              title="Editar"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0"
+                onClick={() => openEdit(row)}
+                title="Editar"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 p-0"
-              onClick={() => toggleActive(row)}
-              title={row.isActive ? "Desactivar" : "Activar"}
-            >
-              <Power className="h-4 w-4" />
-            </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0"
+                onClick={() => toggleActive(row)}
+                title={row.isActive ? "Desactivar" : "Activar"}
+              >
+                <Power className="h-4 w-4" />
+              </Button>
+            )}
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 p-0 hover:bg-red-50 border-red-300 text-red-600"
-              onClick={() => remove(row)}
-              title="Eliminar"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {canDelete && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0 hover:bg-red-50 border-red-300 text-red-600"
+                onClick={() => remove(row)}
+                title="Eliminar"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         );
       },
@@ -404,13 +415,15 @@ export default function SociosProveedoresPage() {
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
 
-          <Button
-            onClick={openNew}
-            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo
-          </Button>
+          {canCreate && (
+            <Button
+              onClick={openNew}
+              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo
+            </Button>
+          )}
         </>
       }
     >

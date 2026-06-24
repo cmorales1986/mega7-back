@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
 
@@ -208,6 +209,10 @@ export default function PaymentConceptsPage() {
     }
   };
 
+  const canCreate = usePermission("PaymentConcepts.Create");
+  const canEdit = usePermission("PaymentConcepts.Edit");
+  const canDeactivate = usePermission("PaymentConcepts.Deactivate");
+
   const cols: GridColDef<PaymentConcept>[] = [
     { field: "id", headerName: "ID", width: 90 },
     { field: "code", headerName: "Código", width: 140 },
@@ -249,26 +254,30 @@ export default function PaymentConceptsPage() {
         const row = p.row;
         return (
           <div className="w-full h-full flex items-center justify-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 p-0 bg-white"
-              title="Editar"
-              onClick={() => openEdit(row)}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0 bg-white"
+                title="Editar"
+                onClick={() => openEdit(row)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 p-0 bg-white"
-              title="Desactivar"
-              onClick={() => deactivate(row)}
-              disabled={!row.isActive}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {canDeactivate && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0 bg-white"
+                title="Desactivar"
+                onClick={() => deactivate(row)}
+                disabled={!row.isActive}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         );
       },
@@ -299,9 +308,11 @@ export default function PaymentConceptsPage() {
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
 
-          <Button onClick={openNew} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
-            <Plus className="mr-2 h-4 w-4" /> Nuevo
-          </Button>
+          {canCreate && (
+            <Button onClick={openNew} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+              <Plus className="mr-2 h-4 w-4" /> Nuevo
+            </Button>
+          )}
         </>
       }
     >

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { usePermission } from "@/hooks/use-permission";
 import Swal from "sweetalert2";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -190,6 +191,9 @@ export default function ARInvoicesPage() {
     }
   };
 
+  const canCancel = usePermission("ARInvoices.Cancel");
+  const canReopen = usePermission("ARInvoices.Reopen");
+
   const cols: GridColDef<ARInvoiceRow>[] = [
     { field: "id", headerName: "ID", width: 80 },
     { field: "docNumber", headerName: "N°", width: 140 },
@@ -250,7 +254,7 @@ export default function ARInvoicesPage() {
       align: "center",
       renderCell: (p: GridRenderCellParams<ARInvoiceRow>) => {
         const st = normStatus(p.row);
-        const canCancel = st !== "CANCELLED" && st !== "PAID" && st !== "PARTIAL";
+        const canCancelRow = st !== "CANCELLED" && st !== "PAID" && st !== "PARTIAL";
 
         return (
           <div className="w-full h-full flex items-center justify-center gap-2">
@@ -268,26 +272,30 @@ export default function ARInvoicesPage() {
 
             {/* ✅ mantener cancel/reopen si querés */}
             {st !== "CANCELLED" ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 w-9 p-0 bg-white"
-                title="Cancelar CxC"
-                onClick={() => cancelInvoice(p.row.id)}
-                disabled={!canCancel}
-              >
-                <Ban className="h-4 w-4" />
-              </Button>
+              canCancel && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-9 p-0 bg-white"
+                  title="Cancelar CxC"
+                  onClick={() => cancelInvoice(p.row.id)}
+                  disabled={!canCancelRow}
+                >
+                  <Ban className="h-4 w-4" />
+                </Button>
+              )
             ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 w-9 p-0 bg-white"
-                title="Reabrir CxC"
-                onClick={() => reopenInvoice(p.row.id)}
-              >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
+              canReopen && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-9 p-0 bg-white"
+                  title="Reabrir CxC"
+                  onClick={() => reopenInvoice(p.row.id)}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              )
             )}
           </div>
         );

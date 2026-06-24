@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { TrendingUp, HandCoins, FileText, AlertTriangle } from "lucide-react";
+import { ReportExportBar } from "@/components/ui/report-export-bar";
+import { exportToExcel } from "@/lib/export-excel";
 
 const fmt = new Intl.NumberFormat("es-PY");
 const money = (n: number) => fmt.format(Math.round(n));
@@ -77,12 +79,34 @@ export default function ResumenDiaPage() {
           </p>
         </div>
 
-        <input
-          type="date"
-          value={date}
-          onChange={handleDate}
-          className="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#C5A05A]"
-        />
+        <div className="flex gap-2 items-center flex-wrap">
+          <ReportExportBar
+            disabled={loading || !data}
+            onExcel={() =>
+              data &&
+              exportToExcel(
+                [
+                  {
+                    Fecha: date,
+                    "Total Facturado": data.totalFacturado,
+                    "Cant. Facturas": data.cantFacturas,
+                    "Total Cobrado": data.totalCobrado,
+                    "Cant. Cobros": data.cantCobros,
+                    "Pendiente del Día": pendienteDia,
+                    "Facturas Vencidas": data.facturasVencidas,
+                  },
+                ],
+                `Resumen_Dia_${date}`
+              )
+            }
+          />
+          <input
+            type="date"
+            value={date}
+            onChange={handleDate}
+            className="no-print border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#C5A05A]"
+          />
+        </div>
       </div>
 
       {loading && (

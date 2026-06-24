@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Card } from "@/components/ui/card";
+import { ReportExportBar } from "@/components/ui/report-export-bar";
+import { exportToExcel } from "@/lib/export-excel";
 import {
   BarChart,
   Bar,
@@ -92,9 +94,24 @@ export default function DashboardReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Dashboard Ejecutivo</h1>
-        <p className="text-sm text-gray-500 mt-1">Visibilidad general del negocio — {year}</p>
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Dashboard Ejecutivo</h1>
+          <p className="text-sm text-gray-500 mt-1">Visibilidad general del negocio — {year}</p>
+        </div>
+        <ReportExportBar
+          disabled={loading}
+          onExcel={() =>
+            exportToExcel(
+              chart.map((r) => ({
+                Mes: r.month,
+                Ventas: r.sales,
+                Cobros: r.collected,
+              })),
+              `Dashboard_${year}`
+            )
+          }
+        />
       </div>
 
       {/* KPIs */}

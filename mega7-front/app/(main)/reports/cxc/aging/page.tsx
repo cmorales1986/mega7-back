@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Card } from "@/components/ui/card";
+import { ReportExportBar } from "@/components/ui/report-export-bar";
+import { exportToExcel } from "@/lib/export-excel";
 
 const fmt = new Intl.NumberFormat("es-PY");
 const money = (n: number) => fmt.format(Math.round(n));
@@ -57,13 +59,32 @@ export default function AgingCxCPage() {
             Cuentas por cobrar clasificadas por antigüedad de vencimiento
           </p>
         </div>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar cliente…"
-          className="border rounded-lg px-3 py-2 text-sm bg-white w-56 focus:outline-none focus:ring-2 focus:ring-[#C5A05A]"
-        />
+        <div className="flex gap-2 flex-wrap items-center">
+          <ReportExportBar
+            disabled={loading}
+            onExcel={() =>
+              exportToExcel(
+                filtered.map((r) => ({
+                  Cliente: r.customerName,
+                  Corriente: r.corriente,
+                  "1-30 días": r.dias1_30,
+                  "31-60 días": r.dias31_60,
+                  "61-90 días": r.dias61_90,
+                  "+90 días": r.diasMas90,
+                  Total: r.total,
+                })),
+                "Aging_CxC"
+              )
+            }
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar cliente…"
+            className="no-print border rounded-lg px-3 py-2 text-sm bg-white w-56 focus:outline-none focus:ring-2 focus:ring-[#C5A05A]"
+          />
+        </div>
       </div>
 
       {/* KPI buckets */}

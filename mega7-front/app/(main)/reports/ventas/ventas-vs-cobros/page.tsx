@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Card } from "@/components/ui/card";
+import { ReportExportBar } from "@/components/ui/report-export-bar";
+import { exportToExcel } from "@/lib/export-excel";
 import {
   BarChart,
   Bar,
@@ -48,7 +50,22 @@ export default function VentasVsCobroPage() {
           <p className="text-sm text-gray-500 mt-1">Comparativa mensual de facturación y cobranza</p>
         </div>
 
-        <select
+        <div className="flex gap-2 items-center flex-wrap">
+          <ReportExportBar
+            disabled={loading}
+            onExcel={() =>
+              exportToExcel(
+                data.map((r) => ({
+                  Mes: r.month,
+                  Ventas: r.sales,
+                  Cobros: r.collected,
+                  Diferencia: r.sales - r.collected,
+                })),
+                `Ventas_vs_Cobros_${year}`
+              )
+            }
+          />
+          <select
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
           className="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#C5A05A]"
@@ -57,6 +74,7 @@ export default function VentasVsCobroPage() {
             <option key={y} value={y}>{y}</option>
           ))}
         </select>
+        </div>
       </div>
 
       {/* Resumen */}

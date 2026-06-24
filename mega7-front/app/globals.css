@@ -177,3 +177,26 @@ html, body {
 .animate-zoom-in {
   animation: zoom-in 0.18s ease-out;
 }
+
+/* ===== PRINT / PDF ===== */
+@media print {
+  /* Permite que el contenido se expanda verticalmente */
+  html, body { overflow: visible !important; height: auto !important; }
+
+  /* Oculta el layout: sidebar y navbar */
+  aside  { display: none !important; }
+  header { display: none !important; }
+
+  /* Oculta botones y controles de la UI */
+  .no-print { display: none !important; }
+
+  /* Elimina sombras y fondo gris */
+  * { box-shadow: none !important; }
+  main { background: white !important; padding: 0 !important; overflow: visible !important; }
+
+  /* Asegura que los colores de fondo se impriman */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* Evita cortes dentro de tablas */
+  tr { page-break-inside: avoid; }
+}

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Package, AlertTriangle } from "lucide-react";
+import { ReportExportBar } from "@/components/ui/report-export-bar";
+import { exportToExcel } from "@/lib/export-excel";
 
 const fmt = new Intl.NumberFormat("es-PY");
 const money = (n: number) => fmt.format(Math.round(n));
@@ -57,15 +59,35 @@ export default function StockActualPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Stock Actual</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Inventario disponible por producto y depósito
-        </p>
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Stock Actual</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Inventario disponible por producto y depósito
+          </p>
+        </div>
+        <ReportExportBar
+          disabled={loading}
+          onExcel={() =>
+            exportToExcel(
+              filtered.map((r) => ({
+                Código: r.productCode,
+                Producto: r.productName,
+                Depósito: r.warehouseName,
+                Stock: r.quantity,
+                "Stock Mínimo": r.minimumStock,
+                "Costo Prom.": r.avgCost,
+                "Valor Total": r.totalValue,
+                Estado: r.belowMin ? "Bajo mínimo" : "OK",
+              })),
+              "Stock_Actual"
+            )
+          }
+        />
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-3 items-center">
+      <div className="no-print flex flex-wrap gap-3 items-center">
         <input
           type="text"
           value={search}

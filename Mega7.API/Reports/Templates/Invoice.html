@@ -1,0 +1,155 @@
+﻿<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10.5pt;
+            color: #111;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .box {
+            border: 1px solid #333;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .title {
+            font-size: 14pt;
+            font-weight: 700;
+        }
+
+        .muted {
+            color: #555;
+            font-size: 9pt;
+        }
+
+        .kv {
+            font-size: 10pt;
+            line-height: 1.35;
+        }
+
+            .kv b {
+                display: inline-block;
+                min-width: 120px;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #333;
+            padding: 6px;
+        }
+
+        th {
+            background: #f2f2f2;
+            font-size: 10pt;
+        }
+
+        td {
+            font-size: 10pt;
+        }
+
+        .right {
+            text-align: right;
+        }
+
+        .totals {
+            width: 320px;
+            margin-left: auto;
+            margin-top: 10px;
+        }
+
+            .totals td {
+                border: 1px solid #333;
+            }
+
+        .footer {
+            margin-top: 10px;
+            font-size: 9pt;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="row">
+        <div style="flex:1">
+            <div class="title">FACTURA</div>
+            <div class="muted">{{CompanyName}}</div>
+            <div class="kv">
+                <div><b>RUC:</b> {{CompanyRuc}}</div>
+                <div><b>Dirección:</b> {{CompanyAddress}}</div>
+                <div><b>Tel:</b> {{CompanyPhone}}</div>
+            </div>
+        </div>
+
+        <div style="width: 320px">
+            <div class="box">
+                <div class="kv">
+                    <div><b>N°:</b> {{DocNumber}}</div>
+                    <div><b>Fecha:</b> {{InvoiceDate}}</div>
+                    <div><b>Venc.:</b> {{DueDate}}</div>
+                    <hr />
+                    <div><b>Timbrado:</b> {{Timbrado}}</div>
+                    <div><b>Válido:</b> {{TimbradoValid}}</div>
+                    <div><b>Estab.:</b> {{Establishment}} <b>Pto. Exp.:</b> {{ExpeditionPoint}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+        <div class="box" style="flex:1">
+            <div class="kv">
+                <div><b>Cliente:</b> {{CustomerName}}</div>
+                <div><b>RUC/CI:</b> {{CustomerDoc}}</div>
+                <div><b>Dirección:</b> {{CustomerAddress}}</div>
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 80px">Código</th>
+                <th>Descripción</th>
+                <th style="width: 70px" class="right">Cant.</th>
+                <th style="width: 90px" class="right">Precio</th>
+                <th style="width: 70px" class="right">Desc%</th>
+                <th style="width: 100px" class="right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{Lines}}
+        </tbody>
+    </table>
+
+    <table class="totals">
+        <tr><td><b>Subtotal</b></td><td class="right">{{SubTotal}}</td></tr>
+        <tr><td><b>IVA</b></td><td class="right">{{TaxTotal}}</td></tr>
+        <tr><td><b>Total</b></td><td class="right">{{Total}}</td></tr>
+    </table>
+
+    <div class="footer">
+        {{FooterNote}}
+    </div>
+
+</body>
+</html>

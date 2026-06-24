@@ -1,0 +1,93 @@
+﻿.public-layout {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Fondo completo */
+    background-image: url('/images/background-login.png'); /* tu imagen de fondo */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* Capa transparente suave */
+    position: relative;
+}
+
+.public-content {
+    position: relative; /* por la capa ::before */
+    z-index: 2;
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+}
+
+/* --- LOGIN CONTAINER --- */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+/* --- LOGIN CARD --- */
+.login-card {
+    background: #ffffff;
+    padding: 45px 50px 50px 50px;
+    border-radius: 14px;
+    width: 420px; /* <-- Aumentado */
+    box-shadow: 0px 8px 22px rgba(0,0,0,0.15);
+    text-align: center;
+}
+
+    /* 🔥 Forzar que todo el form item ocupe el ancho completo */
+    .login-card .ant-form-item {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    /* 🔥 Forzar que el contenedor del input ocupe todo el ancho */
+    .login-card .ant-form-item-control {
+        width: 100%;
+    }
+
+    .login-card .ant-form-item-control-input {
+        width: 100%;
+    }
+
+    /* 🔥 Ahora sí: los inputs mismo ancho */
+    .login-card input.ant-input,
+    .login-card .ant-input-password {
+        width: 100% !important;
+        height: 44px;
+        font-size: 15px;
+        box-sizing: border-box;
+    }
+
+/* --- LOGO CIRCULAR --- */
+.login-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    /* círculo */
+    border-radius: 50%;
+    /* borde dorado */
+    border: 3px solid #c9a13a;
+    margin-bottom: 20px;
+    /* luz suave */
+    box-shadow: 0 0 12px rgba(0,0,0,0.08);
+}
+
+/* --- TITULO --- */
+.login-title {
+    font-weight: 600;
+    margin-top: 10px;
+    margin-bottom: 25px;
+}
+
+/* Ajuste inputs */
+.ant-input,
+.ant-input-password {
+    height: 40px;
+    font-size: 14px;
+}
+

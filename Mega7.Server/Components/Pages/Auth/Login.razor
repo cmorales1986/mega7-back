@@ -1,0 +1,58 @@
+﻿@page "/login"
+@using Mega7.Server.Components.Layout
+@layout PublicLayout
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+
+<MudPaper Elevation="10">
+
+
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-6">
+        Iniciar Sesión
+    </MudText>
+
+    <MudTextField @bind-Value="username"
+                  Variant="Variant.Outlined"
+                  Clearable="true"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="@Icons.Material.Filled.Person"
+                  Label="Usuario o Email" />
+
+    <MudTextField @bind-Value="password"
+                  Variant="Variant.Text"
+                  InputType="InputType.Password"
+                  Class="mb-6"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="@Icons.Material.Filled.Lock"
+                  IconSize="Size.Medium"
+                  Placeholder="Password" />
+
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               FullWidth="true"
+               Class="login-button"
+               OnClick="LoginI">
+        INGRESAR
+    </MudButton>
+
+</MudPaper>
+
+@code {
+    private string username = "";
+    private string password = "";
+
+    private async Task LoginI()
+    {
+        var ok = await Auth.LoginAsync(username, password);
+
+        if (!ok)
+        {
+            Snackbar.Add("Usuario o contraseña incorrectos", Severity.Error);
+            return;
+        }
+
+        Nav.NavigateTo("/");
+    }
+}

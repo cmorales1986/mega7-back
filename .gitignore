@@ -1,0 +1,29 @@
+# ===== .NET =====
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+.vs/
+*.dll
+*.pdb
+
+# Secretos locales (NUNCA subir)
+appsettings.*.local.json
+secrets.json
+
+# ===== Node / Next.js =====
+node_modules/
+.next/
+out/
+.vercel/
+
+# Variables de entorno locales
+.env
+.env*.local
+
+# ===== Misc =====
+*.log
+.DS_Store
+Thumbs.db

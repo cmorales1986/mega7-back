@@ -1,0 +1,136 @@
+﻿@using Mega7.WebA.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthProvider
+@attribute [Authorize]
+@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="4" Dense="true" Style="background-color: #0F1111; color: white;">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudSpacer />
+        <MudMenu Icon="@Icons.Material.Filled.Face" Color="Color.Inherit">
+            <MudMenuItem Label="Perfil" Icon="@Icons.Material.Filled.Settings" />
+            <MudMenuItem Label="Logout" Icon="@Icons.Material.Filled.ExitToApp" Color="Color.Error" OnClick="Logout" />
+        </MudMenu>
+    </MudAppBar>
+
+    <!-- 🔥 ESTE CONTENEDOR ES IMPRESCINDIBLE -->
+    <MudDrawer @bind-Open="_drawerOpen"
+                Elevation="4"
+               >
+        <MudDrawerHeader Class="drawer-header">
+            <img src="images/logo-mega7.png" class="drawer-logo" />
+            <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2 logo-title">
+                Mega 7 System
+            </MudText>
+           
+        </MudDrawerHeader>
+        
+        <MudNavMenu Margin="Margin.Normal" Class="pa-1">
+            <MudDivider Light="true" DividerType="DividerType.FullWidth" />
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Success">Dashboard</MudNavLink>
+            <MudNavGroup Title="Inventario" Icon="@Icons.Material.Filled.Inventory" IconColor="Color.Info">
+                <MudNavLink Href="/products" Icon="@Icons.Material.Filled.Inventory2" IconColor="Color.Tertiary">
+                    Productos
+                </MudNavLink>
+                <MudNavLink Href="/categories" Icon="@Icons.Material.Filled.Category" IconColor="Color.Tertiary">
+                    Categorías
+                </MudNavLink>
+                <MudNavLink Href="/subcategories" Icon="@Icons.Material.Filled.List" IconColor="Color.Tertiary">
+                    Subcategorías
+                </MudNavLink>
+                <MudNavLink Href="/units" Icon="@Icons.Material.Filled.Straighten" IconColor="Color.Tertiary">
+                    Unidades de medida
+                </MudNavLink>
+                <MudNavLink Href="/brands" Icon="@Icons.Material.Filled.Store" IconColor="Color.Tertiary">
+                    Marcas
+                </MudNavLink>
+                <MudNavLink Href="/taxes" Icon="@Icons.Material.Filled.Percent" IconColor="Color.Tertiary">
+                    Impuestos
+                </MudNavLink>
+                <MudNavLink Href="/warehouses" Icon="@Icons.Material.Filled.Warehouse" IconColor="Color.Tertiary">
+                    Almacenes
+                </MudNavLink>
+                <MudNavLink Href="/batches" Icon="@Icons.Material.Filled.QrCode2" IconColor="Color.Tertiary">
+                    Lotes / Series
+                </MudNavLink>
+            </MudNavGroup>
+            <MudNavGroup Title="Movimientos" Icon="@Icons.Material.Filled.CompareArrows" IconColor="Color.Secondary">
+                <MudNavLink Href="/stock-entry" Icon="@Icons.Material.Filled.Login" IconColor="Color.Tertiary">
+                    Entradas de stock
+                </MudNavLink>
+                <MudNavLink Href="/stock-output" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Tertiary">
+                    Salidas de stock
+                </MudNavLink>
+                <MudNavLink Href="/stock-transfer" Icon="@Icons.Material.Filled.SwapHoriz" IconColor="Color.Tertiary">
+                    Transferencias
+                </MudNavLink>
+            </MudNavGroup>
+            <MudNavGroup Title="Reportes" Icon="@Icons.Material.Filled.Assessment" IconColor="Color.Primary">
+                <MudNavLink Href="/stock" Icon="@Icons.Material.Filled.Inventory" IconColor="Color.Tertiary">
+                    Stock Actual
+                </MudNavLink>
+                <MudNavLink Href="/kardex" Icon="@Icons.Material.Filled.Book" IconColor="Color.Tertiary">
+                    Kardex
+                </MudNavLink>
+                <MudNavLink Href="/movements" Icon="@Icons.Material.Filled.History" IconColor="Color.Tertiary">
+                    Movimientos
+                </MudNavLink>
+            </MudNavGroup>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <!-- 🔥 AHORA SI OCUPA TODO EL ESPACIO -->
+    <MudMainContent >
+        @Body
+    </MudMainContent>
+
+
+</MudLayout>
+
+@code {
+
+    [Inject] AuthService Auth { get; set; }
+    [Inject] NavigationManager Nav { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; }
+
+    bool _drawerOpen = true;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Evitar redirecciones en páginas públicas
+        var current = Nav.Uri.ToLower();
+
+        if (current.Contains("/login") || current.Contains("/register"))
+            return;
+
+        var authState = await AuthStateTask;
+        var user = authState.User;
+
+        if (!user.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login", true);
+            return;
+        }
+    }
+
+
+    private async Task Logout()
+    {
+        await Auth.LogoutAsync();
+         Nav.NavigateTo("/login", true);
+    }
+}

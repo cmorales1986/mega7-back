@@ -1,0 +1,6 @@
+@Mega7.ReportingService_HostAddress = http://localhost:5250
+
+GET {{Mega7.ReportingService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

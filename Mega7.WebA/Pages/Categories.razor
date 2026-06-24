@@ -1,0 +1,147 @@
+﻿@page "/categories"
+
+@attribute [Authorize]
+@inject MasterDataService<Category> Service
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<!-- HEADER -->
+<div class="page-header">
+
+    <div class="page-title">
+        <MudText Typo="Typo.h5" Class="fw-bold">Categorías</MudText>
+    </div>
+
+    <div class="page-breadcrumbs">
+        <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+    </div>
+    
+</div>
+<MudDivider DividerType="DividerType.Middle" Class="my-6" Light="true" />
+<MudPaper Elevation="2" Class="m-4">
+
+    <MudDataGrid T="Category"
+                 Items="@categories"
+                 Bordered="true"
+                 Hover="true"
+                 Dense="true"
+                 Outlined="true"
+>
+
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Categorías</MudText>
+            <MudSpacer />
+            <MudButton Style="background-color: #C9A13A; color: white;"
+                       Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="OpenAddDialog">
+                Nueva Categoría
+            </MudButton>
+        </ToolBarContent>
+
+        <Columns>
+
+            @* <PropertyColumn Property="x => x.Id" Title="ID" Editable="false"  /> *@
+            <PropertyColumn Property="x => x.Code" Title="Codigo" Editable="false" />
+            <PropertyColumn Property="x => x.Name" Title="Nombre" />
+
+            <TemplateColumn Title="Acciones" Width="120px">
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Info"
+                                   OnClick="@(() => OpenEditDialog(context.Item))" />
+
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
+                                   OnClick="@(() => DeleteCategory(context.Item))" />
+                </CellTemplate>
+            </TemplateColumn>
+
+        </Columns>
+
+    </MudDataGrid>
+</MudPaper>
+
+@code {
+    private List<Category> categories = new();
+
+    private List<BreadcrumbItem> _items =
+    [
+        new("Dashboard", href: "/", icon: Icons.Material.Filled.Dashboard),
+        new("Inventario", href: "#", icon: Icons.Material.Filled.Inventory),
+        new("Categorías", href: null, disabled: true, icon: Icons.Material.Filled.Category)
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        categories = await Service.GetAllAsync();
+    }
+
+    // -----------------------------
+    //  AGREGAR
+    // -----------------------------
+    private async Task OpenAddDialog()
+    {
+        var dialog = DialogService.Show<CategoryDialog>("Nueva Categoría");
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+            Snackbar.Add("Categoría agregada correctamente", Severity.Success);
+        }
+    }
+
+    // -----------------------------
+    //  EDITAR
+    // -----------------------------
+    private async Task OpenEditDialog(Category cat)
+    {
+        var parameters = new DialogParameters
+    {
+        {
+            "Model",
+            new Category
+            {
+                Id = cat.Id,
+                Name = cat.Name,
+                Code = cat.Code,
+                IsActive = cat.IsActive   // ← ¡ESTO FALTABA!
+            }
+        }
+    };
+
+        var dialog = DialogService.Show<CategoryDialog>("Editar Categoría", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+            Snackbar.Add("Categoría actualizada correctamente", Severity.Success);
+        }
+    }
+
+
+    // -----------------------------
+    //  ELIMINAR
+    // -----------------------------
+    private async Task DeleteCategory(Category cat)
+    {
+        var ok = await Service.DeleteAsync(cat.Id);
+
+        if (ok)
+        {
+            Snackbar.Add("Categoría eliminada", Severity.Warning);
+            await LoadData();
+        }
+        else
+        {
+            Snackbar.Add("No se pudo eliminar", Severity.Error);
+        }
+    }
+}

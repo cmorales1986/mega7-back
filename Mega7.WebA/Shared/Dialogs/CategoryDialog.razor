@@ -1,0 +1,67 @@
+﻿<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(Model.Id == 0 ? "Nueva Categoría" : "Editar Categoría")
+        </MudText>
+    </TitleContent>
+
+    <DialogContent>
+
+        <MudTextField @bind-Value="Model.Name"
+                      Label="Nombre"
+                      Required="true"
+                      FullWidth="true"
+                      Margin="Margin.Normal" />
+
+        @if (Model.Id != 0)
+        {
+            <MudSwitch T="bool"
+                       Color="Color.Primary"
+                       @bind-Checked="Model.IsActive"
+                       Label="Activo" />
+        }
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save">
+            Guardar
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Inject] MasterDataService<Category> Service { get; set; } = null!;
+    [Inject] CategoryService CatService { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
+
+    [Parameter]
+    public Category Model { get; set; } = new()
+    {
+        Id = 0,
+        Code = "",
+        Name = "",
+        IsActive = true
+    };
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Save()
+    {
+        bool ok;
+
+        if (Model.Id == 0)
+            ok = await Service.CreateAsync(Model);
+        else
+            ok = await CatService.UpdateAsync(Model.Id, Model.Name, Model.IsActive);
+
+        if (ok)
+            MudDialog.Close(DialogResult.Ok(true));
+        else
+            Snackbar.Add("Error al guardar", Severity.Error);
+    }
+
+}

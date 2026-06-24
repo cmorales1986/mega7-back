@@ -1,0 +1,85 @@
+﻿@page "/login"
+@layout PublicLayout
+
+@attribute [AllowAnonymous]
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<div class="login-container">
+    <MudPaper Elevation="10" Class="pa-6 login-card">
+
+        <!-- Logo -->
+        <div class="login-logo-wrapper">
+            <MudAvatar Size="Size.Large">
+                <MudImage Src="images/logo-mega7.png"></MudImage>
+            </MudAvatar>
+        </div>
+
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">
+            Iniciar Sesión
+        </MudText>
+
+        <!-- Username -->
+        <MudTextField @bind-Value="model.UserOrEmail"
+                      Label="Usuario o Email"
+                      Variant="Variant.Outlined"
+                      Required="true"
+                      FullWidth="true"
+                      Class="mb-3" />
+
+        <!-- Password -->
+        <MudTextField @bind-Value="model.Password"
+                      Label="Contraseña"
+                      Variant="Variant.Outlined"
+                      InputType="InputType.Password"
+                      Required="true"
+                      FullWidth="true"
+                      Class="mb-4" />
+
+        <!-- Remember Me -->
+        <MudCheckBox T="bool" @bind-Checked="rememberMe" Class="mb-4">
+            Recordarme
+        </MudCheckBox>
+
+        <!-- Button -->
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   FullWidth="true"
+                   OnClick="LoginI"
+                   Class="mb-3">
+            INGRESAR
+        </MudButton>
+
+        <!-- Register Link -->
+        <div style="text-align:center;">
+            <MudText Typo="Typo.body2">
+                ¿No tienes una cuenta?
+                <MudLink Href="/register">Regístrate</MudLink>
+            </MudText>
+        </div>
+
+        <MudText Typo="Typo.caption" Align="Align.Center" Class="mt-6">
+            © Mega7 2025
+        </MudText>
+
+    </MudPaper>
+</div>
+
+@code {
+    LoginRequest model = new();
+    bool rememberMe = false;
+
+    private async Task LoginI()
+    {
+        var success = await Auth.LoginAsync(model.UserOrEmail, model.Password);
+
+        if (!success)
+        {
+            Snackbar.Add("Usuario o contraseña incorrectos.", Severity.Error);
+            return;
+        }
+
+        Nav.NavigateTo("/");
+    }
+}

@@ -1,0 +1,47 @@
+﻿@page "/login"
+
+@layout PublicLayout
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<div class="login-container">
+
+    <div class="login-card">
+
+        <img src="/images/logo-mega7.png" class="login-logo" />
+
+        <h2 class="login-title">Iniciar Sesión</h2>
+
+        <EditForm Model="@model" OnValidSubmit="@LoginI">
+            <MudTextField @bind-Value="model.Username" Label="Usuario o Email" For="@(() => model.Username)" />
+            <MudTextField @bind-Value="model.Password" Label="Password" InputType="InputType.Password" For="@(() => model.Password)" />
+
+            <MudButton Type="Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4" FullWidth="true">
+                INGRESAR
+            </MudButton>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginModel model = new();
+
+    private async Task LoginI()
+    {
+        var result = await Auth.LoginAsync(model.Username, model.Password);
+
+        if (!result)
+        {
+            //Msg.Error("Usuario o contraseña incorrectos");
+            return;
+        }
+
+        Nav.NavigateTo("/");
+    }
+
+    public class LoginModel
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+}

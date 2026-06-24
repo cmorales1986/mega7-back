@@ -1,0 +1,23 @@
+# Salidas de compilación
+**/bin/
+**/obj/
+**/.vs/
+
+# Otros proyectos de la solución que NO se despliegan en Railway
+Mega7.Server/
+Mega7.Web/
+Mega7.WebA/
+Mega7.WebAPP/
+Mega7.WebMu/
+Mega7.WebMud/
+Mega7.ReportingService/
+
+# Frontends (van a Vercel, no al contenedor del API)
+mega7-front/
+mega7-frontend/
+
+# Misc
+**/node_modules/
+**/.next/
+*.user
+.git/

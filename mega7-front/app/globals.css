@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================
+   SHADCN THEME VARIABLES
+   (arregla fondos/bordes negros en Popover/Command/Input)
+   ========================= */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+/* =========================
+   TUS ESTILOS (se quedan igual)
+   ========================= */
+@keyframes fadeSlow {
+  0% { opacity: 0.95; }
+  50% { opacity: 1; }
+  100% { opacity: 0.95; }
+}
+
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
+
+.animate-fade-slow {
+  animation: fadeSlow 10s ease-in-out infinite;
+}
+
+.dialog-content {
+  z-index: 10000 !important;
+}
+
+.row-inactive {
+  background-color: #ffe5e5 !important;
+}
+
+.row-active {
+  background-color: #f7fff7 !important;
+}
+
+/* ===== Fix Command/Popover (cmdk/shadcn) ===== */
+[cmdk-input] {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+[cmdk-input]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+[cmdk-root] {
+  background: white !important;
+}
+
+[cmdk-list] {
+  background: white !important;
+}
+
+[cmdk-item][data-selected="true"] {
+  background: #f3f4f6 !important; /* gray-100 */
+}
+
+/* ===== Fix cmdk / shadcn CommandInput (autocomplete) ===== */
+[cmdk-input-wrapper]{
+  background: #fff !important;
+  border-bottom: 0 !important;   /* quita esa línea */
+}
+
+/* asegura que el input no tenga fondo raro */
+[cmdk-input]{
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+/* por si el Command/Popover usa bg-popover */
+[cmdk-root]{
+  background: #fff !important;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.25s ease-out;
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-sheet-up {
+  animation: sheet-up 0.25s ease-out;
+}
+
+@keyframes zoom-in {
+  from { transform: scale(0.98); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.animate-zoom-in {
+  animation: zoom-in 0.18s ease-out;
+}

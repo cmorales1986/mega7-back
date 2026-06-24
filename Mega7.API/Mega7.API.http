@@ -1,0 +1,6 @@
+@Mega7.API_HostAddress = http://localhost:5063
+
+GET {{Mega7.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,64 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthProvider
+@attribute [Authorize]
+@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudPopoverProvider />
+
+<MudDialogProvider />
+
+<MudSnackbarProvider />
+
+
+<MudLayout>
+    <MudAppBar Elevation="4">
+        <MudText Typo="Typo.h6">Mega7 Sistema</MudText>
+
+        <MudSpacer />
+
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="Logout">
+            Cerrar sesión
+        </MudButton>
+    </MudAppBar>
+
+    <MudDrawer Open="true" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Persistent">
+        <MudNavMenu>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home">Inicio</MudNavLink>
+            <MudNavLink Href="/categorias" Icon="@Icons.Material.Filled.Category">Categorías</MudNavLink>
+            <MudNavLink Href="/productos" Icon="@Icons.Material.Filled.Inventory2">Productos</MudNavLink>
+            <MudNavLink Href="/socios" Icon="@Icons.Material.Filled.People">Socios Negocio</MudNavLink>
+            <MudNavLink Href="/stock" Icon="@Icons.Material.Filled.Warehouse">Inventarios</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    [Inject] AuthService Auth { get; set; }
+    [Inject] NavigationManager Nav { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateTask;
+        var user = authState.User;
+
+        if (!user.Identity.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+        }
+    }
+
+    private void Logout()
+    {
+        Auth.Logout();
+        Nav.NavigateTo("/login", true);
+    }
+}

@@ -1,0 +1,116 @@
+﻿html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* evita scroll */
+}
+
+.public-layout {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('/images/background-login.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden; /* evita cualquier scroll adicional */
+}
+
+.public-content {
+    position: relative;
+    z-index: 2;
+}
+
+.login-wrapper {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('/images/background-login.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.login-card {
+    backdrop-filter: blur(3px);
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+.login-card {
+    width: 420px;
+    border-radius: 16px;
+    backdrop-filter: blur(4px);
+}
+
+.login-logo-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.login-logo {
+    border: 4px solid #C9A13A; /* borde dorado */
+    box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    border-radius: 50%;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 24px;
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+}
+
+.page-breadcrumbs {
+    display: flex;
+    align-items: center;
+}
+
+.fw-bold {
+    font-weight: 600;
+}
+
+.mud-layout {
+    height: 100%;
+}
+
+.main-content-area {
+    background-color: #111; /* o el color que quieras */
+    height: 100%;
+    padding: 0px;
+}
+
+
+.drawer-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+}
+
+.drawer-logo {
+    width: 60px; /* ajustable */
+    height: auto;
+    border-radius: 50%; /* si querés que sea circular */
+    border: 2px solid #C9A13A;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.logo-title {
+    font-weight: 600;
+}

@@ -19,6 +19,19 @@ if (!string.IsNullOrEmpty(port))
 
 QuestPDF.Settings.License = LicenseType.Community;
 
+// ===== DIAGNÓSTICO TEMPORAL (quitar después) =====
+var diagCs = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine($"[DIAG] ConnectionString por config: presente={!string.IsNullOrEmpty(diagCs)} len={diagCs?.Length ?? 0}");
+Console.WriteLine($"[DIAG] Env var directa presente={!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection"))}");
+foreach (System.Collections.DictionaryEntry kv in Environment.GetEnvironmentVariables())
+{
+    var k = kv.Key?.ToString() ?? "";
+    if (k.StartsWith("ConnectionStrings", StringComparison.OrdinalIgnoreCase)
+        || k.StartsWith("Jwt", StringComparison.OrdinalIgnoreCase))
+        Console.WriteLine($"[DIAG] EnvVar detectada: '{k}'");
+}
+// ===== FIN DIAGNÓSTICO =====
+
 builder.Services.AddDbContext<Mega7DbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 

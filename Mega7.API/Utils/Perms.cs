@@ -165,7 +165,17 @@ namespace Mega7.API.Utils
 
         public const string NotificationsView = "Notifications.View";
 
-        // ── Administración ────────────────────────────────────────────────────
+        // ── Contabilidad ─────────────────────────────────────────────────────
+        public const string AccountingAccountsView   = "Accounting.AccountsView";
+        public const string AccountingAccountsCreate = "Accounting.AccountsCreate";
+        public const string AccountingAccountsEdit   = "Accounting.AccountsEdit";
+        public const string AccountingJournalView    = "Accounting.JournalView";
+        public const string AccountingJournalCreate  = "Accounting.JournalCreate";
+        public const string AccountingReportsView    = "Accounting.ReportsView";
+        public const string AccountingConfigView     = "Accounting.ConfigView";
+        public const string AccountingConfigEdit     = "Accounting.ConfigEdit";
+
+        // ── Administración ────────────────────────────────────────────────
         public const string UsersView       = "Users.View";
         public const string UsersCreate     = "Users.Create";
         public const string UsersEdit       = "Users.Edit";

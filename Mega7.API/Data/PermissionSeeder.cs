@@ -125,6 +125,16 @@ namespace Mega7.API.Data
             new(Perms.PaymentConceptsEdit,         "Conceptos de Pago: Editar",                 "Finanzas",        132),
             new(Perms.PaymentConceptsDelete,       "Conceptos de Pago: Eliminar",               "Finanzas",        133),
 
+            // ── Contabilidad ──────────────────────────────────────────────────
+            new(Perms.AccountingAccountsView,   "Plan de Cuentas: Ver",         "Contabilidad", 180),
+            new(Perms.AccountingAccountsCreate, "Plan de Cuentas: Crear",       "Contabilidad", 181),
+            new(Perms.AccountingAccountsEdit,   "Plan de Cuentas: Editar",      "Contabilidad", 182),
+            new(Perms.AccountingJournalView,    "Libro Diario: Ver",            "Contabilidad", 183),
+            new(Perms.AccountingJournalCreate,  "Libro Diario: Crear asiento",  "Contabilidad", 184),
+            new(Perms.AccountingReportsView,    "Reportes Contables: Ver",      "Contabilidad", 185),
+            new(Perms.AccountingConfigView,     "Config. Contable: Ver",        "Contabilidad", 186),
+            new(Perms.AccountingConfigEdit,     "Config. Contable: Editar",     "Contabilidad", 187),
+
             // ── Reportes ──────────────────────────────────────────────────────
             new(Perms.ReportsView,                 "Reportes: Ver",                             "Reportes",        140),
 
@@ -171,6 +181,8 @@ namespace Mega7.API.Data
             Perms.BanksView, Perms.CashBoxesView, Perms.BankDepositsView,
             Perms.PaymentsMadeView, Perms.PaymentsReceivedView, Perms.PaymentConceptsView,
             Perms.ReportsView,
+            Perms.AccountingAccountsView, Perms.AccountingJournalView,
+            Perms.AccountingReportsView, Perms.AccountingConfigView,
             Perms.FiscalSeriesView, Perms.CreditTermsView,
             Perms.SalesParamsView, Perms.ReportMenuView,
             Perms.TenantsView, Perms.NotificationsView,

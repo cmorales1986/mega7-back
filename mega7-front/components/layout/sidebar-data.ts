@@ -31,6 +31,10 @@ import {
   CalendarClock,
   BookMarked,
   Settings2,
+  Scale,
+  BookText,
+  TrendingUp,
+  Layers,
 } from "lucide-react";
 
 export type MenuItem = {
@@ -126,9 +130,13 @@ export const menu: MenuItem[] = [
     icon: BookMarked,
     color: "text-emerald-600",
     children: [
-      { title: "Plan de Cuentas",      href: "/accounting/accounts", icon: BookMarked },
-      { title: "Libro Diario",         href: "/accounting/journal",  icon: BookOpen   },
-      { title: "Config. Contable",     href: "/accounting/config",   icon: Settings2  },
+      { title: "Plan de Cuentas",      href: "/accounting/accounts",                  icon: BookMarked },
+      { title: "Libro Diario",         href: "/accounting/journal",                   icon: BookOpen   },
+      { title: "Config. Contable",     href: "/accounting/config",                    icon: Settings2  },
+      { title: "Bal. Comprobación",    href: "/accounting/reports/trial-balance",     icon: Scale      },
+      { title: "Libro Mayor",          href: "/accounting/reports/ledger",            icon: BookText   },
+      { title: "Est. Resultados",      href: "/accounting/reports/income-statement",  icon: TrendingUp },
+      { title: "Balance General",      href: "/accounting/reports/balance-sheet",     icon: Layers     },
     ],
   },
 

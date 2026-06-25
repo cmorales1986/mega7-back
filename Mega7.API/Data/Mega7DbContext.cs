@@ -104,6 +104,9 @@ namespace Mega7.API.Data
 
         public DbSet<Account> Accounts => Set<Account>();
 
+        public DbSet<JournalEntry> JournalEntries => Set<JournalEntry>();
+        public DbSet<JournalEntryLine> JournalEntryLines => Set<JournalEntryLine>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -130,6 +133,27 @@ namespace Mega7.API.Data
             modelBuilder.Entity<Account>()
                 .Property(a => a.Nature)
                 .HasConversion<string>();
+
+            // Libro diario
+            modelBuilder.Entity<JournalEntry>()
+                .Property(j => j.SourceType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<JournalEntry>()
+                .Property(j => j.Status)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<JournalEntryLine>()
+                .HasOne(l => l.JournalEntry)
+                .WithMany(j => j.Lines)
+                .HasForeignKey(l => l.JournalEntryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<JournalEntryLine>()
+                .HasOne(l => l.Account)
+                .WithMany()
+                .HasForeignKey(l => l.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // 👉 StockEntryLine → Warehouse (NO CASCADE)
             modelBuilder.Entity<StockEntryLine>()

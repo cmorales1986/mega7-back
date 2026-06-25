@@ -126,6 +126,7 @@ export const menu: MenuItem[] = [
     color: "text-emerald-600",
     children: [
       { title: "Plan de Cuentas", href: "/accounting/accounts", icon: BookMarked },
+      { title: "Libro Diario",   href: "/accounting/journal",  icon: BookOpen   },
     ],
   },
 

@@ -102,6 +102,8 @@ namespace Mega7.API.Data
 
         public DbSet<Message> Messages => Set<Message>();
 
+        public DbSet<Account> Accounts => Set<Account>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -109,6 +111,25 @@ namespace Mega7.API.Data
             modelBuilder.Entity<AppRole>()
                 .HasIndex(r => r.Name)
                 .IsUnique();
+
+            // Plan de cuentas — árbol auto-referenciado
+            modelBuilder.Entity<Account>()
+                .HasIndex(a => a.Code)
+                .IsUnique();
+
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.Parent)
+                .WithMany(a => a.Children)
+                .HasForeignKey(a => a.ParentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Account>()
+                .Property(a => a.Type)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Account>()
+                .Property(a => a.Nature)
+                .HasConversion<string>();
 
             // 👉 StockEntryLine → Warehouse (NO CASCADE)
             modelBuilder.Entity<StockEntryLine>()

@@ -29,6 +29,7 @@ import {
   Shield,
   Percent,
   CalendarClock,
+  BookMarked,
 } from "lucide-react";
 
 export type MenuItem = {
@@ -110,6 +111,21 @@ export const menu: MenuItem[] = [
       { title: "Entradas", href: "/stock-entry", icon: ArrowDown },
       { title: "Salidas", href: "/stock-output", icon: ArrowUp },
       { title: "Transferencias", href: "/stock-transfer", icon: ArrowLeftRight },
+    ],
+  },
+
+  // ── Contabilidad ────────────────────────────────────────────────────────────
+  {
+    title: "Contabilidad",
+    isSection: true,
+  },
+
+  {
+    title: "Contabilidad",
+    icon: BookMarked,
+    color: "text-emerald-600",
+    children: [
+      { title: "Plan de Cuentas", href: "/accounting/accounts", icon: BookMarked },
     ],
   },
 

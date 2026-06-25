@@ -187,6 +187,7 @@ using (var scope = app.Services.CreateScope())
     await PermissionSeeder.SeedAsync(db);
     await ReportMenuSeeder.SeedAsync(db);
     await AppRoleSeeder.SeedAsync(db);
+    await AccountSeeder.SeedAsync(db);
 }
 
 app.Run();

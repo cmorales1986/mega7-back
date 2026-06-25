@@ -13,6 +13,9 @@ import {
   CalendarCheck,
   TrendingUp,
   AlertTriangle,
+  Scale,
+  BookText,
+  Layers,
 } from "lucide-react";
 
 const iconMap: Record<string, any> = {
@@ -30,6 +33,9 @@ const iconMap: Record<string, any> = {
   CalendarCheck,
   TrendingUp,
   AlertTriangle,
+  Scale,
+  BookText,
+  Layers,
 };
 
 export function getLucideIcon(name?: string | null) {

@@ -18,12 +18,14 @@ namespace Mega7.API.Controllers
         private readonly Mega7DbContext _ctx;
         private readonly PeriodService _periods;
         private readonly FiscalNumberService _fiscal;
+        private readonly AccountingService _accounting;
 
-        public ARSalesReceiptsController(Mega7DbContext ctx, PeriodService periods, FiscalNumberService fiscal)
+        public ARSalesReceiptsController(Mega7DbContext ctx, PeriodService periods, FiscalNumberService fiscal, AccountingService accounting)
         {
             _ctx = ctx;
             _periods = periods;
             _fiscal = fiscal;
+            _accounting = accounting;
         }
 
         // GET: api/arsalesreceipts?pendingDeposit=true&customerId=1&from=2026-01-01&to=2026-01-31
@@ -248,6 +250,9 @@ namespace Mega7.API.Controllers
                 }
 
                 await _ctx.SaveChangesAsync();
+
+                try { await _accounting.PostARSalesReceiptAsync(receipt.Id); } catch { }
+
                 await trx.CommitAsync();
 
                 var alwaysPrint = invoices.Any(i => (i.PaymentType ?? "CASH").ToUpperInvariant() == "CREDIT");

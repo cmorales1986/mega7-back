@@ -18,12 +18,14 @@ namespace Mega7.API.Controllers
         private readonly Mega7DbContext _ctx;
         private readonly PeriodService _periods;
         private readonly FiscalNumberService _fiscal;
+        private readonly AccountingService _accounting;
 
-        public SalesInvoicesController(Mega7DbContext ctx, PeriodService periods, FiscalNumberService fiscal)
+        public SalesInvoicesController(Mega7DbContext ctx, PeriodService periods, FiscalNumberService fiscal, AccountingService accounting)
         {
             _ctx = ctx;
             _periods = periods;
             _fiscal = fiscal;
+            _accounting = accounting;
         }
 
         // GET: api/salesinvoices
@@ -591,6 +593,9 @@ namespace Mega7.API.Controllers
                 so.UpdatedAt = DateTime.UtcNow;
 
                 await _ctx.SaveChangesAsync();
+
+                try { await _accounting.PostARInvoiceAsync(ar.Id); } catch { }
+
                 await trx.CommitAsync();
 
                 return Ok(ar);

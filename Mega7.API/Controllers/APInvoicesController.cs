@@ -17,11 +17,13 @@ namespace Mega7.API.Controllers
     {
         private readonly Mega7DbContext _ctx;
         private readonly PeriodService _periods;
+        private readonly AccountingService _accounting;
 
-        public APInvoicesController(Mega7DbContext ctx, PeriodService periods)
+        public APInvoicesController(Mega7DbContext ctx, PeriodService periods, AccountingService accounting)
         {
             _ctx = ctx;
             _periods = periods;
+            _accounting = accounting;
         }
 
         // GET: api/apinvoices?status=OPEN&includeCancelled=false&supplierId=2&onlyWithBalance=true
@@ -552,6 +554,8 @@ namespace Mega7.API.Controllers
 
                     await _ctx.SaveChangesAsync();
                 }
+
+                try { await _accounting.PostAPInvoiceAsync(ap.Id); } catch { }
 
                 await trx.CommitAsync();
                 return Ok(new { ok = true, id = ap.Id, total = ap.Total, hasLines });

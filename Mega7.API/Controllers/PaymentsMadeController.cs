@@ -20,11 +20,13 @@ namespace Mega7.API.Controllers
 
         private readonly Mega7DbContext _ctx;
         private readonly PeriodService _periods;
+        private readonly AccountingService _accounting;
 
-        public PaymentsMadeController(Mega7DbContext ctx, PeriodService periods)
+        public PaymentsMadeController(Mega7DbContext ctx, PeriodService periods, AccountingService accounting)
         {
             _ctx = ctx;
             _periods = periods;
+            _accounting = accounting;
         }
 
         // GET: api/paymentsmade
@@ -287,6 +289,8 @@ namespace Mega7.API.Controllers
                         await _ctx.SaveChangesAsync();
                     }
                 }
+
+                try { await _accounting.PostPaymentMadeAsync(doc.Id); } catch { }
 
                 await trx.CommitAsync();
                 return Ok(new { ok = true, id = doc.Id, hasApplies });

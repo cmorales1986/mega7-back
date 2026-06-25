@@ -132,6 +132,7 @@ builder.Services.AddScoped<SalesPricingService>();
 builder.Services.AddScoped<InvoicePdfService>();
 builder.Services.AddScoped<FiscalNumberService>();
 builder.Services.AddScoped<ReportingProxy>();
+builder.Services.AddScoped<AccountingService>();
 
 // CORS: lee los orígenes desde la variable de entorno Cors__AllowedOrigins (separados por coma).
 // En Railway agregar: Cors__AllowedOrigins=https://tu-app.vercel.app,http://localhost:3000

@@ -22,12 +22,14 @@ namespace Mega7.API.Controllers
         private readonly Mega7DbContext _ctx;
         private readonly PeriodService _periods;
         private readonly ILogger<PurchaseReceiptsController> _logger;
+        private readonly AccountingService _accounting;
 
-        public PurchaseReceiptsController(Mega7DbContext ctx, PeriodService periods, ILogger<PurchaseReceiptsController> logger)
+        public PurchaseReceiptsController(Mega7DbContext ctx, PeriodService periods, ILogger<PurchaseReceiptsController> logger, AccountingService accounting)
         {
             _ctx = ctx;
             _periods = periods;
             _logger = logger;
+            _accounting = accounting;
         }
 
         [RequirePermission(Perms.PurchaseReceiptsView)]
@@ -767,6 +769,10 @@ namespace Mega7.API.Controllers
                 var ap = await UpsertApInvoiceForReceipt(receipt);
 
                 await _ctx.SaveChangesAsync();
+
+                if (ap != null)
+                    try { await _accounting.PostAPInvoiceAsync(ap.Id); } catch { }
+
                 await trx.CommitAsync();
 
                 // ✅ Diferencia (Factura – Recepción): NO bloquear, solo informar

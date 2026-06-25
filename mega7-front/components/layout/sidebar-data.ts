@@ -30,6 +30,7 @@ import {
   Percent,
   CalendarClock,
   BookMarked,
+  Settings2,
 } from "lucide-react";
 
 export type MenuItem = {
@@ -125,8 +126,9 @@ export const menu: MenuItem[] = [
     icon: BookMarked,
     color: "text-emerald-600",
     children: [
-      { title: "Plan de Cuentas", href: "/accounting/accounts", icon: BookMarked },
-      { title: "Libro Diario",   href: "/accounting/journal",  icon: BookOpen   },
+      { title: "Plan de Cuentas",      href: "/accounting/accounts", icon: BookMarked },
+      { title: "Libro Diario",         href: "/accounting/journal",  icon: BookOpen   },
+      { title: "Config. Contable",     href: "/accounting/config",   icon: Settings2  },
     ],
   },
 

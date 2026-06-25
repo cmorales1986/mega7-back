@@ -188,6 +188,7 @@ using (var scope = app.Services.CreateScope())
     await ReportMenuSeeder.SeedAsync(db);
     await AppRoleSeeder.SeedAsync(db);
     await AccountSeeder.SeedAsync(db);
+    await AccountingConfigSeeder.SeedAsync(db);
 }
 
 app.Run();

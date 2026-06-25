@@ -20,6 +20,10 @@ namespace Mega7.SHARED.Entities
         public decimal InitialBalance { get; set; } = 0m;
         public DateTime InitialBalanceDate { get; set; } = DateTime.UtcNow.Date;
 
+        // Cuenta contable asociada (ej: "Banco - Cuenta Corriente")
+        public int? AccountId { get; set; }
+        public Account? Account { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

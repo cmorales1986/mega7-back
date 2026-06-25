@@ -15,6 +15,10 @@ namespace Mega7.SHARED.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 
+        // Cuenta contable asociada (ej: "Caja Principal")
+        public int? AccountId { get; set; }
+        public Account? Account { get; set; }
+
         public ICollection<CashSession> Sessions { get; set; } = new List<CashSession>();
 
         // ✅ Separadas para que EF no se confunda

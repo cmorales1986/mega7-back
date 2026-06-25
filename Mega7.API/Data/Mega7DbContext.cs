@@ -103,6 +103,7 @@ namespace Mega7.API.Data
         public DbSet<Message> Messages => Set<Message>();
 
         public DbSet<Account> Accounts => Set<Account>();
+        public DbSet<AccountingConfig> AccountingConfigs => Set<AccountingConfig>();
 
         public DbSet<JournalEntry> JournalEntries => Set<JournalEntry>();
         public DbSet<JournalEntryLine> JournalEntryLines => Set<JournalEntryLine>();
@@ -133,6 +134,38 @@ namespace Mega7.API.Data
             modelBuilder.Entity<Account>()
                 .Property(a => a.Nature)
                 .HasConversion<string>();
+
+            // AccountingConfig — índice único en Key
+            modelBuilder.Entity<AccountingConfig>()
+                .HasIndex(c => c.Key).IsUnique();
+
+            modelBuilder.Entity<AccountingConfig>()
+                .HasOne(c => c.Account).WithMany()
+                .HasForeignKey(c => c.AccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // CashBox → Account (opcional)
+            modelBuilder.Entity<CashBox>()
+                .HasOne(c => c.Account).WithMany()
+                .HasForeignKey(c => c.AccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // BankAccount → Account (opcional)
+            modelBuilder.Entity<BankAccount>()
+                .HasOne(b => b.Account).WithMany()
+                .HasForeignKey(b => b.AccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Tax → Account ventas/compras (opcional)
+            modelBuilder.Entity<Tax>()
+                .HasOne(t => t.SalesAccount).WithMany()
+                .HasForeignKey(t => t.SalesAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Tax>()
+                .HasOne(t => t.PurchaseAccount).WithMany()
+                .HasForeignKey(t => t.PurchaseAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Libro diario
             modelBuilder.Entity<JournalEntry>()

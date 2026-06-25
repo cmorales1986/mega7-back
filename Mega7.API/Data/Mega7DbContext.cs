@@ -144,6 +144,27 @@ namespace Mega7.API.Data
                 .HasForeignKey(c => c.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // Category → cuentas contables (todas opcionales)
+            modelBuilder.Entity<Category>()
+                .HasOne(c => c.RevenueAccount).WithMany()
+                .HasForeignKey(c => c.RevenueAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Category>()
+                .HasOne(c => c.CogsAccount).WithMany()
+                .HasForeignKey(c => c.CogsAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Category>()
+                .HasOne(c => c.InventoryAccount).WithMany()
+                .HasForeignKey(c => c.InventoryAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Category>()
+                .HasOne(c => c.PurchaseAccount).WithMany()
+                .HasForeignKey(c => c.PurchaseAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // CashBox → Account (opcional)
             modelBuilder.Entity<CashBox>()
                 .HasOne(c => c.Account).WithMany()

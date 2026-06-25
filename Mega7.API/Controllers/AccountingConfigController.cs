@@ -55,6 +55,31 @@ namespace Mega7.API.Controllers
                 })
                 .ToListAsync();
 
+            var categories = await _ctx.Categories
+                .AsNoTracking()
+                .Include(c => c.RevenueAccount)
+                .Include(c => c.CogsAccount)
+                .Include(c => c.InventoryAccount)
+                .Include(c => c.PurchaseAccount)
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.Name)
+                .Select(c => new {
+                    c.Id, c.Code, c.Name,
+                    c.RevenueAccountId,
+                    RevenueAccountCode = c.RevenueAccount != null ? c.RevenueAccount.Code : null,
+                    RevenueAccountName = c.RevenueAccount != null ? c.RevenueAccount.Name : null,
+                    c.CogsAccountId,
+                    CogsAccountCode = c.CogsAccount != null ? c.CogsAccount.Code : null,
+                    CogsAccountName = c.CogsAccount != null ? c.CogsAccount.Name : null,
+                    c.InventoryAccountId,
+                    InventoryAccountCode = c.InventoryAccount != null ? c.InventoryAccount.Code : null,
+                    InventoryAccountName = c.InventoryAccount != null ? c.InventoryAccount.Name : null,
+                    c.PurchaseAccountId,
+                    PurchaseAccountCode = c.PurchaseAccount != null ? c.PurchaseAccount.Code : null,
+                    PurchaseAccountName = c.PurchaseAccount != null ? c.PurchaseAccount.Name : null,
+                })
+                .ToListAsync();
+
             var taxes = await _ctx.Taxes
                 .AsNoTracking()
                 .Include(t => t.SalesAccount)
@@ -71,7 +96,7 @@ namespace Mega7.API.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(new { global, cashBoxes, bankAccounts, taxes });
+            return Ok(new { global, cashBoxes, bankAccounts, taxes, categories });
         }
 
         // ── PUT /api/accountingconfig/global  → actualizar claves globales ───
@@ -135,6 +160,38 @@ namespace Mega7.API.Controllers
             return Ok();
         }
 
+        // ── PUT /api/accountingconfig/category/{id} ──────────────────────────
+        [HttpPut("category/{id:int}")]
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryAccountDto dto)
+        {
+            var cat = await _ctx.Categories.FindAsync(id);
+            if (cat == null) return NotFound();
+
+            var fields = new[]
+            {
+                (dto.RevenueAccountId,   "Ingresos"),
+                (dto.CogsAccountId,      "Costo de Ventas"),
+                (dto.InventoryAccountId, "Inventario"),
+                (dto.PurchaseAccountId,  "Compras"),
+            };
+
+            foreach (var (accId, label) in fields)
+            {
+                if (!accId.HasValue) continue;
+                var acc = await _ctx.Accounts.FindAsync(accId.Value);
+                if (acc == null)    return BadRequest($"Cuenta '{label}' no encontrada.");
+                if (acc.IsTitle)    return BadRequest($"No se puede asignar una cuenta título ({acc.Code}) a '{label}'.");
+            }
+
+            cat.RevenueAccountId   = dto.RevenueAccountId;
+            cat.CogsAccountId      = dto.CogsAccountId;
+            cat.InventoryAccountId = dto.InventoryAccountId;
+            cat.PurchaseAccountId  = dto.PurchaseAccountId;
+
+            await _ctx.SaveChangesAsync();
+            return Ok();
+        }
+
         // ── PUT /api/accountingconfig/tax/{id} ───────────────────────────────
         [HttpPut("tax/{id:int}")]
         public async Task<IActionResult> UpdateTax(int id, [FromBody] TaxAccountDto dto)
@@ -176,5 +233,13 @@ namespace Mega7.API.Controllers
     {
         public int? SalesAccountId    { get; set; }
         public int? PurchaseAccountId { get; set; }
+    }
+
+    public class CategoryAccountDto
+    {
+        public int? RevenueAccountId   { get; set; }
+        public int? CogsAccountId      { get; set; }
+        public int? InventoryAccountId { get; set; }
+        public int? PurchaseAccountId  { get; set; }
     }
 }

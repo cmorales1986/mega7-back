@@ -44,6 +44,14 @@ type TaxCfg = {
   purchaseAccountId: number | null; purchaseAccountCode: string | null; purchaseAccountName: string | null;
 };
 
+type CategoryCfg = {
+  id: number; code: string; name: string;
+  revenueAccountId: number | null;   revenueAccountCode: string | null;   revenueAccountName: string | null;
+  cogsAccountId: number | null;      cogsAccountCode: string | null;      cogsAccountName: string | null;
+  inventoryAccountId: number | null; inventoryAccountCode: string | null; inventoryAccountName: string | null;
+  purchaseAccountId: number | null;  purchaseAccountCode: string | null;  purchaseAccountName: string | null;
+};
+
 // ── Selector de cuenta reutilizable ──────────────────────────────────────────
 
 function AccountSelect({
@@ -90,14 +98,16 @@ export default function AccountingConfigPage() {
   const [cashBoxes,    setCashBoxes]    = useState<CashBoxCfg[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccountCfg[]>([]);
   const [taxes,        setTaxes]        = useState<TaxCfg[]>([]);
+  const [categories,   setCategories]   = useState<CategoryCfg[]>([]);
   const [loading,      setLoading]      = useState(false);
   const [saving,       setSaving]       = useState(false);
 
   // Estado local de edición (copia mutable antes de guardar)
-  const [localGlobal,    setLocalGlobal]    = useState<GlobalCfg[]>([]);
-  const [localCashBoxes, setLocalCashBoxes] = useState<CashBoxCfg[]>([]);
-  const [localBanks,     setLocalBanks]     = useState<BankAccountCfg[]>([]);
-  const [localTaxes,     setLocalTaxes]     = useState<TaxCfg[]>([]);
+  const [localGlobal,      setLocalGlobal]      = useState<GlobalCfg[]>([]);
+  const [localCashBoxes,   setLocalCashBoxes]   = useState<CashBoxCfg[]>([]);
+  const [localBanks,       setLocalBanks]       = useState<BankAccountCfg[]>([]);
+  const [localTaxes,       setLocalTaxes]       = useState<TaxCfg[]>([]);
+  const [localCategories,  setLocalCategories]  = useState<CategoryCfg[]>([]);
 
   // ── Carga ──────────────────────────────────────────────────────────────────
 
@@ -115,12 +125,14 @@ export default function AccountingConfigPage() {
       setCashBoxes(cfg.cashBoxes ?? []);
       setBankAccounts(cfg.bankAccounts ?? []);
       setTaxes(cfg.taxes ?? []);
+      setCategories(cfg.categories ?? []);
 
       // Inicializar copias locales
-      setLocalGlobal(cfg.global   ?? []);
+      setLocalGlobal(cfg.global      ?? []);
       setLocalCashBoxes(cfg.cashBoxes ?? []);
-      setLocalBanks(cfg.bankAccounts ?? []);
-      setLocalTaxes(cfg.taxes ?? []);
+      setLocalBanks(cfg.bankAccounts  ?? []);
+      setLocalTaxes(cfg.taxes         ?? []);
+      setLocalCategories(cfg.categories ?? []);
     } catch (e) {
       Swal.fire("Error", toErrorMsg(e, "No se pudo cargar la configuración"), "error");
     } finally {
@@ -146,6 +158,9 @@ export default function AccountingConfigPage() {
 
   const setTaxPurchase = (id: number, accountId: number | null) =>
     setLocalTaxes((prev) => prev.map((t) => t.id === id ? { ...t, purchaseAccountId: accountId } : t));
+
+  const setCatField = (id: number, field: keyof CategoryCfg, accountId: number | null) =>
+    setLocalCategories((prev) => prev.map((c) => c.id === id ? { ...c, [field]: accountId } : c));
 
   // ── Guardar todo ──────────────────────────────────────────────────────────
 
@@ -181,6 +196,23 @@ export default function AccountingConfigPage() {
           });
       }
 
+      // 5. Categorías
+      for (const cat of localCategories) {
+        const orig = categories.find((c) => c.id === cat.id);
+        const changed =
+          orig?.revenueAccountId   !== cat.revenueAccountId   ||
+          orig?.cogsAccountId      !== cat.cogsAccountId      ||
+          orig?.inventoryAccountId !== cat.inventoryAccountId ||
+          orig?.purchaseAccountId  !== cat.purchaseAccountId;
+        if (changed)
+          await api.put(`/accountingconfig/category/${cat.id}`, {
+            revenueAccountId:   cat.revenueAccountId,
+            cogsAccountId:      cat.cogsAccountId,
+            inventoryAccountId: cat.inventoryAccountId,
+            purchaseAccountId:  cat.purchaseAccountId,
+          });
+      }
+
       Swal.fire("OK", "Configuración contable guardada correctamente.", "success");
       await loadAll();
     } catch (e) {
@@ -204,13 +236,14 @@ export default function AccountingConfigPage() {
   // ── Contar asignados ──────────────────────────────────────────────────────
 
   const stats = useMemo(() => {
-    const gTotal = localGlobal.length;
-    const gDone  = localGlobal.filter((c) => c.accountId).length;
-    const cbDone = localCashBoxes.filter((c) => c.accountId).length;
-    const bkDone = localBanks.filter((b) => b.accountId).length;
-    const txDone = localTaxes.filter((t) => t.salesAccountId || t.purchaseAccountId).length;
-    return { gTotal, gDone, cbDone, bkDone, txDone };
-  }, [localGlobal, localCashBoxes, localBanks, localTaxes]);
+    const gTotal  = localGlobal.length;
+    const gDone   = localGlobal.filter((c) => c.accountId).length;
+    const cbDone  = localCashBoxes.filter((c) => c.accountId).length;
+    const bkDone  = localBanks.filter((b) => b.accountId).length;
+    const txDone  = localTaxes.filter((t) => t.salesAccountId || t.purchaseAccountId).length;
+    const catDone = localCategories.filter((c) => c.revenueAccountId).length;
+    return { gTotal, gDone, cbDone, bkDone, txDone, catDone };
+  }, [localGlobal, localCashBoxes, localBanks, localTaxes, localCategories]);
 
   const GROUP_COLORS: Record<string, string> = {
     Ventas:     "text-emerald-600 bg-emerald-50 border-emerald-200",
@@ -235,6 +268,9 @@ export default function AccountingConfigPage() {
           </Chip>
           <Chip tone={stats.bkDone === localBanks.length ? "ok" : "warn"}>
             Bancos: {stats.bkDone}/{localBanks.length}
+          </Chip>
+          <Chip tone={stats.catDone === localCategories.length ? "ok" : "warn"}>
+            Categorías: {stats.catDone}/{localCategories.length}
           </Chip>
         </>
       }
@@ -336,7 +372,93 @@ export default function AccountingConfigPage() {
         )}
       </Card>
 
-      {/* ── 3. Impuestos ─────────────────────────────────────────────────── */}
+      {/* ── 3. Categorías de Productos ───────────────────────────────────── */}
+      <Card className="border-slate-200 p-6 shadow-sm">
+        <SectionHeader
+          icon={<Settings2 className="h-5 w-5 text-emerald-600" />}
+          title="Categorías de Productos"
+          subtitle="Determinación de cuentas por categoría: ingresos, costo de ventas, inventario y compras. El sistema usará estas cuentas al generar asientos automáticos."
+        />
+        <Separator className="my-4" />
+
+        {localCategories.length === 0 ? (
+          <p className="text-sm text-slate-400">No hay categorías activas.</p>
+        ) : (
+          <div className="rounded-xl border overflow-hidden">
+            {/* Header */}
+            <div className="grid grid-cols-[200px_1fr_1fr_1fr_1fr_24px] gap-3 px-4 py-2 bg-slate-50 text-xs font-semibold uppercase text-slate-500 border-b">
+              <span>Categoría</span>
+              <span>Ingresos (Ventas)</span>
+              <span>Costo de Ventas</span>
+              <span>Inventario</span>
+              <span>Compras</span>
+              <span />
+            </div>
+
+            {localCategories.map((cat) => {
+              const allSet = cat.revenueAccountId && cat.cogsAccountId && cat.inventoryAccountId;
+              return (
+                <div
+                  key={cat.id}
+                  className="grid grid-cols-[200px_1fr_1fr_1fr_1fr_24px] gap-3 items-center px-4 py-3 border-b last:border-0 bg-white hover:bg-slate-50"
+                >
+                  {/* Nombre categoría */}
+                  <div>
+                    <div className="text-sm font-semibold">{cat.name}</div>
+                    <div className="text-xs text-slate-400 font-mono">{cat.code}</div>
+                  </div>
+
+                  {/* Ingresos */}
+                  <AccountSelect
+                    value={cat.revenueAccountId}
+                    accounts={accounts}
+                    placeholder="Cuenta de ingresos…"
+                    onChange={(id) => setCatField(cat.id, "revenueAccountId", id)}
+                  />
+
+                  {/* Costo de Ventas */}
+                  <AccountSelect
+                    value={cat.cogsAccountId}
+                    accounts={accounts}
+                    placeholder="Costo de ventas…"
+                    onChange={(id) => setCatField(cat.id, "cogsAccountId", id)}
+                  />
+
+                  {/* Inventario */}
+                  <AccountSelect
+                    value={cat.inventoryAccountId}
+                    accounts={accounts}
+                    placeholder="Inventario…"
+                    onChange={(id) => setCatField(cat.id, "inventoryAccountId", id)}
+                  />
+
+                  {/* Compras */}
+                  <AccountSelect
+                    value={cat.purchaseAccountId}
+                    accounts={accounts}
+                    placeholder="Compras…"
+                    onChange={(id) => setCatField(cat.id, "purchaseAccountId", id)}
+                  />
+
+                  {/* Indicador */}
+                  <div>
+                    {allSet
+                      ? <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      : <div className="h-4 w-4 rounded-full border-2 border-slate-300" />}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <p className="text-xs text-slate-400 mt-3">
+          * Si una categoría no tiene cuenta asignada, el sistema usará las cuentas globales como fallback.
+          La cuenta de Compras es opcional para categorías de servicios (sin inventario).
+        </p>
+      </Card>
+
+      {/* ── 4. Impuestos ─────────────────────────────────────────────────── */}
       <Card className="border-slate-200 p-6 shadow-sm">
         <SectionHeader
           icon={<Settings2 className="h-5 w-5 text-red-500" />}

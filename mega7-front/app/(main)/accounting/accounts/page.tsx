@@ -21,7 +21,7 @@ import {
 
 import {
   BookMarked, RefreshCcw, Plus, Pencil, Trash2,
-  ChevronRight, ChevronDown, ChevronsUpDown,
+  ChevronRight, ChevronDown, ChevronsUpDown, FolderPlus,
 } from "lucide-react";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ const defaultNature: Record<AccountType, AccountNature> = {
 // ── Componente fila del árbol ─────────────────────────────────────────────────
 
 function AccountRow({
-  node, depth, expanded, toggleExpand, onEdit, onDelete,
+  node, depth, expanded, toggleExpand, onEdit, onDelete, onAddChild,
 }: {
   node: AccountNode;
   depth: number;
@@ -75,6 +75,7 @@ function AccountRow({
   toggleExpand: (id: number) => void;
   onEdit: (n: AccountNode) => void;
   onDelete: (n: AccountNode) => void;
+  onAddChild: (n: AccountNode) => void;
 }) {
   const hasChildren = node.children.length > 0;
   const isExpanded = expanded.has(node.id);
@@ -150,6 +151,14 @@ function AccountRow({
         {/* Acciones */}
         <td className="py-2 px-3">
           <div className="flex items-center justify-center gap-1">
+            {node.isTitle && (
+              <Button
+                variant="ghost" size="sm" className="h-7 w-7 p-0"
+                title="Agregar cuenta hija" onClick={() => onAddChild(node)}
+              >
+                <FolderPlus className="h-3.5 w-3.5 text-emerald-600" />
+              </Button>
+            )}
             <Button
               variant="ghost" size="sm" className="h-7 w-7 p-0"
               title="Editar" onClick={() => onEdit(node)}
@@ -177,6 +186,7 @@ function AccountRow({
           toggleExpand={toggleExpand}
           onEdit={onEdit}
           onDelete={onDelete}
+          onAddChild={onAddChild}
         />
       ))}
     </>
@@ -294,6 +304,33 @@ export default function AccountsPage() {
       code: node.code, name: node.name, description: node.description ?? "",
       level: node.level, isTitle: node.isTitle, type: node.type,
       nature: node.nature, isActive: node.isActive, parentId: node.parentId ?? null,
+    });
+    setOpen(true);
+  };
+
+  const openAddChild = (parent: AccountNode) => {
+    // Calcular el siguiente código hijo disponible
+    const existingNums = parent.children
+      .map((c) => {
+        const parts = c.code.split(".");
+        return parseInt(parts[parts.length - 1]) || 0;
+      });
+    const nextNum = existingNums.length > 0
+      ? Math.max(...existingNums) + 1
+      : 1;
+    const nextCode = `${parent.code}.${nextNum.toString().padStart(2, "0")}`;
+
+    setEditing(null);
+    setForm({
+      code: nextCode,
+      name: "",
+      description: "",
+      level: parent.level + 1,
+      isTitle: false,
+      type: parent.type,
+      nature: parent.nature,
+      isActive: true,
+      parentId: parent.id,
     });
     setOpen(true);
   };
@@ -457,7 +494,7 @@ export default function AccountsPage() {
                 <th className="py-2 px-3 text-left w-28">Naturaleza</th>
                 <th className="py-2 px-3 text-center w-16">Nivel</th>
                 <th className="py-2 px-3 text-center w-28">Clasificación</th>
-                <th className="py-2 px-3 text-center w-24">Acciones</th>
+                <th className="py-2 px-3 text-center w-32">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -471,7 +508,7 @@ export default function AccountsPage() {
                   <AccountRow
                     key={node.id} node={{ ...node, children: [] }} depth={node.level - 1}
                     expanded={expanded} toggleExpand={toggleExpand}
-                    onEdit={openEdit} onDelete={deleteAccount}
+                    onEdit={openEdit} onDelete={deleteAccount} onAddChild={openAddChild}
                   />
                 ))
               ) : (
@@ -480,7 +517,7 @@ export default function AccountsPage() {
                   <AccountRow
                     key={node.id} node={node} depth={0}
                     expanded={expanded} toggleExpand={toggleExpand}
-                    onEdit={openEdit} onDelete={deleteAccount}
+                    onEdit={openEdit} onDelete={deleteAccount} onAddChild={openAddChild}
                   />
                 ))
               )}

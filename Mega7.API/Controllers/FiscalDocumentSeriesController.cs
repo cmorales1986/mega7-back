@@ -70,8 +70,15 @@ namespace Mega7.API.Controllers
 
             if (e.NextNumber < e.RangeFrom) e.NextNumber = e.RangeFrom;
 
-            _ctx.Add(e);
-            await _ctx.SaveChangesAsync();
+            try
+            {
+                _ctx.Add(e);
+                await _ctx.SaveChangesAsync();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                return Conflict("Ya existe una serie con ese tipo de documento, establecimiento, punto de expedición y nombre. Usá un nombre de serie diferente.");
+            }
             return Ok(e);
         }
 
@@ -101,7 +108,11 @@ namespace Mega7.API.Controllers
 
             if (e.NextNumber < e.RangeFrom) e.NextNumber = e.RangeFrom;
 
-            await _ctx.SaveChangesAsync();
+            try { await _ctx.SaveChangesAsync(); }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                return Conflict("Ya existe una serie con ese tipo de documento, establecimiento, punto de expedición y nombre.");
+            }
             return Ok(e);
         }
     }

@@ -61,8 +61,14 @@ const toISODate = (d: any) => {
 
 const safeMsg = (e: any, fallback: string) => {
   const data = e?.response?.data;
-  if (!data) return fallback;
+  if (!data) return `${fallback} (${e?.response?.status ?? "sin conexión"})`;
   if (typeof data === "string") return data;
+  // ASP.NET problem details: { title, errors }
+  if (data.errors) {
+    const msgs = Object.values(data.errors).flat().join(" | ");
+    return msgs || data.title || fallback;
+  }
+  if (data.title) return data.title;
   try { return JSON.stringify(data); } catch { return fallback; }
 };
 

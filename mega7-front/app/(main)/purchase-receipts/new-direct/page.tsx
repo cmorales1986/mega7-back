@@ -2,8 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Save } from "lucide-react";
+import { ArrowLeft, Plus, Save, Trash2, PackagePlus } from "lucide-react";
 import { api } from "@/lib/api";
+import { PageShell, Chip } from "@/components/ui/page-shell";
+import { SectionHeader } from "@/components/ui/section-header";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import {
   getSuppliersMini,
   getWarehousesMini,
@@ -27,6 +33,9 @@ type ProductOption = {
 
 type TaxOption = { id: number; name: string; rate: number };
 type CreditTerm = { id: number; name: string; days: number; isActive: boolean };
+
+const fmtPY = new Intl.NumberFormat("es-PY");
+const money = (n: number) => fmtPY.format(n);
 
 export default function NewDirectPurchaseReceiptPage() {
   const router = useRouter();
@@ -58,7 +67,7 @@ export default function NewDirectPurchaseReceiptPage() {
   const [isCredit, setIsCredit] = useState(false);
   const [creditTermId, setCreditTermId] = useState<number | "">("");
 
-  // ── ui state ───────────────────────────────────────────────────────────────
+  // ── ui ─────────────────────────────────────────────────────────────────────
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -153,7 +162,7 @@ export default function NewDirectPurchaseReceiptPage() {
     { sub: 0, tax: 0, total: 0 }
   );
 
-  // ── validation & submit ────────────────────────────────────────────────────
+  // ── submit ─────────────────────────────────────────────────────────────────
   async function handleSave() {
     setError(null);
     if (!supplierId) return setError("Seleccioná un proveedor.");
@@ -162,14 +171,14 @@ export default function NewDirectPurchaseReceiptPage() {
     for (const l of lines) {
       if (!l.productId) return setError("Seleccioná un producto en todas las líneas.");
       if (l.quantity <= 0) return setError("La cantidad debe ser mayor a 0.");
-      if (l.isBatch && !l.batchNumber.trim()) return setError(`El producto "${l.productName}" requiere número de lote.`);
-      if (l.isSerial && !l.serialNumbers.trim()) return setError(`El producto "${l.productName}" requiere números de serie.`);
+      if (l.isBatch && !l.batchNumber.trim()) return setError(`"${l.productName}" requiere número de lote.`);
+      if (l.isSerial && !l.serialNumbers.trim()) return setError(`"${l.productName}" requiere números de serie.`);
     }
     if (attachInvoice && !invoiceNumber.trim()) return setError("Ingresá el número de factura.");
 
     setSaving(true);
     try {
-      const payload = {
+      await createDirectPurchaseReceipt({
         supplierId: Number(supplierId),
         warehouseId: Number(warehouseId),
         receiptDate,
@@ -193,9 +202,7 @@ export default function NewDirectPurchaseReceiptPage() {
               creditTermId: isCredit && creditTermId ? Number(creditTermId) : null,
             }
           : {}),
-      };
-
-      await createDirectPurchaseReceipt(payload);
+      });
       router.push("/purchase-receipts");
     } catch (e: any) {
       setError(e?.response?.data || e?.message || "Error al guardar.");
@@ -206,342 +213,373 @@ export default function NewDirectPurchaseReceiptPage() {
 
   // ── render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Nueva Recepción Directa</h1>
-        <span className="text-sm text-muted-foreground">Sin Orden de Compra</span>
-      </div>
-
-      {error && (
-        <div className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {/* ── Header ────────────────────────────────────────────────────────── */}
-      <div className="rounded-lg border bg-card p-4 space-y-4">
-        <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-          Datos Generales
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Proveedor *</label>
-            <select
-              className="w-full rounded border px-3 py-2 text-sm bg-background"
-              value={supplierId}
-              onChange={(e) => setSupplierId(e.target.value ? Number(e.target.value) : "")}
-            >
-              <option value="">-- Seleccionar --</option>
-              {suppliers.map((s) => (
-                <option key={s.id} value={s.id}>{s.razonSocial}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Depósito *</label>
-            <select
-              className="w-full rounded border px-3 py-2 text-sm bg-background"
-              value={warehouseId}
-              onChange={(e) => setWarehouseId(e.target.value ? Number(e.target.value) : "")}
-            >
-              <option value="">-- Seleccionar --</option>
-              {warehouses.map((w) => (
-                <option key={w.id} value={w.id}>{w.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Fecha Recepción *</label>
-            <input
-              type="date"
-              className="w-full rounded border px-3 py-2 text-sm bg-background"
-              value={receiptDate}
-              onChange={(e) => setReceiptDate(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Observaciones</label>
-            <input
-              type="text"
-              className="w-full rounded border px-3 py-2 text-sm bg-background"
-              placeholder="Opcional"
-              value={comments}
-              onChange={(e) => setComments(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* ── Lines ─────────────────────────────────────────────────────────── */}
-      <div className="rounded-lg border bg-card p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-            Productos
-          </h2>
-          <button
-            type="button"
-            onClick={addLine}
-            className="flex items-center gap-1 text-sm px-3 py-1.5 rounded bg-primary text-primary-foreground hover:bg-primary/90"
+    <PageShell
+      icon={<PackagePlus className="h-6 w-6 text-emerald-600" />}
+      title="Nueva Recepción Directa"
+      subtitle="Recepción de inventario sin Orden de Compra previa. Actualiza stock con costo promedio ponderado."
+      chips={
+        <>
+          <Chip tone="neutral">Sin OC</Chip>
+          {lines.length > 0 && (
+            <Chip tone="info">{lines.length} {lines.length === 1 ? "línea" : "líneas"}</Chip>
+          )}
+          {totals.total > 0 && (
+            <Chip tone="ok">Total: {money(Math.round(totals.total))}</Chip>
+          )}
+        </>
+      }
+      right={
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="bg-white"
+            onClick={() => router.push("/purchase-receipts")}
           >
-            <Plus size={14} /> Agregar línea
-          </button>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Volver
+          </Button>
+          <Button
+            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {saving ? "Guardando..." : "Guardar Recepción"}
+          </Button>
         </div>
-
-        {lines.length === 0 && (
-          <p className="text-sm text-muted-foreground py-4 text-center">
-            No hay líneas. Hacé clic en "Agregar línea" para comenzar.
-          </p>
+      }
+    >
+      <div className="space-y-4">
+        {error && (
+          <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+            {error}
+          </div>
         )}
 
-        {lines.map((line, idx) => (
-          <div key={line._id} className="rounded border p-3 space-y-3 bg-muted/30">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Línea {idx + 1}</span>
-              <button
-                type="button"
-                onClick={() => removeLine(line._id)}
-                className="text-red-500 hover:text-red-700"
+        {/* ── Datos generales ─────────────────────────────────────────────── */}
+        <Card className="border-slate-200 p-4 shadow-sm">
+          <SectionHeader
+            icon={<PackagePlus className="h-5 w-5 text-emerald-600" />}
+            title="Datos Generales"
+            subtitle="Proveedor, depósito y fecha de recepción."
+          />
+          <Separator className="my-4" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Proveedor *</label>
+              <select
+                className="w-full h-10 rounded-md border px-3 text-sm bg-white"
+                value={supplierId}
+                onChange={(e) => setSupplierId(e.target.value ? Number(e.target.value) : "")}
               >
-                <Trash2 size={14} />
-              </button>
+                <option value="">-- Seleccionar --</option>
+                {suppliers.map((s) => (
+                  <option key={s.id} value={s.id}>{s.razonSocial}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Row 1: product, qty, price, discount, tax */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              <div className="col-span-2 sm:col-span-1 lg:col-span-2">
-                <label className="block text-xs font-medium mb-1">Producto *</label>
-                <select
-                  className="w-full rounded border px-2 py-1.5 text-sm bg-background"
-                  value={line.productId || ""}
-                  onChange={(e) => handleProductChange(line._id, Number(e.target.value))}
-                >
-                  <option value="">-- Seleccionar --</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.code} – {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium mb-1">Cantidad *</label>
-                <input
-                  type="number"
-                  min="0.0001"
-                  step="0.0001"
-                  className="w-full rounded border px-2 py-1.5 text-sm bg-background"
-                  value={line.quantity}
-                  onChange={(e) => setLineField(line._id, "quantity", parseFloat(e.target.value) || 0)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium mb-1">Precio unitario</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  className="w-full rounded border px-2 py-1.5 text-sm bg-background"
-                  value={line.unitPrice}
-                  onChange={(e) => setLineField(line._id, "unitPrice", parseFloat(e.target.value) || 0)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium mb-1">Desc %</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  className="w-full rounded border px-2 py-1.5 text-sm bg-background"
-                  value={line.discountPercent}
-                  onChange={(e) => setLineField(line._id, "discountPercent", parseFloat(e.target.value) || 0)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium mb-1">Impuesto</label>
-                <select
-                  className="w-full rounded border px-2 py-1.5 text-sm bg-background"
-                  value={line.taxId ?? ""}
-                  onChange={(e) => setLineField(line._id, "taxId", e.target.value ? Number(e.target.value) : null)}
-                >
-                  <option value="">Sin impuesto</option>
-                  {taxes.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name} ({t.rate}%)</option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Depósito *</label>
+              <select
+                className="w-full h-10 rounded-md border px-3 text-sm bg-white"
+                value={warehouseId}
+                onChange={(e) => setWarehouseId(e.target.value ? Number(e.target.value) : "")}
+              >
+                <option value="">-- Seleccionar --</option>
+                {warehouses.map((w) => (
+                  <option key={w.id} value={w.id}>{w.name}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Row 2: batch / serial (only shown when relevant) */}
-            {(line.isBatch || line.isSerial) && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {line.isBatch && (
-                  <>
+            <div>
+              <label className="block text-sm font-medium mb-1">Fecha Recepción *</label>
+              <Input
+                type="date"
+                className="bg-white"
+                value={receiptDate}
+                onChange={(e) => setReceiptDate(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Observaciones</label>
+              <Input
+                placeholder="Opcional"
+                className="bg-white"
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* ── Productos ───────────────────────────────────────────────────── */}
+        <Card className="border-slate-200 p-4 shadow-sm">
+          <div className="flex items-start justify-between">
+            <SectionHeader
+              icon={<PackagePlus className="h-5 w-5 text-emerald-600" />}
+              title="Productos"
+              subtitle="Agregá cada ítem con cantidad, precio y descuento."
+            />
+            <Button
+              onClick={addLine}
+              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shrink-0"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Agregar línea
+            </Button>
+          </div>
+
+          <Separator className="my-4" />
+
+          {lines.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              No hay líneas. Hacé clic en "Agregar línea" para comenzar.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {lines.map((line, idx) => (
+                <div
+                  key={line._id}
+                  className="rounded-xl border bg-slate-50 p-4 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Línea {idx + 1}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:border-red-300"
+                      onClick={() => removeLine(line._id)}
+                    >
+                      <Trash2 size={13} />
+                    </Button>
+                  </div>
+
+                  {/* Fila principal */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <div className="col-span-2 lg:col-span-2">
+                      <label className="block text-xs font-medium mb-1">Producto *</label>
+                      <select
+                        className="w-full h-9 rounded-md border px-2 text-sm bg-white"
+                        value={line.productId || ""}
+                        onChange={(e) => handleProductChange(line._id, Number(e.target.value))}
+                      >
+                        <option value="">-- Seleccionar --</option>
+                        {products.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.code} – {p.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-medium mb-1">Nro. Lote *</label>
-                      <input
-                        type="text"
-                        className="w-full rounded border px-2 py-1.5 text-sm bg-background"
-                        value={line.batchNumber}
-                        onChange={(e) => setLineField(line._id, "batchNumber", e.target.value)}
+                      <label className="block text-xs font-medium mb-1">Cantidad *</label>
+                      <Input
+                        type="number"
+                        min="0.0001"
+                        step="0.0001"
+                        className="bg-white h-9 text-sm"
+                        value={line.quantity}
+                        onChange={(e) => setLineField(line._id, "quantity", parseFloat(e.target.value) || 0)}
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs font-medium mb-1">Vencimiento</label>
-                      <input
-                        type="date"
-                        className="w-full rounded border px-2 py-1.5 text-sm bg-background"
-                        value={line.expirationDate}
-                        onChange={(e) => setLineField(line._id, "expirationDate", e.target.value)}
+                      <label className="block text-xs font-medium mb-1">Precio unitario</label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="bg-white h-9 text-sm"
+                        value={line.unitPrice}
+                        onChange={(e) => setLineField(line._id, "unitPrice", parseFloat(e.target.value) || 0)}
                       />
                     </div>
-                  </>
-                )}
-                {line.isSerial && (
-                  <div className={line.isBatch ? "" : "sm:col-span-2"}>
-                    <label className="block text-xs font-medium mb-1">
-                      Nros. de Serie * <span className="text-muted-foreground">(separados por coma)</span>
-                    </label>
+
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Desc %</label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        className="bg-white h-9 text-sm"
+                        value={line.discountPercent}
+                        onChange={(e) => setLineField(line._id, "discountPercent", parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+
+                    <div className="col-span-2 sm:col-span-1 lg:col-span-1">
+                      <label className="block text-xs font-medium mb-1">Impuesto</label>
+                      <select
+                        className="w-full h-9 rounded-md border px-2 text-sm bg-white"
+                        value={line.taxId ?? ""}
+                        onChange={(e) => setLineField(line._id, "taxId", e.target.value ? Number(e.target.value) : null)}
+                      >
+                        <option value="">Sin impuesto</option>
+                        {taxes.map((t) => (
+                          <option key={t.id} value={t.id}>{t.name} ({t.rate}%)</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Lote / Serial */}
+                  {(line.isBatch || line.isSerial) && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-200">
+                      {line.isBatch && (
+                        <>
+                          <div>
+                            <label className="block text-xs font-medium mb-1">Nro. Lote *</label>
+                            <Input
+                              className="bg-white h-9 text-sm"
+                              value={line.batchNumber}
+                              onChange={(e) => setLineField(line._id, "batchNumber", e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium mb-1">Vencimiento</label>
+                            <Input
+                              type="date"
+                              className="bg-white h-9 text-sm"
+                              value={line.expirationDate}
+                              onChange={(e) => setLineField(line._id, "expirationDate", e.target.value)}
+                            />
+                          </div>
+                        </>
+                      )}
+                      {line.isSerial && (
+                        <div className={line.isBatch ? "" : "sm:col-span-3"}>
+                          <label className="block text-xs font-medium mb-1">
+                            Nros. de Serie *{" "}
+                            <span className="font-normal text-muted-foreground">(separados por coma)</span>
+                          </label>
+                          <Input
+                            placeholder="SN001, SN002, ..."
+                            className="bg-white h-9 text-sm"
+                            value={line.serialNumbers}
+                            onChange={(e) => setLineField(line._id, "serialNumbers", e.target.value)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Subtotal línea */}
+                  {line.productId > 0 && (() => {
+                    const disc = Math.max(0, Math.min(100, line.discountPercent));
+                    const sub  = line.quantity * line.unitPrice * ((100 - disc) / 100);
+                    const tax  = taxes.find((t) => t.id === line.taxId);
+                    const tot  = sub + sub * ((tax?.rate ?? 0) / 100);
+                    return (
+                      <div className="text-right text-xs text-muted-foreground pt-1 border-t border-slate-200">
+                        Subtotal: <strong>{money(Math.round(sub))}</strong>
+                        {" · "}IVA: <strong>{money(Math.round(tot - sub))}</strong>
+                        {" · "}Total: <strong className="text-slate-800">{money(Math.round(tot))}</strong>
+                      </div>
+                    );
+                  })()}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Barra de totales */}
+          {lines.length > 0 && (
+            <div className="mt-4 flex justify-end gap-8 rounded-xl bg-slate-100 px-6 py-3 text-sm">
+              <span>Subtotal: <strong>{money(Math.round(totals.sub))}</strong></span>
+              <span>IVA: <strong>{money(Math.round(totals.tax))}</strong></span>
+              <span className="text-base font-bold text-slate-800">
+                Total: {money(Math.round(totals.total))}
+              </span>
+            </div>
+          )}
+        </Card>
+
+        {/* ── Factura del proveedor ─────────────────────────────────────── */}
+        <Card className="border-slate-200 p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <input
+              id="attach-invoice"
+              type="checkbox"
+              className="h-4 w-4 accent-emerald-600"
+              checked={attachInvoice}
+              onChange={(e) => setAttachInvoice(e.target.checked)}
+            />
+            <label htmlFor="attach-invoice" className="font-semibold text-sm cursor-pointer select-none">
+              Registrar factura del proveedor
+            </label>
+            <span className="text-xs text-muted-foreground">(opcional — se puede agregar después)</span>
+          </div>
+
+          {attachInvoice && (
+            <>
+              <Separator className="my-4" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Nro. Factura *</label>
+                  <Input
+                    placeholder="001-001-0000001"
+                    className="bg-white"
+                    value={invoiceNumber}
+                    onChange={(e) => setInvoiceNumber(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Fecha Factura</label>
+                  <Input
+                    type="date"
+                    className="bg-white"
+                    value={invoiceDate}
+                    onChange={(e) => setInvoiceDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Vencimiento</label>
+                  <Input
+                    type="date"
+                    className="bg-white"
+                    value={invoiceDueDate}
+                    onChange={(e) => setInvoiceDueDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-end gap-4 pb-1">
+                  <div className="flex items-center gap-2">
                     <input
-                      type="text"
-                      className="w-full rounded border px-2 py-1.5 text-sm bg-background"
-                      placeholder="SN001, SN002, ..."
-                      value={line.serialNumbers}
-                      onChange={(e) => setLineField(line._id, "serialNumbers", e.target.value)}
+                      id="is-credit"
+                      type="checkbox"
+                      className="h-4 w-4 accent-emerald-600"
+                      checked={isCredit}
+                      onChange={(e) => setIsCredit(e.target.checked)}
                     />
+                    <label htmlFor="is-credit" className="text-sm cursor-pointer select-none">Crédito</label>
+                  </div>
+                </div>
+
+                {isCredit && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Condición de Crédito</label>
+                    <select
+                      className="w-full h-10 rounded-md border px-3 text-sm bg-white"
+                      value={creditTermId}
+                      onChange={(e) => setCreditTermId(e.target.value ? Number(e.target.value) : "")}
+                    >
+                      <option value="">-- Seleccionar --</option>
+                      {creditTerms.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Line subtotal */}
-            {line.productId > 0 && (
-              <div className="text-right text-xs text-muted-foreground">
-                {(() => {
-                  const disc = Math.max(0, Math.min(100, line.discountPercent));
-                  const sub = line.quantity * line.unitPrice * ((100 - disc) / 100);
-                  const tax = taxes.find((t) => t.id === line.taxId);
-                  const total = sub + sub * ((tax?.rate ?? 0) / 100);
-                  return `Subtotal: ${sub.toFixed(2)} + IVA: ${(total - sub).toFixed(2)} = ${total.toFixed(2)}`;
-                })()}
-              </div>
-            )}
-          </div>
-        ))}
-
-        {/* Totals bar */}
-        {lines.length > 0 && (
-          <div className="flex justify-end gap-8 pt-2 border-t text-sm">
-            <span>Subtotal: <strong>{totals.sub.toFixed(2)}</strong></span>
-            <span>IVA: <strong>{totals.tax.toFixed(2)}</strong></span>
-            <span className="text-base font-bold">Total: {totals.total.toFixed(2)}</span>
-          </div>
-        )}
+            </>
+          )}
+        </Card>
       </div>
-
-      {/* ── Invoice section ────────────────────────────────────────────────── */}
-      <div className="rounded-lg border bg-card p-4 space-y-4">
-        <div className="flex items-center gap-3">
-          <input
-            id="attach-invoice"
-            type="checkbox"
-            className="h-4 w-4"
-            checked={attachInvoice}
-            onChange={(e) => setAttachInvoice(e.target.checked)}
-          />
-          <label htmlFor="attach-invoice" className="font-semibold text-sm">
-            Registrar factura del proveedor
-          </label>
-        </div>
-
-        {attachInvoice && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Nro. Factura *</label>
-              <input
-                type="text"
-                className="w-full rounded border px-3 py-2 text-sm bg-background"
-                value={invoiceNumber}
-                onChange={(e) => setInvoiceNumber(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Fecha Factura</label>
-              <input
-                type="date"
-                className="w-full rounded border px-3 py-2 text-sm bg-background"
-                value={invoiceDate}
-                onChange={(e) => setInvoiceDate(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Vencimiento</label>
-              <input
-                type="date"
-                className="w-full rounded border px-3 py-2 text-sm bg-background"
-                value={invoiceDueDate}
-                onChange={(e) => setInvoiceDueDate(e.target.value)}
-              />
-            </div>
-
-            <div className="flex items-end gap-3">
-              <div className="flex items-center gap-2">
-                <input
-                  id="is-credit"
-                  type="checkbox"
-                  className="h-4 w-4"
-                  checked={isCredit}
-                  onChange={(e) => setIsCredit(e.target.checked)}
-                />
-                <label htmlFor="is-credit" className="text-sm">Crédito</label>
-              </div>
-            </div>
-
-            {isCredit && (
-              <div>
-                <label className="block text-sm font-medium mb-1">Condición de Crédito</label>
-                <select
-                  className="w-full rounded border px-3 py-2 text-sm bg-background"
-                  value={creditTermId}
-                  onChange={(e) => setCreditTermId(e.target.value ? Number(e.target.value) : "")}
-                >
-                  <option value="">-- Seleccionar --</option>
-                  {creditTerms.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ── Actions ───────────────────────────────────────────────────────── */}
-      <div className="flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => router.push("/purchase-receipts")}
-          className="px-4 py-2 rounded border text-sm hover:bg-muted"
-        >
-          Cancelar
-        </button>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-5 py-2 rounded bg-primary text-primary-foreground text-sm hover:bg-primary/90 disabled:opacity-60"
-        >
-          <Save size={15} />
-          {saving ? "Guardando..." : "Guardar Recepción"}
-        </button>
-      </div>
-    </div>
+    </PageShell>
   );
 }

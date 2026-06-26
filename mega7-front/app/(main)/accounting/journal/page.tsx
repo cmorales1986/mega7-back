@@ -146,7 +146,7 @@ function LinesEditor({
                     value={line.accountId ? String(line.accountId) : ""}
                     onValueChange={(v) => setAccount(idx, parseInt(v))}
                   >
-                    <SelectTrigger className="h-8 text-xs">
+                    <SelectTrigger className="h-9 text-sm">
                       <SelectValue placeholder="Seleccionar cuenta…">
                         {line.accountId
                           ? `${line.accountCode} — ${line.accountName}`
@@ -167,7 +167,7 @@ function LinesEditor({
                 {/* Descripción de línea */}
                 <td className="py-1 px-2">
                   <Input
-                    className="h-8 text-xs"
+                    className="h-9 text-sm"
                     placeholder="Detalle…"
                     value={line.description}
                     onChange={(e) => setLine(idx, "description", e.target.value)}
@@ -178,7 +178,8 @@ function LinesEditor({
                 <td className="py-1 px-2">
                   <Input
                     type="number" min={0} step="any"
-                    className="h-8 text-xs text-right"
+                    className="h-9 text-sm text-right font-mono w-full [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    placeholder="0"
                     value={line.debit || ""}
                     onChange={(e) => setLine(idx, "debit", parseFloat(e.target.value) || 0)}
                   />
@@ -188,7 +189,8 @@ function LinesEditor({
                 <td className="py-1 px-2">
                   <Input
                     type="number" min={0} step="any"
-                    className="h-8 text-xs text-right"
+                    className="h-9 text-sm text-right font-mono w-full [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    placeholder="0"
                     value={line.credit || ""}
                     onChange={(e) => setLine(idx, "credit", parseFloat(e.target.value) || 0)}
                   />

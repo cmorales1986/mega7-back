@@ -439,6 +439,262 @@ namespace Mega7.API.Controllers
             }
         }
 
+        // POST: api/apinvoices   ── Factura Proveedor unificada (ITEM + SERVICE)
+        [RequirePermission(Perms.APInvoicesCreate)]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] APInvoiceUnifiedCreateDto dto)
+        {
+            if (dto == null) return BadRequest("Payload inválido.");
+            if (dto.SupplierId <= 0) return BadRequest("SupplierId inválido.");
+            if (string.IsNullOrWhiteSpace(dto.InvoiceNumber)) return BadRequest("InvoiceNumber es requerido.");
+            if (dto.Lines == null || dto.Lines.Count == 0) return BadRequest("La factura debe tener al menos una línea.");
+
+            var invDate = dto.InvoiceDate == default ? DateTime.UtcNow.Date : dto.InvoiceDate.Date;
+
+            if (!await _periods.HasOpenPeriodForDate(invDate))
+                return BadRequest("No existe un período ABIERTO para la fecha de la factura.");
+
+            var sup = await _ctx.SociosNegocio.AsNoTracking().FirstOrDefaultAsync(s => s.Id == dto.SupplierId);
+            if (sup == null) return BadRequest("Proveedor no existe.");
+
+            var invNo = dto.InvoiceNumber.Trim();
+            var dupExists = await _ctx.APInvoices.AsNoTracking()
+                .AnyAsync(x => x.SupplierId == dto.SupplierId && x.InvoiceNumber == invNo && x.Status != "CANCELLED");
+            if (dupExists) return BadRequest("Ya existe una factura activa con ese número para este proveedor.");
+
+            var itemLines = dto.Lines.Where(l => l.LineType?.ToUpperInvariant() == "ITEM").ToList();
+            var hasItemLines = itemLines.Any();
+
+            if (hasItemLines && !dto.WarehouseId.HasValue && itemLines.Any(l => !l.WarehouseId.HasValue))
+                return BadRequest("Debe especificar un depósito (en el header o en cada línea ITEM).");
+
+            // Cargar productos para líneas ITEM
+            var productIds = itemLines.Where(l => l.ProductId.HasValue).Select(l => l.ProductId!.Value).Distinct().ToList();
+            var products = productIds.Count > 0
+                ? await _ctx.Products.Where(p => productIds.Contains(p.Id)).ToListAsync()
+                : new List<Mega7.SHARED.Entities.Product>();
+
+            var taxIds = dto.Lines.Where(l => l.TaxId.HasValue).Select(l => l.TaxId!.Value).Distinct().ToList();
+            var taxes  = taxIds.Count > 0
+                ? await _ctx.Taxes.Where(t => taxIds.Contains(t.Id)).ToListAsync()
+                : new List<Mega7.SHARED.Entities.Tax>();
+
+            // Validar líneas ITEM
+            foreach (var l in itemLines)
+            {
+                if (!l.ProductId.HasValue || l.ProductId <= 0)
+                    return BadRequest("Línea ITEM sin ProductId.");
+                if (l.Quantity <= 0)
+                    return BadRequest("Cantidad debe ser > 0.");
+                var prod = products.FirstOrDefault(p => p.Id == l.ProductId);
+                if (prod == null) return BadRequest($"Producto no encontrado (ID {l.ProductId}).");
+                if (prod.IsBatchManaged && string.IsNullOrWhiteSpace(l.BatchNumber))
+                    return BadRequest($"El producto '{prod.Name}' requiere número de lote.");
+                if (prod.IsSerialManaged && string.IsNullOrWhiteSpace(l.SerialNumbers))
+                    return BadRequest($"El producto '{prod.Name}' requiere números de serie.");
+            }
+
+            await using var trx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                // ── Construir líneas ────────────────────────────────────────────────
+                var builtLines = new List<APInvoiceLine>();
+                decimal grandTotal = 0m;
+
+                foreach (var l in dto.Lines)
+                {
+                    var isItem  = l.LineType?.ToUpperInvariant() == "ITEM";
+                    var tax     = l.TaxId.HasValue ? taxes.FirstOrDefault(t => t.Id == l.TaxId.Value) : null;
+                    var disc    = Math.Clamp(l.DiscountPercent, 0m, 100m);
+                    var sub     = Math.Round(l.Quantity * l.UnitPrice * ((100m - disc) / 100m), 2);
+                    var taxAmt  = Math.Round(sub * ((tax?.Rate ?? 0m) / 100m), 2);
+                    var total   = sub + taxAmt;
+                    grandTotal += total;
+
+                    var prod    = isItem && l.ProductId.HasValue
+                        ? products.FirstOrDefault(p => p.Id == l.ProductId.Value)
+                        : null;
+
+                    builtLines.Add(new APInvoiceLine
+                    {
+                        LineType        = isItem ? "ITEM" : "SERVICE",
+                        Description     = isItem
+                            ? (prod != null ? $"{prod.Code} – {prod.Name}" : "")
+                            : (l.Description?.Trim() ?? ""),
+                        ProductId       = isItem ? l.ProductId : null,
+                        ProductCode     = prod?.Code,
+                        ProductName     = prod?.Name,
+                        WarehouseId     = isItem ? (l.WarehouseId ?? dto.WarehouseId) : null,
+                        Quantity        = l.Quantity,
+                        UnitPrice       = l.UnitPrice,
+                        DiscountPercent = disc,
+                        TaxId           = l.TaxId,
+                        TaxRate         = tax?.Rate ?? 0m,
+                        SubTotal        = sub,
+                        TaxAmount       = taxAmt,
+                        LineTotal       = total,
+                        BatchNumber     = isItem ? l.BatchNumber : null,
+                        ExpirationDate  = isItem ? l.ExpirationDate : null,
+                        SerialNumbers   = isItem ? l.SerialNumbers : null,
+                        CreatedAt       = DateTime.UtcNow,
+                    });
+                }
+
+                if (grandTotal <= 0m) return BadRequest("El total de la factura debe ser mayor a 0.");
+
+                // ── Crear APInvoice ─────────────────────────────────────────────────
+                var ap = new APInvoice
+                {
+                    PurchaseReceiptId = dto.PurchaseReceiptId,
+                    PurchaseOrderId   = dto.PurchaseOrderId,
+                    WarehouseId       = dto.WarehouseId,
+                    SourceType        = hasItemLines ? "DIRECT" : "SERVICE",
+                    SupplierId        = sup.Id,
+                    SocioNegocioId    = sup.Id,
+                    SupplierName      = sup.RazonSocial,
+                    InvoiceNumber     = invNo,
+                    InvoiceDate       = invDate,
+                    DueDate           = dto.DueDate?.Date,
+                    Total             = grandTotal,
+                    Balance           = grandTotal,
+                    Status            = "OPEN",
+                    Notes             = dto.Notes?.Trim() ?? string.Empty,
+                    CreatedAt         = DateTime.UtcNow,
+                    UpdatedAt         = DateTime.UtcNow,
+                };
+
+                _ctx.APInvoices.Add(ap);
+                await _ctx.SaveChangesAsync(); // ap.Id
+
+                foreach (var ln in builtLines)
+                {
+                    ln.APInvoiceId = ap.Id;
+                    _ctx.APInvoiceLines.Add(ln);
+                }
+                await _ctx.SaveChangesAsync();
+
+                // ── Stock update para líneas ITEM ───────────────────────────────────
+                if (hasItemLines)
+                {
+                    var stockEntry = new StockEntry
+                    {
+                        DocumentType   = "AP_INVOICE",
+                        DocumentNumber = ap.InvoiceNumber,
+                        DocumentRef    = $"FAC:{ap.InvoiceNumber}",
+                        EntryDate      = invDate,
+                        WarehouseId    = dto.WarehouseId ?? itemLines.First().WarehouseId ?? 0,
+                        SupplierId     = ap.SupplierId,
+                        SupplierName   = ap.SupplierName,
+                        Notes          = ap.Notes,
+                        EntryMode      = "ADD",
+                        CreatedBy      = User.Identity?.Name ?? "system",
+                        Lines = builtLines
+                            .Where(l => l.LineType == "ITEM")
+                            .Select(l => new StockEntryLine
+                            {
+                                ProductId      = l.ProductId!.Value,
+                                WarehouseId    = l.WarehouseId ?? dto.WarehouseId ?? 0,
+                                Quantity       = l.Quantity,
+                                UnitCost       = l.SubTotal > 0 && l.Quantity > 0 ? l.SubTotal / l.Quantity : l.UnitPrice,
+                                TaxRate        = l.TaxRate,
+                                BatchNumber    = l.BatchNumber,
+                                ExpirationDate = l.ExpirationDate,
+                                SerialNumbers  = l.SerialNumbers,
+                            }).ToList()
+                    };
+
+                    await ApplyStockEntryAP(stockEntry);
+                }
+
+                try { await _accounting.PostAPInvoiceAsync(ap.Id); } catch { }
+
+                await trx.CommitAsync();
+                return Ok(new { ok = true, id = ap.Id, total = ap.Total, ap.SourceType });
+            }
+            catch (Exception ex)
+            {
+                await trx.RollbackAsync();
+                return BadRequest($"Error al crear factura: {ex.Message}");
+            }
+        }
+
+        // ── Helpers de stock (replicados para mantener APInvoicesController autónomo) ──
+
+        private async Task ApplyStockEntryAP(StockEntry entry)
+        {
+            if (entry.Lines == null || entry.Lines.Count == 0)
+                throw new Exception("No se puede crear un ingreso sin líneas.");
+
+            _ctx.StockEntries.Add(entry);
+            await _ctx.SaveChangesAsync();
+
+            static decimal WeightedAvg(decimal oldQty, decimal oldCost, decimal inQty, decimal inCost)
+            {
+                var newQty = oldQty + inQty;
+                if (newQty <= 0) return 0m;
+                return ((oldQty * oldCost) + (inQty * inCost)) / newQty;
+            }
+
+            foreach (var line in entry.Lines)
+            {
+                line.StockEntryId = entry.Id;
+                var product = await _ctx.Products.FirstOrDefaultAsync(p => p.Id == line.ProductId);
+                if (product == null) throw new Exception($"Producto no encontrado (ID {line.ProductId})");
+
+                var stock = await _ctx.Stocks
+                    .FirstOrDefaultAsync(s => s.ProductId == line.ProductId && s.WarehouseId == line.WarehouseId);
+                if (stock == null)
+                {
+                    stock = new Stock { ProductId = line.ProductId, WarehouseId = line.WarehouseId, Quantity = 0, AvgCost = 0 };
+                    _ctx.Stocks.Add(stock);
+                }
+
+                var oldQty = stock.Quantity;
+                var oldAvg = stock.AvgCost;
+                stock.Quantity += line.Quantity;
+
+                if (!product.IsBatchManaged && !product.IsSerialManaged)
+                {
+                    stock.AvgCost = WeightedAvg(oldQty, oldAvg, line.Quantity, line.UnitCost);
+                    if (stock.Quantity <= 0) stock.AvgCost = 0m;
+                }
+
+                if (product.IsBatchManaged)
+                {
+                    if (string.IsNullOrWhiteSpace(line.BatchNumber))
+                        throw new Exception("El producto es loteable. Debe especificar BatchNumber.");
+                    var batch = await _ctx.Batches.FirstOrDefaultAsync(b =>
+                        b.ProductId == line.ProductId && b.WarehouseId == line.WarehouseId && b.BatchNumber == line.BatchNumber);
+                    if (batch == null)
+                    {
+                        batch = new Batch { ProductId = line.ProductId, WarehouseId = line.WarehouseId, BatchNumber = line.BatchNumber!, ExpirationDate = line.ExpirationDate, Quantity = 0, UnitCost = line.UnitCost };
+                        _ctx.Batches.Add(batch);
+                    }
+                    else
+                    {
+                        batch.UnitCost = WeightedAvg(batch.Quantity, batch.UnitCost, line.Quantity, line.UnitCost);
+                    }
+                    batch.Quantity += line.Quantity;
+                    batch.UpdatedAt = DateTime.UtcNow;
+                }
+
+                if (product.IsSerialManaged)
+                {
+                    if (string.IsNullOrWhiteSpace(line.SerialNumbers))
+                        throw new Exception("Debe enviar SerialNumbers para productos serializables.");
+                    var serialList = line.SerialNumbers!.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+                    foreach (var sn in serialList)
+                    {
+                        if (await _ctx.Serials.AnyAsync(s => s.ProductId == product.Id && s.WarehouseId == line.WarehouseId && s.SerialNumber == sn))
+                            throw new Exception($"El serial {sn} ya existe para este producto/depósito.");
+                        _ctx.Serials.Add(new Serial { ProductId = product.Id, WarehouseId = line.WarehouseId, SerialNumber = sn, IsActive = true, UnitCost = line.UnitCost, CreatedAt = DateTime.UtcNow });
+                    }
+                }
+            }
+            await _ctx.SaveChangesAsync();
+        }
+
         // POST: api/apinvoices/service
         // POST: api/apinvoices/service
         [RequirePermission(Perms.APInvoicesCreate)]

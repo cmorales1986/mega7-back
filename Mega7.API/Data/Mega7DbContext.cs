@@ -454,6 +454,49 @@ namespace Mega7.API.Data
                 .HasIndex(x => new { x.APInvoiceId, x.InstallmentNo })
                 .IsUnique();
 
+            // APInvoice ── link opcional a OC y Depósito
+            modelBuilder.Entity<APInvoice>()
+                .HasOne(x => x.PurchaseOrder)
+                .WithMany()
+                .HasForeignKey(x => x.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            modelBuilder.Entity<APInvoice>()
+                .HasOne(x => x.Warehouse)
+                .WithMany()
+                .HasForeignKey(x => x.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            // APInvoiceLine ── nav props para líneas ITEM
+            modelBuilder.Entity<APInvoiceLine>()
+                .HasOne(l => l.APInvoice)
+                .WithMany()
+                .HasForeignKey(l => l.APInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<APInvoiceLine>()
+                .HasOne(l => l.Product)
+                .WithMany()
+                .HasForeignKey(l => l.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            modelBuilder.Entity<APInvoiceLine>()
+                .HasOne(l => l.Warehouse)
+                .WithMany()
+                .HasForeignKey(l => l.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            modelBuilder.Entity<APInvoiceLine>()
+                .HasOne(l => l.Tax)
+                .WithMany()
+                .HasForeignKey(l => l.TaxId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
             modelBuilder.Entity<Period>()
                 .HasIndex(p => new { p.Year, p.Month })
                 .IsUnique();

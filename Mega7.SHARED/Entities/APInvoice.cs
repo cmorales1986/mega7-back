@@ -12,9 +12,17 @@ namespace Mega7.SHARED.Entities
     {
         public int Id { get; set; }
 
-        // Relación 1-1 con la recepción
+        // Relación con remisión (puede ser null en facturas directas)
         public int? PurchaseReceiptId { get; set; }
         public PurchaseReceipt? PurchaseReceipt { get; set; }
+
+        // Link directo a OC (opcional)
+        public int? PurchaseOrderId { get; set; }
+        public PurchaseOrder? PurchaseOrder { get; set; }
+
+        // Depósito por defecto para líneas ITEM (facturas directas)
+        public int? WarehouseId { get; set; }
+        public Warehouse? Warehouse { get; set; }
 
         // Snapshot proveedor
         public int SupplierId { get; set; }

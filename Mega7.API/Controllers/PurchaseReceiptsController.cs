@@ -578,21 +578,19 @@ namespace Mega7.API.Controllers
                     return BadRequest("No se puede cancelar: la recepción ya está FACTURADA.");
 
 
-                // 2) Validar y revertir OC (ReceivedQuantity)
-                if (receipt.PurchaseOrder == null)
-                    return BadRequest("La recepción no tiene OC asociada.");
-
+                // 2) Validar y revertir OC (solo si es remisión con OC)
                 var po = receipt.PurchaseOrder;
 
-                // Validación básica
-                foreach (var rl in receipt.Lines)
+                if (po != null)
                 {
-                    var poLine = po.Lines.FirstOrDefault(x => x.Id == rl.PurchaseOrderLineId);
-                    if (poLine == null)
-                        return BadRequest($"Línea OC no encontrada: {rl.PurchaseOrderLineId}");
-
-                    if (poLine.ReceivedQuantity < rl.Quantity)
-                        return BadRequest($"No se puede cancelar: recibido en OC sería negativo. Producto: {poLine.ProductName}");
+                    foreach (var rl in receipt.Lines)
+                    {
+                        var poLine = po.Lines.FirstOrDefault(x => x.Id == rl.PurchaseOrderLineId);
+                        if (poLine == null)
+                            return BadRequest($"Línea OC no encontrada: {rl.PurchaseOrderLineId}");
+                        if (poLine.ReceivedQuantity < rl.Quantity)
+                            return BadRequest($"No se puede cancelar: recibido en OC sería negativo. Producto: {poLine.ProductName}");
+                    }
                 }
 
                 // 3) Preparar un StockOutput (audit)
@@ -636,19 +634,20 @@ namespace Mega7.API.Controllers
                 //    Implementamos un "ApplyStockOutput" interno usando la lógica de tu StockOutputController
                 await ApplyStockOutput(output);
 
-                // 6) Revertir received en OC
-                foreach (var rl in receipt.Lines)
+                // 6) Revertir received en OC (solo si tiene OC)
+                if (po != null)
                 {
-                    var poLine = po.Lines.First(x => x.Id == rl.PurchaseOrderLineId);
-                    poLine.ReceivedQuantity -= rl.Quantity;
-                }
-
-                // Si estaba cerrada, reabrir si ahora queda pendiente
-                var allReceived = po.Lines.All(x => x.ReceivedQuantity >= x.Quantity);
-                if (!allReceived)
-                {
-                    po.Status = "OPEN";
-                    po.UpdatedAt = DateTime.UtcNow;
+                    foreach (var rl in receipt.Lines)
+                    {
+                        var poLine = po.Lines.First(x => x.Id == rl.PurchaseOrderLineId);
+                        poLine.ReceivedQuantity -= rl.Quantity;
+                    }
+                    var allReceived = po.Lines.All(x => x.ReceivedQuantity >= x.Quantity);
+                    if (!allReceived)
+                    {
+                        po.Status = "OPEN";
+                        po.UpdatedAt = DateTime.UtcNow;
+                    }
                 }
 
                 // 7) Marcar recepción cancelada

@@ -130,10 +130,10 @@ function LinesEditor({
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase">
-              <th className="py-2 px-2 text-left">Cuenta</th>
-              <th className="py-2 px-2 text-left w-44">Descripción</th>
-              <th className="py-2 px-2 text-right w-32">Debe</th>
-              <th className="py-2 px-2 text-right w-32">Haber</th>
+              <th className="py-2 px-2 text-left w-80">Cuenta</th>
+              <th className="py-2 px-2 text-left">Descripción</th>
+              <th className="py-2 px-2 text-right w-40">Debe</th>
+              <th className="py-2 px-2 text-right w-40">Haber</th>
               <th className="py-2 px-2 w-10" />
             </tr>
           </thead>
@@ -632,7 +632,7 @@ export default function JournalPage() {
 
       {/* ── Dialog crear/editar asiento ──────────────────────────────────── */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[min(95vw,1200px)] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-emerald-600" />
@@ -665,7 +665,7 @@ export default function JournalPage() {
             <div>
               <Label htmlFor="ref">Referencia (opcional)</Label>
               <Input
-                id="ref" className="mt-1 max-w-xs"
+                id="ref" className="mt-1"
                 placeholder="Ej: FAC-0001, REC-0042…"
                 value={form.reference}
                 onChange={(e) => setForm((f) => ({ ...f, reference: e.target.value }))}

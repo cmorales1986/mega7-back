@@ -39,7 +39,14 @@ type PaymentConcept = {
   isActive: boolean;
   isDefault: boolean;
   requiresBusinessPartner: boolean;
+  accountId?: number | null;
   createdAt?: string | null;
+};
+
+type AccountOption = {
+  id: number;
+  code: string;
+  name: string;
 };
 
 
@@ -59,6 +66,8 @@ export default function PaymentConceptsPage() {
   const [isActive, setIsActive] = useState(true);
   const [isDefault, setIsDefault] = useState(false);
   const [requiresBp, setRequiresBp] = useState(false);
+  const [accountId, setAccountId] = useState<number | null>(null);
+  const [accounts, setAccounts] = useState<AccountOption[]>([]);
 
   const resetForm = () => {
     setEditing(null);
@@ -67,6 +76,17 @@ export default function PaymentConceptsPage() {
     setIsActive(true);
     setIsDefault(false);
     setRequiresBp(false);
+    setAccountId(null);
+  };
+
+  const loadAccounts = async () => {
+    try {
+      const res = await api.get(`/accounts/flat`, { params: { titlesOnly: false, activeOnly: true } });
+      const all = Array.isArray(res.data) ? res.data : [];
+      setAccounts(all.filter((a: any) => !a.isTitle));
+    } catch {
+      // silencioso — si no hay cuentas cargadas simplemente no aparece el combo
+    }
   };
 
   const loadData = async () => {
@@ -89,6 +109,11 @@ export default function PaymentConceptsPage() {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showInactive]);
+
+  useEffect(() => {
+    loadAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredRows = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -115,6 +140,7 @@ export default function PaymentConceptsPage() {
     setIsActive(!!row.isActive);
     setIsDefault(!!row.isDefault);
     setRequiresBp(!!row.requiresBusinessPartner);
+    setAccountId(row.accountId ?? null);
     setOpen(true);
   };
 
@@ -134,6 +160,7 @@ export default function PaymentConceptsPage() {
       isActive,
       isDefault,
       requiresBusinessPartner: requiresBp,
+      accountId: accountId ?? null,
     };
 
     try {
@@ -399,6 +426,27 @@ export default function PaymentConceptsPage() {
                 Requiere proveedor (opcional)
               </label>
             </div>
+
+            {accounts.length > 0 && (
+              <div className="grid gap-2">
+                <Label>Cuenta contable de gasto <span className="text-gray-400 font-normal">(para asientos automáticos)</span></Label>
+                <select
+                  className="w-full rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  value={accountId ?? ""}
+                  onChange={(e) => setAccountId(e.target.value ? Number(e.target.value) : null)}
+                >
+                  <option value="">— Sin cuenta asignada —</option>
+                  {accounts.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.code} – {a.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500">
+                  Solo aplica a pagos directos (sin proveedor). Si no se asigna, se usa la cuenta GASTOS_GENERALES de la configuración contable.
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="gap-2">

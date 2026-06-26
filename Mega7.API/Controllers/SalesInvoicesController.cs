@@ -260,6 +260,209 @@ namespace Mega7.API.Controllers
 
             try
             {
+                // ================================================================
+                // MODO DIRECTO (sin Orden de Venta)
+                // ================================================================
+                if (!dto.SalesOrderId.HasValue)
+                {
+                    if (!dto.CustomerId.HasValue)    return BadRequest("CustomerId es requerido en modo directo.");
+                    if (!dto.WarehouseId.HasValue)   return BadRequest("WarehouseId es requerido en modo directo.");
+                    if (dto.DirectLines == null || dto.DirectLines.Count == 0)
+                        return BadRequest("DirectLines es requerido en modo directo.");
+
+                    var dCustomer = await _ctx.SociosNegocio.FindAsync(dto.CustomerId.Value);
+                    if (dCustomer == null) return NotFound("Cliente no existe.");
+                    if (dCustomer.PartnerType != "C" && dCustomer.PartnerType != "A")
+                        return BadRequest("El socio no es Cliente.");
+
+                    var dWarehouse = await _ctx.Warehouses.FindAsync(dto.WarehouseId.Value);
+                    if (dWarehouse == null) return NotFound("Depósito no existe.");
+
+                    var dPayType = (dto.PaymentType ?? "CASH").ToUpperInvariant();
+                    if (dPayType != "CASH" && dPayType != "CREDIT")
+                        return BadRequest("PaymentType inválido. Use CASH o CREDIT.");
+
+                    var dWantsInst = dPayType == "CREDIT" && dto.CreditInstallments;
+                    var dNInst = dWantsInst ? (dto.InstallmentsCount ?? 0) : 0;
+                    if (dWantsInst && dNInst < 2) return BadRequest("InstallmentsCount debe ser >= 2.");
+
+                    int? dCreditTermId = null;
+                    CreditTerm? dTerm = null;
+                    if (dPayType == "CREDIT")
+                    {
+                        dCreditTermId = dto.CreditTermId ?? dCustomer.CreditTermId;
+                        if (dCreditTermId.HasValue)
+                            dTerm = await _ctx.Set<CreditTerm>().FirstOrDefaultAsync(t => t.Id == dCreditTermId.Value);
+                    }
+
+                    var dAr = new ARInvoice
+                    {
+                        DocNumber    = await GenerateNextDocNumber(),
+                        InvoiceDate  = invDate,
+                        CustomerId   = dCustomer.Id,
+                        CustomerName = dCustomer.RazonSocial ?? "",
+                        SalesOrderId = null,
+                        WarehouseId  = dWarehouse.Id,
+                        PaymentType  = dPayType,
+                        InstallmentsCount = dWantsInst ? dNInst : null,
+                        CreditTermId = dPayType == "CREDIT" ? dCreditTermId : null,
+                        ExternalNumber = string.IsNullOrWhiteSpace(dto.ExternalNumber) ? null : dto.ExternalNumber.Trim(),
+                        Comments     = dto.Comments
+                    };
+
+                    var dProductIds = dto.DirectLines.Select(l => l.ProductId).Distinct().ToList();
+                    var dProducts   = await _ctx.Products.Where(p => dProductIds.Contains(p.Id)).ToListAsync();
+                    var dTaxIds     = dto.DirectLines.Where(l => l.TaxId.HasValue).Select(l => l.TaxId!.Value).Distinct().ToList();
+                    var dTaxes      = await _ctx.Taxes.Where(t => dTaxIds.Contains(t.Id)).ToListAsync();
+
+                    foreach (var dl in dto.DirectLines)
+                    {
+                        if (dl.Quantity <= 0) return BadRequest("Cantidad inválida en una línea.");
+
+                        var dp = dProducts.FirstOrDefault(pp => pp.Id == dl.ProductId);
+                        if (dp == null) return BadRequest($"Producto {dl.ProductId} no existe.");
+
+                        var dStock = await _ctx.Stocks.FirstOrDefaultAsync(s => s.ProductId == dp.Id && s.WarehouseId == dWarehouse.Id);
+                        if (dStock == null || dStock.Quantity < dl.Quantity)
+                            return BadRequest($"Stock insuficiente de {dp.Name} en el depósito seleccionado.");
+
+                        if (dp.IsBatchManaged)
+                        {
+                            if (string.IsNullOrWhiteSpace(dl.BatchNumber))
+                                return BadRequest($"{dp.Name} requiere lote (BatchNumber).");
+                            var dBatch = await _ctx.Batches.FirstOrDefaultAsync(b =>
+                                b.ProductId == dp.Id && b.WarehouseId == dWarehouse.Id && b.BatchNumber == dl.BatchNumber);
+                            if (dBatch == null) return BadRequest($"Lote {dl.BatchNumber} no existe para {dp.Name}.");
+                            if (dBatch.Quantity < dl.Quantity) return BadRequest($"Stock insuficiente en lote {dl.BatchNumber} ({dp.Name}).");
+                            dBatch.Quantity -= dl.Quantity;
+                            dBatch.UpdatedAt = DateTime.UtcNow;
+                        }
+
+                        if (dp.IsSerialManaged)
+                        {
+                            if (string.IsNullOrWhiteSpace(dl.SerialNumbers))
+                                return BadRequest($"{dp.Name} requiere seriales.");
+                            var dSerialList = dl.SerialNumbers.Split(",").Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
+                            if (dSerialList.Count != (int)dl.Quantity)
+                                return BadRequest($"Cantidad de seriales no coincide con cantidad para {dp.Name}.");
+                            foreach (var sn in dSerialList)
+                            {
+                                var dSerial = await _ctx.Serials.FirstOrDefaultAsync(s =>
+                                    s.ProductId == dp.Id && s.WarehouseId == dWarehouse.Id && s.SerialNumber == sn && s.IsActive == true);
+                                if (dSerial == null) return BadRequest($"Serial {sn} no disponible en este depósito.");
+                                dSerial.IsActive = false;
+                            }
+                        }
+
+                        dStock.Quantity -= dl.Quantity;
+
+                        var dTax     = dl.TaxId.HasValue ? dTaxes.FirstOrDefault(t => t.Id == dl.TaxId.Value) : null;
+                        var dDisc    = (100m - dl.DiscountPercent) / 100m;
+                        var dSub     = Math.Round(dl.Quantity * dl.UnitPrice * dDisc, 2);
+                        var dTaxAmt  = Math.Round(dSub * ((dTax?.Rate ?? 0m) / 100m), 2);
+
+                        dAr.Lines.Add(new ARInvoiceLine
+                        {
+                            ProductId       = dp.Id,
+                            ProductCode     = dp.Code,
+                            ProductName     = dp.Name,
+                            Quantity        = dl.Quantity,
+                            UnitPrice       = dl.UnitPrice,
+                            DiscountPercent = dl.DiscountPercent,
+                            TaxId           = dl.TaxId,
+                            BatchNumber     = dl.BatchNumber?.Trim(),
+                            SerialNumbers   = dl.SerialNumbers?.Trim(),
+                            LineSubTotal    = dSub,
+                            LineTax         = dTaxAmt,
+                            LineTotal       = dSub + dTaxAmt
+                        });
+                    }
+
+                    dAr.SubTotal   = dAr.Lines.Sum(l => l.LineSubTotal);
+                    dAr.TaxTotal   = dAr.Lines.Sum(l => l.LineTax);
+                    dAr.Total      = dAr.Lines.Sum(l => l.LineTotal);
+                    dAr.PaidAmount = 0m;
+                    dAr.Balance    = dAr.Total;
+                    dAr.Status     = "OPEN";
+
+                    if (dPayType == "CASH")
+                    {
+                        dAr.DueDate = invDate.Date;
+                    }
+                    else
+                    {
+                        var dCreditDays = dto.CreditDays;
+                        if (dCreditDays <= 0 && dTerm != null) dCreditDays = dTerm.Days;
+                        if (dCreditDays < 0) dCreditDays = 0;
+
+                        if (dWantsInst)
+                        {
+                            var schedType = (dto.InstallmentScheduleType ?? "INTERVAL").Trim().ToUpperInvariant();
+                            var baseAmt   = Math.Round(dAr.Total / dNInst, 2);
+                            decimal dacc  = 0m;
+                            var firstDue  = dto.FirstDueDate?.Date ?? invDate.Date.AddDays(dCreditDays);
+
+                            for (int k = 1; k <= dNInst; k++)
+                            {
+                                var amt = (k == dNInst) ? (dAr.Total - dacc) : baseAmt;
+                                dacc += amt;
+                                DateTime due;
+                                if (schedType == "DAY_OF_MONTH")
+                                {
+                                    var dDay = dto.DueDayOfMonth ?? 5;
+                                    var fd   = k == 1 ? ComputeFirstDueFixedDay(firstDue, dDay, dto.FirstDueRule)
+                                                       : ComputeFirstDueFixedDay(firstDue, dDay, dto.FirstDueRule).AddMonths(k - 1);
+                                    due = ClampDueDay(fd.Year, fd.Month, dDay);
+                                }
+                                else due = firstDue.AddDays((dto.IntervalDays > 0 ? dto.IntervalDays : 30) * (k - 1));
+
+                                dAr.Installments.Add(new ARInvoiceInstallment { Number = k, DueDate = due, Amount = amt, PaidAmount = 0m, Balance = amt, IsPaid = false, CreatedAt = DateTime.UtcNow });
+                            }
+                            dAr.DueDate = dAr.Installments.Max(x => x.DueDate);
+                        }
+                        else
+                        {
+                            dAr.DueDate = invDate.Date.AddDays(dCreditDays);
+                        }
+                    }
+
+                    // Fiscal
+                    const string dDocType = "FACTURA";
+                    int dSeriesId;
+                    if (dto.FiscalSeriesId.HasValue)
+                    {
+                        dSeriesId = dto.FiscalSeriesId.Value;
+                    }
+                    else
+                    {
+                        var dCandidates = await _ctx.Set<FiscalDocumentSeries>().AsNoTracking()
+                            .Where(s => s.IsActive && s.DocumentType == dDocType && invDate.Date >= s.ValidFrom.Date && invDate.Date <= s.ValidTo.Date)
+                            .OrderByDescending(s => s.Id).ToListAsync();
+                        if (dCandidates.Count == 0) return BadRequest("No hay talonario/timbrado activo y vigente para FACTURA.");
+                        if (dCandidates.Count > 1)  return BadRequest("Hay más de un talonario activo. Seleccioná uno (FiscalSeriesId).");
+                        dSeriesId = dCandidates[0].Id;
+                    }
+
+                    var dRes = await _fiscal.ReserveByIdAsync(dSeriesId, invDate.Date);
+                    dAr.FiscalSeriesId       = dRes.SeriesId;
+                    dAr.FiscalDocType        = dRes.DocumentType;
+                    dAr.FiscalTimbrado       = dRes.Timbrado;
+                    dAr.FiscalEstablishment  = dRes.Establishment;
+                    dAr.FiscalExpeditionPoint = dRes.ExpeditionPoint;
+                    dAr.FiscalNumber         = dRes.Number;
+                    dAr.FiscalFullNumber     = dRes.FullNumber;
+                    dAr.ExternalNumber       = dRes.FullNumber;
+
+                    _ctx.ARInvoices.Add(dAr);
+                    await _ctx.SaveChangesAsync();
+                    try { await _accounting.PostARInvoiceAsync(dAr.Id); } catch { }
+                    await trx.CommitAsync();
+                    return Ok(dAr);
+                }
+
+                // ================================================================
+                // MODO OV (flujo original)
+                // ================================================================
                 var so = await _ctx.SalesOrders
                     .Include(x => x.Customer)
                     .Include(x => x.Warehouse)

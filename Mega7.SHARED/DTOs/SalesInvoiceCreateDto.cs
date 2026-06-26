@@ -5,7 +5,14 @@ namespace Mega7.SHARED.DTOs
 {
     public class SalesInvoiceCreateDto
     {
-        public int SalesOrderId { get; set; }
+        // null = modo directo (sin OV)
+        public int? SalesOrderId { get; set; }
+
+        // Modo directo: requeridos cuando SalesOrderId es null
+        public int? CustomerId    { get; set; }
+        public int? WarehouseId   { get; set; }
+        public List<SalesInvoiceDirectLineDto>? DirectLines { get; set; }
+
         public DateTime InvoiceDate { get; set; }
 
         // CASH / CREDIT

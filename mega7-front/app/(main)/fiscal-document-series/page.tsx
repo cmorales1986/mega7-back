@@ -167,6 +167,7 @@ export default function FiscalDocumentSeriesPage() {
       await load();
     } catch (e: any) {
       Swal.fire("Error", safeMsg(e, "No se pudo guardar"), "error");
+      await load();
     } finally {
       setLoading(false);
     }

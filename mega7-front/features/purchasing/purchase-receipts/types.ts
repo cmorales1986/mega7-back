@@ -72,6 +72,55 @@ export type ReceiptDraft = {
   lines: ReceiptLineDraft[];
 };
 
+// ── Direct receipt (sin OC) ──────────────────────────────────────────────────
+
+export type SupplierMini = {
+  id: number;
+  razonSocial: string;
+};
+
+export type WarehouseMini = {
+  id: number;
+  name: string;
+};
+
+export type DirectReceiptLineDraft = {
+  _id: number; // local key
+  productId: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  discountPercent: number;
+  taxId: number | null;
+  batchNumber: string;
+  expirationDate: string;
+  serialNumbers: string;
+  isBatch: boolean;
+  isSerial: boolean;
+};
+
+export type CreateDirectReceiptPayload = {
+  supplierId: number;
+  warehouseId: number;
+  receiptDate: string;
+  comments?: string | null;
+  directLines: Array<{
+    productId: number;
+    quantity: number;
+    unitPrice: number;
+    discountPercent: number;
+    taxId?: number | null;
+    batchNumber?: string | null;
+    expirationDate?: string | null;
+    serialNumbers?: string | null;
+  }>;
+  invoiceNumber?: string | null;
+  invoiceDate?: string | null;
+  invoiceDueDate?: string | null;
+  isCredit?: boolean;
+  creditTermId?: number | null;
+};
+
 export type CreateReceiptPayload = {
   purchaseOrderId: number;
   receiptDate: string; // ISO

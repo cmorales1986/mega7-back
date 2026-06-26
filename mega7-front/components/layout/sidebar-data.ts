@@ -83,6 +83,7 @@ export const menu: MenuItem[] = [
     children: [
       { title: "Órdenes de Compra", href: "/purchase-orders", icon: ClipboardList },
       { title: "Recepciones", href: "/purchase-receipts", icon: Truck },
+      { title: "Recepción Directa", href: "/purchase-receipts/new-direct", icon: Truck },
       { title: "Factura Servicios", href: "/ap-invoices/new-service", icon: Truck },
       { title: "Facturas Proveedores x Estado", href: "/ap-invoices", icon: ClipboardList },
     ],

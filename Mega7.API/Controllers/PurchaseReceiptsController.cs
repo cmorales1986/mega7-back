@@ -1444,6 +1444,171 @@ namespace Mega7.API.Controllers
             }
         }
 
+        // ── RECEPCIÓN DIRECTA (sin OC) ────────────────────────────────────────────
+
+        [RequirePermission(Perms.PurchaseReceiptsCreate)]
+        [HttpPost("direct")]
+        public async Task<IActionResult> CreateDirect([FromBody] PurchaseReceiptDirectCreateDto dto)
+        {
+            var receiptDate = dto.ReceiptDate == default ? DateTime.UtcNow : dto.ReceiptDate;
+
+            if (!await _periods.HasOpenPeriodForDate(receiptDate))
+                return BadRequest("No existe un período ABIERTO para la fecha de la recepción.");
+
+            if (dto.SupplierId <= 0)  return BadRequest("SupplierId inválido.");
+            if (dto.WarehouseId <= 0) return BadRequest("WarehouseId inválido.");
+            if (dto.DirectLines == null || dto.DirectLines.Count == 0)
+                return BadRequest("No se puede crear una recepción sin líneas.");
+            if (dto.DirectLines.Any(l => l.Quantity <= 0))
+                return BadRequest("Cantidad recibida debe ser > 0.");
+
+            var supplier  = await _ctx.SociosNegocio.FirstOrDefaultAsync(s => s.Id == dto.SupplierId);
+            if (supplier == null) return BadRequest("Proveedor no encontrado.");
+
+            var warehouse = await _ctx.Warehouses.FirstOrDefaultAsync(w => w.Id == dto.WarehouseId);
+            if (warehouse == null) return BadRequest("Depósito no encontrado.");
+
+            using var trx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                var productIds = dto.DirectLines.Select(l => l.ProductId).Distinct().ToList();
+                var products   = await _ctx.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
+
+                var taxIds = dto.DirectLines.Where(l => l.TaxId.HasValue).Select(l => l.TaxId!.Value).Distinct().ToList();
+                var taxes  = await _ctx.Taxes.Where(t => taxIds.Contains(t.Id)).ToListAsync();
+
+                var receipt = new PurchaseReceipt
+                {
+                    DocNumber      = await GenerateNextReceiptNumber(),
+                    ReceiptDate    = receiptDate,
+                    PurchaseOrderId = null,       // directo — sin OC
+                    SupplierId     = supplier.Id,
+                    SupplierName   = supplier.RazonSocial,
+                    WarehouseId    = warehouse.Id,
+                    Comments       = dto.Comments?.Trim(),
+                    Status         = "POSTED",
+                    IsInvoiced     = false,
+                };
+
+                foreach (var l in dto.DirectLines)
+                {
+                    var product = products.FirstOrDefault(p => p.Id == l.ProductId);
+                    if (product == null) return BadRequest($"Producto no encontrado (ID {l.ProductId}).");
+
+                    if (product.IsBatchManaged && string.IsNullOrWhiteSpace(l.BatchNumber))
+                        return BadRequest($"El producto {product.Name} requiere BatchNumber.");
+
+                    if (product.IsSerialManaged)
+                    {
+                        if (string.IsNullOrWhiteSpace(l.SerialNumbers))
+                            return BadRequest($"El producto {product.Name} requiere SerialNumbers.");
+
+                        var serialCount = l.SerialNumbers!
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).Count();
+
+                        if (serialCount != (int)l.Quantity)
+                            return BadRequest($"Seriales no coinciden con cantidad en {product.Name}. Cant: {l.Quantity}, Seriales: {serialCount}");
+                    }
+
+                    var tax           = l.TaxId.HasValue ? taxes.FirstOrDefault(t => t.Id == l.TaxId.Value) : null;
+                    var discFactor    = (100m - Math.Clamp(l.DiscountPercent, 0m, 100m)) / 100m;
+                    var sub           = Math.Round(l.Quantity * l.UnitPrice * discFactor, 2);
+                    var taxAmt        = Math.Round(sub * ((tax?.Rate ?? 0m) / 100m), 2);
+
+                    receipt.Lines.Add(new PurchaseReceiptLine
+                    {
+                        PurchaseOrderLineId = null,   // sin OC
+                        ProductId           = product.Id,
+                        ProductCode         = product.Code,
+                        ProductName         = product.Name,
+                        Quantity            = l.Quantity,
+                        UnitPrice           = l.UnitPrice,
+                        DiscountPercent     = l.DiscountPercent,
+                        TaxId               = l.TaxId,
+                        BatchNumber         = l.BatchNumber,
+                        ExpirationDate      = l.ExpirationDate,
+                        SerialNumbers       = l.SerialNumbers,
+                        LineSubTotal        = sub,
+                        LineTax             = taxAmt,
+                        LineTotal           = sub + taxAmt,
+                    });
+                }
+
+                receipt.SubTotal = receipt.Lines.Sum(x => x.LineSubTotal);
+                receipt.TaxTotal = receipt.Lines.Sum(x => x.LineTax);
+                receipt.Total    = receipt.Lines.Sum(x => x.LineTotal);
+
+                _ctx.PurchaseReceipts.Add(receipt);
+                await _ctx.SaveChangesAsync();
+
+                // ── Stock entry (mismo flujo que recepción con OC) ──────────────
+                var entry = new StockEntry
+                {
+                    DocumentType   = "PURCHASE_RECEIPT",
+                    DocumentNumber = receipt.DocNumber,
+                    DocumentRef    = "DIRECTO",
+                    EntryDate      = receipt.ReceiptDate,
+                    WarehouseId    = receipt.WarehouseId,
+                    SupplierId     = receipt.SupplierId,
+                    SupplierName   = receipt.SupplierName,
+                    Notes          = receipt.Comments,
+                    EntryMode      = "ADD",
+                    CreatedBy      = User.Identity?.Name ?? "system",
+                    Lines = receipt.Lines.Select(l =>
+                    {
+                        var disc    = Math.Clamp(l.DiscountPercent, 0m, 100m);
+                        var unitNet = l.UnitPrice * ((100m - disc) / 100m);
+                        var tRate   = l.TaxId.HasValue ? (taxes.FirstOrDefault(t => t.Id == l.TaxId.Value)?.Rate ?? 0m) : 0m;
+                        return new StockEntryLine
+                        {
+                            ProductId      = l.ProductId,
+                            WarehouseId    = receipt.WarehouseId,
+                            Quantity       = l.Quantity,
+                            UnitCost       = unitNet,
+                            TaxRate        = tRate,
+                            BatchNumber    = l.BatchNumber,
+                            ExpirationDate = l.ExpirationDate,
+                            SerialNumbers  = l.SerialNumbers,
+                        };
+                    }).ToList()
+                };
+
+                await ApplyStockEntry(entry);
+
+                // ── Factura del proveedor (si se informó) ────────────────────────
+                APInvoice? ap = null;
+                if (!string.IsNullOrWhiteSpace(dto.InvoiceNumber))
+                {
+                    receipt.IsInvoiced        = true;
+                    receipt.InvoicedAt        = DateTime.UtcNow;
+                    receipt.InvoiceNumber     = dto.InvoiceNumber.Trim();
+                    receipt.InvoiceDate       = (dto.InvoiceDate ?? receiptDate).Date;
+                    receipt.InvoiceDueDate    = dto.InvoiceDueDate?.Date;
+                    receipt.InvoiceTotal      = receipt.Total;
+                    receipt.InvoiceIsCredit   = dto.IsCredit;
+                    receipt.InvoiceCreditTermId = dto.CreditTermId;
+                    receipt.UpdatedAt         = DateTime.UtcNow;
+                    await _ctx.SaveChangesAsync();
+
+                    ap = await UpsertApInvoiceForReceipt(receipt);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                await trx.CommitAsync();
+
+                if (ap != null)
+                    try { await _accounting.PostAPInvoiceAsync(ap.Id); } catch { }
+
+                return Ok(new { receiptId = receipt.Id, receipt.DocNumber, stockEntry = entry.DocumentNumber });
+            }
+            catch (Exception ex)
+            {
+                await trx.RollbackAsync();
+                return BadRequest($"Error en recepción directa: {ex.Message}");
+            }
+        }
+
 
 
     }

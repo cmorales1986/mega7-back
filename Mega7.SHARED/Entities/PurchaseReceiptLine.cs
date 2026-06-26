@@ -15,8 +15,8 @@ namespace Mega7.SHARED.Entities
         public int PurchaseReceiptId { get; set; }
         public PurchaseReceipt? PurchaseReceipt { get; set; }
 
-        // Referencia a línea de OC (para controlar pendientes)
-        public int PurchaseOrderLineId { get; set; }
+        // Referencia a línea de OC (null = línea directa sin OC)
+        public int? PurchaseOrderLineId { get; set; }
         public PurchaseOrderLine? PurchaseOrderLine { get; set; }
 
         public int ProductId { get; set; }

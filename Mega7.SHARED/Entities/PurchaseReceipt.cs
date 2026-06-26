@@ -17,8 +17,8 @@ namespace Mega7.SHARED.Entities
 
         public DateTime ReceiptDate { get; set; } = DateTime.UtcNow;
 
-        // Relación con Orden de Compra
-        public int PurchaseOrderId { get; set; }
+        // Relación con Orden de Compra (null = recepción directa sin OC)
+        public int? PurchaseOrderId { get; set; }
         public PurchaseOrder? PurchaseOrder { get; set; }
 
         // Snapshots

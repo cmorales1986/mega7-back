@@ -108,6 +108,9 @@ namespace Mega7.API.Data
         public DbSet<JournalEntry> JournalEntries => Set<JournalEntry>();
         public DbSet<JournalEntryLine> JournalEntryLines => Set<JournalEntryLine>();
 
+        // ── RRHH ──────────────────────────────────────────────────────────────
+        public DbSet<Employee> Employees => Set<Employee>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -26,6 +26,7 @@ import {
   BanknoteArrowDownIcon,
   FileText,
   Users,
+  Users2,
   Shield,
   Percent,
   CalendarClock,
@@ -116,6 +117,21 @@ export const menu: MenuItem[] = [
       { title: "Entradas", href: "/stock-entry", icon: ArrowDown },
       { title: "Salidas", href: "/stock-output", icon: ArrowUp },
       { title: "Transferencias", href: "/stock-transfer", icon: ArrowLeftRight },
+    ],
+  },
+
+  // ── RRHH ────────────────────────────────────────────────────────────────────
+  {
+    title: "RRHH",
+    isSection: true,
+  },
+
+  {
+    title: "RRHH",
+    icon: Users2,
+    color: "text-teal-600",
+    children: [
+      { title: "Funcionarios", href: "/hr/employees", icon: Users2 },
     ],
   },
 

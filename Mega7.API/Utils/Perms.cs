@@ -175,6 +175,12 @@ namespace Mega7.API.Utils
         public const string AccountingConfigView     = "Accounting.ConfigView";
         public const string AccountingConfigEdit     = "Accounting.ConfigEdit";
 
+        // ── RRHH ─────────────────────────────────────────────────────────────────
+        public const string EmployeesView   = "Employees.View";
+        public const string EmployeesCreate = "Employees.Create";
+        public const string EmployeesEdit   = "Employees.Edit";
+        public const string EmployeesDelete = "Employees.Delete";
+
         // ── Administración ────────────────────────────────────────────────
         public const string UsersView       = "Users.View";
         public const string UsersCreate     = "Users.Create";

@@ -75,7 +75,8 @@ namespace Mega7.API.Controllers
                 _ctx.Add(e);
                 await _ctx.SaveChangesAsync();
             }
-            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+                when (ex.InnerException is Npgsql.PostgresException pg && pg.SqlState == "23505")
             {
                 return Conflict("Ya existe una serie con ese tipo de documento, establecimiento, punto de expedición y nombre. Usá un nombre de serie diferente.");
             }
@@ -109,7 +110,8 @@ namespace Mega7.API.Controllers
             if (e.NextNumber < e.RangeFrom) e.NextNumber = e.RangeFrom;
 
             try { await _ctx.SaveChangesAsync(); }
-            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+                when (ex.InnerException is Npgsql.PostgresException pg && pg.SqlState == "23505")
             {
                 return Conflict("Ya existe una serie con ese tipo de documento, establecimiento, punto de expedición y nombre.");
             }

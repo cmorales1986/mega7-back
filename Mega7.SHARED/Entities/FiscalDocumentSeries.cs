@@ -49,8 +49,5 @@ namespace Mega7.SHARED.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 
-        // Concurrencia (optimistic concurrency)
-        [Timestamp]
-        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }

@@ -205,29 +205,47 @@ public class AccountingService
     }
 
     // ── 4. Payment Made ───────────────────────────────────────────────────────
-    // DEBE  AP_PROVEEDORES                             = pay.TotalAmount
-    // HABER Caja or Banco (resolved by payment method) = pay.TotalAmount
+    // Supplier payment:  DEBE AP_PROVEEDORES,          HABER Caja/Banco
+    // Direct payment:    DEBE concept.AccountId (gasto), HABER Caja/Banco
     public async Task PostPaymentMadeAsync(int id)
     {
         if (await _ctx.JournalEntries.AnyAsync(j =>
                 j.SourceType == JournalEntrySource.Pago && j.SourceId == id))
             return;
 
-        var pay = await _ctx.PaymentsMade.AsNoTracking()
+        var pay = await _ctx.PaymentsMade
+            .AsNoTracking()
+            .Include(p => p.PaymentConcept)
             .FirstOrDefaultAsync(p => p.Id == id);
         if (pay == null) return;
-
-        var apAccountId = await Cfg("AP_PROVEEDORES");
-        if (apAccountId == null) return;
 
         var cashBankId = await ResolveCashBankAsync(pay.Method);
         if (cashBankId == null) return;
 
+        int? debitAccountId;
+        string debitDesc;
+
+        if (pay.SupplierId != null)
+        {
+            // Pago a proveedor: cancela CxP
+            debitAccountId = await Cfg("AP_PROVEEDORES");
+            debitDesc = $"Pago proveedor #{pay.Id} – {pay.PayeeName}";
+        }
+        else
+        {
+            // Pago directo: usa la cuenta de gasto del concepto, o fallback GASTOS_GENERALES
+            debitAccountId = pay.PaymentConcept?.AccountId
+                          ?? await Cfg("GASTOS_GENERALES");
+            debitDesc = $"Pago #{pay.Id} – {pay.PayeeName}";
+        }
+
+        if (debitAccountId == null) return;
+
         var lines = new List<JournalEntryLine>
         {
-            new() { AccountId = apAccountId.Value, Debit = pay.TotalAmount, Credit = 0,
-                    Description = $"Pago #{pay.Id} – {pay.PayeeName}" },
-            new() { AccountId = cashBankId.Value,  Debit = 0, Credit = pay.TotalAmount,
+            new() { AccountId = debitAccountId.Value, Debit = pay.TotalAmount, Credit = 0,
+                    Description = debitDesc },
+            new() { AccountId = cashBankId.Value,     Debit = 0, Credit = pay.TotalAmount,
                     Description = $"Pago #{pay.Id}" }
         };
 

@@ -186,15 +186,15 @@ namespace Mega7.API.Controllers
                 if (dto.TotalAmount <= 0m)
                     return BadRequest("TotalAmount debe ser mayor a 0.");
 
-                // proveedor opcional, pero si no hay supplier, debe haber payeeName
-                if (dto.SupplierId == null && string.IsNullOrWhiteSpace(dto.PayeeName))
-                    return BadRequest("Debe indicar SupplierId o PayeeName.");
             }
 
             await using var trx = await _ctx.Database.BeginTransactionAsync();
             try
             {
-                string payeeName = (dto.PayeeName ?? "").Trim();
+                // Si no viene PayeeName libre ni proveedor, usamos el nombre del concepto
+                string payeeName = string.IsNullOrWhiteSpace(dto.PayeeName)
+                    ? concept.Name
+                    : dto.PayeeName.Trim();
 
                 if (dto.SupplierId.HasValue)
                 {

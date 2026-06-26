@@ -23,6 +23,10 @@ namespace Mega7.SHARED.Entities
         // Si querés que ciertos conceptos pidan proveedor (ej: Honorarios)
         public bool RequiresBusinessPartner { get; set; } = false;
 
+        // Cuenta contable de gasto para asientos automáticos (pagos directos sin proveedor)
+        public int? AccountId { get; set; }
+        public Account? Account { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

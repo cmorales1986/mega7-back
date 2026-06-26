@@ -114,6 +114,7 @@ namespace Mega7.API.Controllers
             item.IsActive = model.IsActive;
             item.IsDefault = model.IsDefault;
             item.RequiresBusinessPartner = model.RequiresBusinessPartner;
+            item.AccountId = model.AccountId;
 
             await _ctx.SaveChangesAsync();
             return NoContent();

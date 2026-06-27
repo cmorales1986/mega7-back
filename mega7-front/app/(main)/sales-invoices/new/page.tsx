@@ -252,12 +252,20 @@ export default function NewSalesInvoicePage() {
   const [selectedSerials,  setSelectedSerials]   = useState<string[]>([]);
 
   // ── Mode & direct-mode state ─────────────────────────────────────────────
-  const [mode,              setMode]              = useState<"so" | "direct">("so");
+  const [mode,              setMode]              = useState<"so" | "direct" | "delivery">("so");
   const [directCustomerId,  setDirectCustomerId]  = useState<number | null>(null);
   const [directWarehouseId, setDirectWarehouseId] = useState<number | null>(null);
   const [directLines,       setDirectLines]       = useState<DirectLineDraft[]>([]);
   const nextDLineId = useRef(1);
   const [trackMode, setTrackMode] = useState<"so" | "direct">("so");
+
+  // ── Delivery mode state ───────────────────────────────────────────────────
+  type DeliveryMini = { id: number; docNumber: string; customerName: string; total: number };
+  type DeliveryLine = { id: number; productId: number; productCode: string; productName: string; quantity: number; unitPrice: number; discountPercent: number; taxId: number | null; lineTotal: number; batchNumber: string | null; serialNumbers: string | null };
+  type DeliveryDetail = { id: number; docNumber: string; customerId: number; customerName: string; warehouseId: number; total: number; lines: DeliveryLine[] };
+  const [deliveries,          setDeliveries]          = useState<DeliveryMini[]>([]);
+  const [selectedDeliveryId,  setSelectedDeliveryId]  = useState<number | "">("");
+  const [deliveryDetail,      setDeliveryDetail]      = useState<DeliveryDetail | null>(null);
   // ─────────────────────────────────────────────────────────────────────────
 
   // ─── Lookups load ────────────────────────────────────────────────────────
@@ -272,7 +280,7 @@ export default function NewSalesInvoicePage() {
         }
       };
 
-      const [soRes, prodRes, termRes, seriesRes, whRes, custRes, taxRes] = await Promise.all([
+      const [soRes, prodRes, termRes, seriesRes, whRes, custRes, taxRes, delivRes] = await Promise.all([
         api.get("/salesorders/open"),
         api.get("/products"),
         api.get("/creditterms"),
@@ -280,10 +288,12 @@ export default function NewSalesInvoicePage() {
         api.get("/warehouses"),
         getCust(),
         api.get("/taxes"),
+        api.get("/salesdeliveries?invoiced=false&includeCancelled=false"),
       ]);
 
       setOpenSOs(soRes.data ?? []);
       setProducts(prodRes.data ?? []);
+      setDeliveries((delivRes.data ?? []).map((d: any) => ({ id: d.id, docNumber: d.docNumber, customerName: d.customerName, total: d.total ?? 0 })));
 
       const terms: CreditTerm[] = termRes.data ?? [];
       setCreditTerms(terms.filter((t) => t.isActive));
@@ -302,6 +312,11 @@ export default function NewSalesInvoicePage() {
   };
 
   useEffect(() => { loadLookups(); }, []);
+
+  useEffect(() => {
+    if (!selectedDeliveryId) { setDeliveryDetail(null); return; }
+    api.get(`/salesdeliveries/${selectedDeliveryId}`).then((res) => setDeliveryDetail(res.data)).catch(() => setDeliveryDetail(null));
+  }, [selectedDeliveryId]);
 
   // sync creditDays with selected term
   useEffect(() => {
@@ -643,6 +658,11 @@ export default function NewSalesInvoicePage() {
       }
     }
 
+    if (mode === "delivery") {
+      if (!selectedDeliveryId) return "Seleccioná una entrega.";
+      return null;
+    }
+
     if (mode === "direct") {
       if (!directCustomerId)  return "Seleccioná el cliente.";
       if (!directWarehouseId) return "Seleccioná el depósito.";
@@ -730,7 +750,12 @@ export default function NewSalesInvoicePage() {
 
       let payload: any;
 
-      if (mode === "direct") {
+      if (mode === "delivery") {
+        payload = {
+          ...commonPayload,
+          salesDeliveryId: Number(selectedDeliveryId),
+        };
+      } else if (mode === "direct") {
         payload = {
           ...commonPayload,
           customerId:  directCustomerId,
@@ -821,20 +846,23 @@ export default function NewSalesInvoicePage() {
       icon={<ReceiptText className="h-6 w-6 text-[#C5A05A]" />}
       title="Nueva Factura de Venta"
       subtitle={
-        mode === "so"
-          ? "Genera FV desde OV OPEN, con soporte de Tracking (lote/serial), Serie fiscal (Timbrado) y crédito a cuotas."
-          : "Factura directa sobre cliente, sin necesidad de una Orden de Venta previa."
+        mode === "so"       ? "Genera FV desde OV OPEN, con soporte de Tracking (lote/serial), Serie fiscal (Timbrado) y crédito a cuotas." :
+        mode === "delivery" ? "Registrar factura a partir de una Entrega ya realizada (sin mover stock nuevamente)." :
+                              "Factura directa sobre cliente, sin necesidad de una Orden de Venta previa."
       }
       chips={
         <>
-          <Chip tone="neutral">Líneas: {mode === "so" ? lines.length : directLines.length}</Chip>
-          <Chip tone="info">Facturar: {chips.used}</Chip>
+          {mode !== "delivery" && <Chip tone="neutral">Líneas: {mode === "so" ? lines.length : directLines.length}</Chip>}
+          {mode !== "delivery" && <Chip tone="info">Facturar: {chips.used}</Chip>}
           {mode === "so" && <Chip tone="neutral">Tracking: {chips.trackingNeeded}</Chip>}
-          <Chip tone="warn">Total est.: {money(totals.total)}</Chip>
+          {mode !== "delivery" && <Chip tone="warn">Total est.: {money(totals.total)}</Chip>}
           {mode === "so" && pendingDoc ? <Chip tone="neutral">OV: {pendingDoc.docNumber}</Chip> : null}
           {mode === "direct" && directCustomerId ? (
             <Chip tone="neutral">{customers.find((c) => c.id === directCustomerId)?.razonSocial ?? ""}</Chip>
           ) : null}
+          {mode === "delivery" && deliveryDetail && <Chip tone="ok">Entrega: {deliveryDetail.docNumber}</Chip>}
+          {mode === "delivery" && deliveryDetail && <Chip tone="neutral">Cliente: {deliveryDetail.customerName}</Chip>}
+          {mode === "delivery" && deliveryDetail && <Chip tone="neutral">Total: {money(deliveryDetail.total)}</Chip>}
           {selectedFiscalSeries ? <Chip tone="neutral">{seriesLabel(selectedFiscalSeries)}</Chip> : null}
         </>
       }
@@ -851,7 +879,7 @@ export default function NewSalesInvoicePage() {
       }
     >
       {/* ── MODE TOGGLE ── */}
-      <div className="flex gap-2 mb-2">
+      <div className="flex gap-2 mb-2 flex-wrap">
         <Button
           variant={mode === "so" ? "default" : "outline"}
           className={mode === "so" ? "bg-[#C5A05A] hover:bg-[#b8934f] text-white" : "bg-white"}
@@ -867,9 +895,146 @@ export default function NewSalesInvoicePage() {
           <User2 className="mr-2 h-4 w-4" />
           Sin OV (Directo)
         </Button>
+        <Button
+          variant={mode === "delivery" ? "default" : "outline"}
+          className={mode === "delivery" ? "bg-[#C5A05A] hover:bg-[#b8934f] text-white" : "bg-white"}
+          onClick={() => setMode("delivery")}
+        >
+          <ShoppingCart className="mr-2 h-4 w-4" />
+          Desde Entrega
+        </Button>
       </div>
 
+      {/* ══════════════════════════════════════════════════════════════════
+          MODO: DESDE ENTREGA
+      ══════════════════════════════════════════════════════════════════ */}
+      {mode === "delivery" && (
+        <div className="space-y-4">
+          {/* Selección de Entrega */}
+          <Card className="border-slate-200 p-4 shadow-sm">
+            <SectionHeader icon={<ShoppingCart className="h-5 w-5 text-[#C5A05A]" />} title="Seleccionar Entrega" subtitle="Elegí una entrega ya despachada y pendiente de facturación." />
+            <Separator className="my-4" />
+            <div className="max-w-xl">
+              <label className="text-sm font-semibold text-gray-700 block mb-1">Entrega *</label>
+              <Select value={selectedDeliveryId ? String(selectedDeliveryId) : ""} onValueChange={(v) => setSelectedDeliveryId(v ? Number(v) : "")}>
+                <SelectTrigger className="bg-white"><SelectValue placeholder="Seleccionar entrega..." /></SelectTrigger>
+                <SelectContent className="bg-white">
+                  {deliveries.map((d) => (
+                    <SelectItem key={d.id} value={String(d.id)}>
+                      {d.docNumber} · {d.customerName} · {money(d.total)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {deliveries.length === 0 && <p className="text-xs text-amber-600 mt-1">No hay entregas pendientes de facturación.</p>}
+            </div>
+            {deliveryDetail && (
+              <div className="mt-4 rounded-lg bg-orange-50 border border-orange-200 p-3 text-sm space-y-1">
+                <div><strong>Cliente:</strong> {deliveryDetail.customerName}</div>
+                <div><strong>Entrega:</strong> {deliveryDetail.docNumber} · <strong>Total:</strong> {money(deliveryDetail.total)}</div>
+                <div><strong>Líneas:</strong> {deliveryDetail.lines.length} producto(s)</div>
+              </div>
+            )}
+          </Card>
+
+          {/* Líneas de la entrega (sólo lectura) */}
+          {deliveryDetail && deliveryDetail.lines.length > 0 && (
+            <Card className="border-slate-200 p-4 shadow-sm">
+              <SectionHeader icon={<ListChecks className="h-5 w-5 text-[#C5A05A]" />} title="Líneas de la Entrega" subtitle="El stock ya fue descontado al despachar. Esta factura es sólo financiera." />
+              <Separator className="my-4" />
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 text-xs text-slate-600 uppercase">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Producto</th>
+                      <th className="px-3 py-2 text-right">Cantidad</th>
+                      <th className="px-3 py-2 text-right">Precio Unit.</th>
+                      <th className="px-3 py-2 text-right">Desc %</th>
+                      <th className="px-3 py-2 text-right">Total</th>
+                      <th className="px-3 py-2 text-left">Lote/Serie</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {deliveryDetail.lines.map((l) => (
+                      <tr key={l.id} className="bg-white">
+                        <td className="px-3 py-2">{l.productCode} — {l.productName}</td>
+                        <td className="px-3 py-2 text-right">{l.quantity}</td>
+                        <td className="px-3 py-2 text-right">{money(l.unitPrice)}</td>
+                        <td className="px-3 py-2 text-right">{l.discountPercent > 0 ? `${l.discountPercent}%` : "—"}</td>
+                        <td className="px-3 py-2 text-right font-medium">{money(l.lineTotal)}</td>
+                        <td className="px-3 py-2 text-slate-500 text-xs">{l.batchNumber || l.serialNumbers || "—"}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-slate-50 font-semibold">
+                      <td colSpan={4} className="px-3 py-2 text-right text-slate-600">Total Entrega:</td>
+                      <td className="px-3 py-2 text-right">{money(deliveryDetail.total)}</td>
+                      <td />
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+
+          {/* Datos de la Factura */}
+          {deliveryDetail && (
+            <Card className="border-slate-200 p-4 shadow-sm">
+              <SectionHeader icon={<ReceiptText className="h-5 w-5 text-[#C5A05A]" />} title="Datos de la Factura" subtitle="Completá fecha, serie fiscal y condición de pago." />
+              <Separator className="my-4" />
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-700">Fecha Factura</label>
+                  <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="bg-white mt-1" />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-700">Serie Fiscal</label>
+                  <Select value={fiscalSeriesId ? String(fiscalSeriesId) : ""} onValueChange={(v) => setFiscalSeriesId(v ? Number(v) : null)}>
+                    <SelectTrigger className="bg-white mt-1"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                    <SelectContent className="bg-white">
+                      {fiscalSeries.map((s) => <SelectItem key={s.id} value={String(s.id)}>{seriesLabel(s)}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm font-semibold text-gray-700">Comentarios</label>
+                  <Input placeholder="Opcional" value={comments} onChange={(e) => setComments(e.target.value)} className="bg-white mt-1" />
+                </div>
+                <div className="md:col-span-4">
+                  <label className="text-sm font-semibold text-gray-700">Tipo de pago</label>
+                  <div className="flex gap-2 mt-1">
+                    {(["CASH", "CREDIT"] as const).map((pt) => (
+                      <button key={pt} type="button" onClick={() => setPaymentType(pt)}
+                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${paymentType === pt ? "bg-[#C5A05A] text-white border-[#C5A05A]" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}>
+                        {pt === "CASH" ? "Contado" : "Crédito"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {paymentType === "CREDIT" && (
+                  <>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700">Condición de crédito</label>
+                      <Select value={creditTermId ? String(creditTermId) : ""} onValueChange={(v) => setCreditTermId(v ? Number(v) : null)}>
+                        <SelectTrigger className="bg-white mt-1"><SelectValue placeholder="-- Sin condición --" /></SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {creditTerms.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name} ({t.days} días)</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700">Días de crédito</label>
+                      <Input type="number" min={0} value={creditDays} onChange={(e) => setCreditDays(Number(e.target.value))} className="bg-white mt-1" />
+                    </div>
+                  </>
+                )}
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+
       {/* ── CABECERA ── */}
+      {mode !== "delivery" && (
       <Card className="border-slate-200 p-6 shadow-sm">
         <SectionHeader
           icon={<ShoppingCart className="h-5 w-5 text-[#C5A05A]" />}
@@ -1190,8 +1355,10 @@ export default function NewSalesInvoicePage() {
           )}
         </div>
       </Card>
+      )}
 
       {/* ── LÍNEAS ── */}
+      {mode !== "delivery" && (
       <Card className="border-slate-200 p-6 shadow-sm">
         <SectionHeader
           icon={<ListChecks className="h-5 w-5 text-[#C5A05A]" />}
@@ -1458,6 +1625,7 @@ export default function NewSalesInvoicePage() {
           </div>
         )}
       </Card>
+      )}
 
       {/* ── DIALOG TRACKING ── */}
       <Dialog

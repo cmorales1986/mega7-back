@@ -16,6 +16,7 @@ import {
   CreditCard,
   List,
   Printer,
+  Ban,
 } from "lucide-react";
 
 // ✅ Premium shell
@@ -149,6 +150,27 @@ export default function ARInvoiceDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  const handleCancel = async () => {
+    const { value: reason } = await Swal.fire({
+      title: "Anular Factura Cliente",
+      text: "Esta acción no reversa cobros ya registrados. Ingresá el motivo de anulación:",
+      input: "text",
+      inputPlaceholder: "Motivo (opcional)",
+      showCancelButton: true,
+      confirmButtonText: "Anular",
+      cancelButtonText: "Cancelar",
+      icon: "warning",
+    });
+    if (reason === undefined) return;
+    try {
+      await api.post(`/salesinvoices/${id}/cancel`, { reason: reason || "Anulado manualmente." });
+      Swal.fire("Anulada", "La factura fue anulada.", "success");
+      await loadAll();
+    } catch (e: any) {
+      Swal.fire("Error", toErrorMsg(e, "No se pudo anular"), "error");
+    }
+  };
+
   // ✅ cuotas pendientes ordenadas (FIFO)
   const openInstallments = useMemo(() => {
     return (installments ?? [])
@@ -222,6 +244,17 @@ export default function ARInvoiceDetailPage() {
               <List className="mr-2 h-4 w-4" /> Cobros recibidos
             </Button>
           </Link>
+
+          {st !== "CANCELLED" && (
+            <Button
+              variant="outline"
+              className="bg-white border-red-200 text-red-700 hover:bg-red-50"
+              onClick={handleCancel}
+              disabled={loading}
+            >
+              <Ban className="mr-2 h-4 w-4" /> Anular
+            </Button>
+          )}
 
           <Button
             onClick={openPdf}

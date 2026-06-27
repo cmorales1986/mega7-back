@@ -353,7 +353,23 @@ namespace Mega7.API.Controllers
         {
             var doc = await _ctx.PurchaseOrders.FindAsync(id);
             if (doc == null) return NotFound();
-            if (doc.Status == "CLOSED") return BadRequest("No se puede cancelar una OC cerrada.");
+            if (doc.Status == "CLOSED")   return BadRequest("No se puede cancelar una OC cerrada.");
+            if (doc.Status == "CANCELED") return BadRequest("La OC ya está cancelada.");
+
+            // Cascada: no cancelar si tiene remisiones activas
+            var hasActiveReceipts = await _ctx.PurchaseReceipts.AnyAsync(r =>
+                r.PurchaseOrderId == id &&
+                !r.IsCancelled &&
+                (r.Status ?? "").ToUpper() != "CANCELLED");
+            if (hasActiveReceipts)
+                return BadRequest("No se puede cancelar la OC: tiene remisiones activas. Anule las remisiones primero.");
+
+            // Cascada: no cancelar si tiene facturas proveedor activas
+            var hasActiveInvoices = await _ctx.APInvoices.AnyAsync(ap =>
+                ap.PurchaseOrderId == id &&
+                (ap.Status ?? "OPEN").ToUpper() != "CANCELLED");
+            if (hasActiveInvoices)
+                return BadRequest("No se puede cancelar la OC: tiene facturas proveedor activas. Anule las facturas primero.");
 
             doc.Status = "CANCELED";
             doc.UpdatedAt = DateTime.UtcNow;

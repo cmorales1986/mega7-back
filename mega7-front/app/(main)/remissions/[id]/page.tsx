@@ -13,8 +13,9 @@ import { PageShell, Chip } from "@/components/ui/page-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, RefreshCcw, Pencil, Truck } from "lucide-react";
+import { ArrowLeft, RefreshCcw, Pencil, Truck, Ban } from "lucide-react";
 
+import { api } from "@/lib/api";
 import { getPurchaseReceiptById } from "@/features/purchasing/purchase-receipts/api";
 import { toErrorMsg } from "@/lib/api-error";
 
@@ -43,6 +44,27 @@ export default function RemisionDetailPage() {
   }
 
   useEffect(() => { load(); }, [idNum]);
+
+  const handleCancel = async () => {
+    const { value: reason } = await Swal.fire({
+      title: "Anular Remisión",
+      text: "Se revertirá el stock ingresado. Ingresá el motivo:",
+      input: "text",
+      inputPlaceholder: "Motivo (opcional)",
+      showCancelButton: true,
+      confirmButtonText: "Anular",
+      cancelButtonText: "Cancelar",
+      icon: "warning",
+    });
+    if (reason === undefined) return;
+    try {
+      await api.post(`/purchasereceipts/${idNum}/cancel`, { reason: reason || "Anulado manualmente." });
+      Swal.fire("Anulada", "La remisión fue anulada y el stock revertido.", "success");
+      await load();
+    } catch (e: any) {
+      Swal.fire("Error", toErrorMsg(e, "No se pudo anular"), "error");
+    }
+  };
 
   const columns: GridColDef[] = useMemo(() => [
     { field: "productName", headerName: "Producto", flex: 1, minWidth: 260 },
@@ -88,6 +110,16 @@ export default function RemisionDetailPage() {
             <Link href={`/remissions/${idNum}/edit`}>
               <Button variant="outline" className="bg-white"><Pencil className="mr-2 h-4 w-4" /> Editar</Button>
             </Link>
+          )}
+          {!isCancelled && (
+            <Button
+              variant="outline"
+              className="bg-white border-red-200 text-red-700 hover:bg-red-50"
+              onClick={handleCancel}
+              disabled={loading}
+            >
+              <Ban className="mr-2 h-4 w-4" /> Anular
+            </Button>
           )}
           <Button variant="outline" className="bg-white" onClick={load}><RefreshCcw className="mr-2 h-4 w-4" /> Refrescar</Button>
         </div>

@@ -735,7 +735,23 @@ namespace Mega7.API.Controllers
         {
             var doc = await _ctx.SalesOrders.FindAsync(id);
             if (doc == null) return NotFound();
-            if (doc.Status == "CLOSED") return BadRequest("No se puede cancelar una OV cerrada.");
+            if (doc.Status == "CLOSED")   return BadRequest("No se puede cancelar una OV cerrada.");
+            if (doc.Status == "CANCELED") return BadRequest("La OV ya está cancelada.");
+
+            // Cascada: no cancelar si tiene entregas activas
+            var hasActiveDeliveries = await _ctx.SalesDeliveries.AnyAsync(d =>
+                d.SalesOrderId == id &&
+                !d.IsCancelled &&
+                (d.Status ?? "").ToUpper() != "CANCELLED");
+            if (hasActiveDeliveries)
+                return BadRequest("No se puede cancelar la OV: tiene entregas activas. Anule las entregas primero.");
+
+            // Cascada: no cancelar si tiene facturas cliente activas
+            var hasActiveInvoices = await _ctx.ARInvoices.AnyAsync(ar =>
+                ar.SalesOrderId == id &&
+                (ar.Status ?? "OPEN").ToUpper() != "CANCELLED");
+            if (hasActiveInvoices)
+                return BadRequest("No se puede cancelar la OV: tiene facturas cliente activas. Anule las facturas primero.");
 
             doc.Status = "CANCELED";
             doc.UpdatedAt = DateTime.UtcNow;

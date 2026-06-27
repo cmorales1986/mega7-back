@@ -56,6 +56,9 @@ namespace Mega7.API.Data
         public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();
         public DbSet<SalesOrderLine> SalesOrderLines => Set<SalesOrderLine>();
 
+        public DbSet<SalesDelivery> SalesDeliveries => Set<SalesDelivery>();
+        public DbSet<SalesDeliveryLine> SalesDeliveryLines => Set<SalesDeliveryLine>();
+
         public DbSet<ARInvoice> ARInvoices => Set<ARInvoice>();
         public DbSet<ARInvoiceLine> ARInvoiceLines => Set<ARInvoiceLine>();
         public DbSet<ARInvoiceInstallment> ARInvoiceInstallments => Set<ARInvoiceInstallment>();
@@ -573,6 +576,64 @@ namespace Mega7.API.Data
                 .WithMany(i => i.Payments)
                 .HasForeignKey(x => x.ARInvoiceId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // ── SalesDelivery ─────────────────────────────────────────────────
+            modelBuilder.Entity<SalesDelivery>()
+                .HasOne(d => d.SalesOrder)
+                .WithMany()
+                .HasForeignKey(d => d.SalesOrderId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            modelBuilder.Entity<SalesDelivery>()
+                .HasOne(d => d.Customer)
+                .WithMany()
+                .HasForeignKey(d => d.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SalesDelivery>()
+                .HasOne(d => d.Warehouse)
+                .WithMany()
+                .HasForeignKey(d => d.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SalesDeliveryLine>()
+                .HasOne(l => l.SalesDelivery)
+                .WithMany(d => d.Lines)
+                .HasForeignKey(l => l.SalesDeliveryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SalesDeliveryLine>()
+                .HasOne(l => l.SalesOrderLine)
+                .WithMany()
+                .HasForeignKey(l => l.SalesOrderLineId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            modelBuilder.Entity<SalesDeliveryLine>()
+                .HasOne(l => l.Product)
+                .WithMany()
+                .HasForeignKey(l => l.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SalesDeliveryLine>()
+                .HasOne(l => l.Tax)
+                .WithMany()
+                .HasForeignKey(l => l.TaxId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            // ARInvoice ── link opcional a SalesDelivery (1-to-1)
+            modelBuilder.Entity<ARInvoice>()
+                .HasOne(i => i.SalesDelivery)
+                .WithOne(d => d.ARInvoice)
+                .HasForeignKey<ARInvoice>(i => i.SalesDeliveryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            modelBuilder.Entity<ARInvoice>()
+                .HasIndex(i => i.SalesDeliveryId)
+                .IsUnique();
 
             modelBuilder.Entity<SalesPricingParams>()
     .HasOne(x => x.Customer)

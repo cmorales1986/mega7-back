@@ -8,6 +8,9 @@ namespace Mega7.SHARED.DTOs
         // null = modo directo (sin OV)
         public int? SalesOrderId { get; set; }
 
+        // Vincular a una Entrega existente (los datos de líneas y stock vienen de ella)
+        public int? SalesDeliveryId { get; set; }
+
         // Modo directo: requeridos cuando SalesOrderId es null
         public int? CustomerId    { get; set; }
         public int? WarehouseId   { get; set; }

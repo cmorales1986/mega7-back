@@ -83,6 +83,10 @@ namespace Mega7.API.Utils
         public const string SalesOrdersEdit   = "SalesOrders.Edit";
         public const string SalesOrdersCancel = "SalesOrders.Cancel";
 
+        public const string SalesDeliveriesView   = "SalesDeliveries.View";
+        public const string SalesDeliveriesCreate = "SalesDeliveries.Create";
+        public const string SalesDeliveriesCancel = "SalesDeliveries.Cancel";
+
         public const string SalesInvoicesView   = "SalesInvoices.View";
         public const string SalesInvoicesCreate = "SalesInvoices.Create";
         public const string SalesInvoicesCancel = "SalesInvoices.Cancel";

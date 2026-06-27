@@ -261,6 +261,151 @@ namespace Mega7.API.Controllers
             try
             {
                 // ================================================================
+                // MODO ENTREGA (vinculado a SalesDelivery existente)
+                // ================================================================
+                if (dto.SalesDeliveryId.HasValue)
+                {
+                    var delivery = await _ctx.SalesDeliveries
+                        .Include(d => d.Lines).ThenInclude(l => l.Tax)
+                        .FirstOrDefaultAsync(d => d.Id == dto.SalesDeliveryId.Value);
+
+                    if (delivery == null)       return NotFound("Entrega no existe.");
+                    if (delivery.IsCancelled)   return BadRequest("La entrega está cancelada.");
+                    if (delivery.IsInvoiced)    return BadRequest("La entrega ya fue facturada.");
+
+                    var dPayType = (dto.PaymentType ?? "CASH").ToUpperInvariant();
+                    if (dPayType != "CASH" && dPayType != "CREDIT")
+                        return BadRequest("PaymentType inválido.");
+
+                    var dWantsInst = dPayType == "CREDIT" && dto.CreditInstallments;
+                    var dNInst = dWantsInst ? (dto.InstallmentsCount ?? 0) : 0;
+                    if (dWantsInst && dNInst < 2) return BadRequest("InstallmentsCount debe ser >= 2.");
+
+                    CreditTerm? dTerm = null;
+                    int? dCreditTermId = null;
+                    if (dPayType == "CREDIT")
+                    {
+                        dCreditTermId = dto.CreditTermId;
+                        if (dCreditTermId.HasValue)
+                            dTerm = await _ctx.Set<CreditTerm>().FirstOrDefaultAsync(t => t.Id == dCreditTermId.Value);
+                    }
+
+                    var dAr = new ARInvoice
+                    {
+                        DocNumber        = await GenerateNextDocNumber(),
+                        InvoiceDate      = invDate,
+                        CustomerId       = delivery.CustomerId,
+                        CustomerName     = delivery.CustomerName,
+                        WarehouseId      = delivery.WarehouseId,
+                        SalesOrderId     = delivery.SalesOrderId,
+                        SalesDeliveryId  = delivery.Id,
+                        PaymentType      = dPayType,
+                        InstallmentsCount = dWantsInst ? dNInst : null,
+                        CreditTermId     = dPayType == "CREDIT" ? dCreditTermId : null,
+                        Comments         = dto.Comments,
+                        Status           = "OPEN"
+                    };
+
+                    foreach (var dl in delivery.Lines)
+                    {
+                        var taxRate = dl.Tax?.Rate ?? 0m;
+                        var disc    = (100m - dl.DiscountPercent) / 100m;
+                        var sub     = Math.Round(dl.Quantity * dl.UnitPrice * disc, 2);
+                        var taxAmt  = Math.Round(sub * (taxRate / 100m), 2);
+
+                        dAr.Lines.Add(new ARInvoiceLine
+                        {
+                            ProductId       = dl.ProductId,
+                            ProductCode     = dl.ProductCode,
+                            ProductName     = dl.ProductName,
+                            Quantity        = dl.Quantity,
+                            UnitPrice       = dl.UnitPrice,
+                            DiscountPercent = dl.DiscountPercent,
+                            TaxId           = dl.TaxId,
+                            BatchNumber     = dl.BatchNumber,
+                            SerialNumbers   = dl.SerialNumbers,
+                            LineSubTotal    = sub,
+                            LineTax         = taxAmt,
+                            LineTotal       = sub + taxAmt
+                        });
+                    }
+
+                    dAr.SubTotal   = dAr.Lines.Sum(l => l.LineSubTotal);
+                    dAr.TaxTotal   = dAr.Lines.Sum(l => l.LineTax);
+                    dAr.Total      = dAr.Lines.Sum(l => l.LineTotal);
+                    dAr.PaidAmount = 0m;
+                    dAr.Balance    = dAr.Total;
+
+                    // Vencimiento / cuotas
+                    if (dPayType == "CASH")
+                    {
+                        dAr.DueDate = invDate.Date;
+                    }
+                    else
+                    {
+                        var dCreditDays = dto.CreditDays;
+                        if (dCreditDays <= 0 && dTerm != null) dCreditDays = dTerm.Days;
+
+                        if (dWantsInst)
+                        {
+                            var firstDue = dto.FirstDueDate?.Date ?? invDate.Date.AddDays(dCreditDays);
+                            var baseAmt  = Math.Round(dAr.Total / dNInst, 2);
+                            decimal acc  = 0m;
+                            for (int k = 1; k <= dNInst; k++)
+                            {
+                                var amt = (k == dNInst) ? (dAr.Total - acc) : baseAmt;
+                                acc += amt;
+                                var due = firstDue.AddDays((dto.IntervalDays > 0 ? dto.IntervalDays : 30) * (k - 1));
+                                dAr.Installments.Add(new ARInvoiceInstallment
+                                { Number = k, DueDate = due, Amount = amt, PaidAmount = 0m, Balance = amt, IsPaid = false, CreatedAt = DateTime.UtcNow });
+                            }
+                            dAr.DueDate = dAr.Installments.Max(x => x.DueDate);
+                        }
+                        else
+                        {
+                            dAr.DueDate = invDate.Date.AddDays(dCreditDays);
+                        }
+                    }
+
+                    // Serie fiscal
+                    const string dDocType = "FACTURA";
+                    int dSeriesId;
+                    if (dto.FiscalSeriesId.HasValue)
+                    {
+                        dSeriesId = dto.FiscalSeriesId.Value;
+                    }
+                    else
+                    {
+                        var dCandidates = await _ctx.Set<FiscalDocumentSeries>().AsNoTracking()
+                            .Where(s => s.IsActive && s.DocumentType == dDocType && invDate.Date >= s.ValidFrom.Date && invDate.Date <= s.ValidTo.Date)
+                            .OrderByDescending(s => s.Id).ToListAsync();
+                        if (dCandidates.Count == 0) return BadRequest("No hay talonario activo para FACTURA.");
+                        if (dCandidates.Count > 1)  return BadRequest("Hay más de un talonario activo. Seleccioná FiscalSeriesId.");
+                        dSeriesId = dCandidates[0].Id;
+                    }
+
+                    var dRes = await _fiscal.ReserveByIdAsync(dSeriesId, invDate.Date);
+                    dAr.FiscalSeriesId        = dRes.SeriesId;
+                    dAr.FiscalDocType         = dRes.DocumentType;
+                    dAr.FiscalTimbrado        = dRes.Timbrado;
+                    dAr.FiscalEstablishment   = dRes.Establishment;
+                    dAr.FiscalExpeditionPoint = dRes.ExpeditionPoint;
+                    dAr.FiscalNumber          = dRes.Number;
+                    dAr.FiscalFullNumber      = dRes.FullNumber;
+                    dAr.ExternalNumber        = dRes.FullNumber;
+
+                    delivery.IsInvoiced  = true;
+                    delivery.InvoicedAt  = DateTime.UtcNow;
+                    delivery.UpdatedAt   = DateTime.UtcNow;
+
+                    _ctx.ARInvoices.Add(dAr);
+                    await _ctx.SaveChangesAsync();
+                    try { await _accounting.PostARInvoiceAsync(dAr.Id); } catch { }
+                    await trx.CommitAsync();
+                    return Ok(dAr);
+                }
+
+                // ================================================================
                 // MODO DIRECTO (sin Orden de Venta)
                 // ================================================================
                 if (!dto.SalesOrderId.HasValue)

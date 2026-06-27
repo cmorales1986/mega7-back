@@ -28,6 +28,10 @@ namespace Mega7.SHARED.Entities
         public int? SalesOrderId { get; set; }
         public SalesOrder? SalesOrder { get; set; }
 
+        // Referencia Entrega (null = factura directa o sin entrega previa)
+        public int? SalesDeliveryId { get; set; }
+        public SalesDelivery? SalesDelivery { get; set; }
+
         // Depósito
         public int WarehouseId { get; set; }
         public Warehouse? Warehouse { get; set; }

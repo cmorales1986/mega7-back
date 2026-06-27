@@ -17,6 +17,7 @@ import {
   ReceiptText,
   HandCoins,
   List,
+  FilePlus,
 } from "lucide-react";
 
 // ✅ Premium shell
@@ -340,8 +341,14 @@ export default function ARInvoicesPage() {
           </Link>
 
           <Link href="/payments/received/new">
-            <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+            <Button variant="outline" className="bg-white">
               <HandCoins className="mr-2 h-4 w-4" /> Nuevo cobro
+            </Button>
+          </Link>
+
+          <Link href="/sales-invoices/new">
+            <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+              <FilePlus className="mr-2 h-4 w-4" /> Nueva Factura
             </Button>
           </Link>
         </>

@@ -62,6 +62,7 @@ type Product = {
 
 type Customer  = { id: number; razonSocial: string };
 type Warehouse = { id: number; name: string };
+type TaxMini   = { id: number; rate: number };
 
 type BatchPickDto  = { id: number; productId: number; warehouseId: number; batchNumber: string; quantity: number };
 type SerialPickDto = { id: number; productId: number; warehouseId: number; serialNumber: string; isActive?: boolean };
@@ -103,6 +104,7 @@ export default function NewDeliveryPage() {
   const [products,   setProducts]   = useState<Product[]>([]);
   const [customers,  setCustomers]  = useState<Customer[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [taxes,      setTaxes]      = useState<TaxMini[]>([]);
 
   // Mode
   const [mode, setMode] = useState<"so" | "direct">("so");
@@ -142,16 +144,18 @@ export default function NewDeliveryPage() {
           return { data: (r.data ?? []).filter((c: any) => (c.partnerType ?? "").toUpperCase() === "C") };
         }
       };
-      const [soRes, prodRes, whRes, custRes] = await Promise.all([
+      const [soRes, prodRes, whRes, custRes, taxRes] = await Promise.all([
         api.get("/salesorders/open"),
         api.get("/products"),
         api.get("/warehouses"),
         getCust(),
+        api.get("/taxes"),
       ]);
       setOpenSOs(soRes.data ?? []);
       setProducts(prodRes.data ?? []);
       setWarehouses(whRes.data ?? []);
       setCustomers(custRes.data ?? []);
+      setTaxes((taxRes.data ?? []).map((t: any) => ({ id: t.id, rate: Number(t.rate ?? 0) })));
     } catch (e: any) {
       Swal.fire("Error", toErrorMsg(e, "No se pudo cargar datos"), "error");
     }
@@ -160,6 +164,10 @@ export default function NewDeliveryPage() {
   useEffect(() => { loadLookups(); }, []);
 
   const productMap = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
+  const taxMap     = useMemo(() => new Map(taxes.map((t) => [t.id, t.rate])), [taxes]);
+  const withIva    = (price: number, taxId: number | null) => { const r = taxId ? (taxMap.get(taxId) ?? 0) : 0; return r > 0 ? Math.round(price * (1 + r / 100) * 100) / 100 : price; };
+  const sinIva     = (priceWithIva: number, taxId: number | null) => { const r = taxId ? (taxMap.get(taxId) ?? 0) : 0; return r > 0 ? Math.round(priceWithIva / (1 + r / 100) * 100) / 100 : priceWithIva; };
+  const taxRate    = (taxId: number | null) => taxId ? (taxMap.get(taxId) ?? 0) : 0;
 
   // ─── SO pending load ───────────────────────────────────────────────────────
   const loadPending = async (id: number) => {
@@ -488,17 +496,25 @@ export default function NewDeliveryPage() {
                           </Button>
                         )}
                       </div>
-                      <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-3">
                         <div>
                           <label className="text-xs font-semibold text-gray-600">Cantidad a entregar</label>
                           <Input type="number" min={0} step={p?.isSerialManaged ? 1 : "0.01"} value={l.quantity}
                             onChange={(e) => setSOLine(l.soLineId, { quantity: Number(e.target.value) })} className="bg-white" />
                         </div>
                         <div>
-                          <label className="text-xs font-semibold text-gray-600">Precio unitario</label>
+                          <label className="text-xs font-semibold text-gray-600">Precio s/IVA</label>
                           <Input type="text" inputMode="numeric"
                             value={fmtMoneyInput(String(l.unitPrice ?? ""))}
                             onChange={(e) => setSOLine(l.soLineId, { unitPrice: moneyToNumber(e.target.value) })} className="bg-white" />
+                          {taxRate(l.taxId) > 0 && <div className="text-[11px] text-gray-500 mt-0.5">IVA {taxRate(l.taxId)}%</div>}
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-gray-600">Precio c/IVA</label>
+                          <Input type="text" inputMode="numeric"
+                            value={fmtMoneyInput(String(withIva(l.unitPrice, l.taxId)))}
+                            onChange={(e) => setSOLine(l.soLineId, { unitPrice: sinIva(moneyToNumber(e.target.value), l.taxId) })} className="bg-white" />
+                          {taxRate(l.taxId) > 0 && <div className="text-[11px] text-gray-500 mt-0.5">÷ {(1 + taxRate(l.taxId) / 100).toFixed(2)}</div>}
                         </div>
                         <div>
                           <label className="text-xs font-semibold text-gray-600">Desc %</label>
@@ -534,7 +550,7 @@ export default function NewDeliveryPage() {
                 return (
                   <div key={l.id} className="border rounded-xl p-4 bg-gray-50">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                      <div className="md:col-span-4">
+                      <div className="md:col-span-3">
                         <label className="text-xs font-semibold text-gray-600">Producto</label>
                         <Select value={l.productId ? String(l.productId) : ""} onValueChange={(v) => {
                           const pid = Number(v); const p = productMap.get(pid);
@@ -548,16 +564,24 @@ export default function NewDeliveryPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="md:col-span-2">
-                        <label className="text-xs font-semibold text-gray-600">Cantidad</label>
+                      <div className="md:col-span-1">
+                        <label className="text-xs font-semibold text-gray-600">Cant.</label>
                         <Input type="number" min={0} step={isSerial ? 1 : "0.01"} value={l.quantity}
                           onChange={(e) => setDirLine(l.id, { quantity: Number(e.target.value), batchNumber: "", serialNumbers: "" })} className="bg-white" />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="text-xs font-semibold text-gray-600">Precio</label>
+                        <label className="text-xs font-semibold text-gray-600">Precio s/IVA</label>
                         <Input type="text" inputMode="numeric"
                           value={fmtMoneyInput(String(l.unitPrice ?? ""))}
                           onChange={(e) => setDirLine(l.id, { unitPrice: moneyToNumber(e.target.value) })} className="bg-white" />
+                        {taxRate(l.taxId) > 0 && <div className="text-[11px] text-gray-500 mt-0.5">IVA {taxRate(l.taxId)}%</div>}
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="text-xs font-semibold text-gray-600">Precio c/IVA</label>
+                        <Input type="text" inputMode="numeric"
+                          value={fmtMoneyInput(String(withIva(l.unitPrice, l.taxId)))}
+                          onChange={(e) => setDirLine(l.id, { unitPrice: sinIva(moneyToNumber(e.target.value), l.taxId) })} className="bg-white" />
+                        {taxRate(l.taxId) > 0 && <div className="text-[11px] text-gray-500 mt-0.5">÷ {(1 + taxRate(l.taxId) / 100).toFixed(2)}</div>}
                       </div>
                       <div className="md:col-span-1">
                         <label className="text-xs font-semibold text-gray-600">Desc %</label>

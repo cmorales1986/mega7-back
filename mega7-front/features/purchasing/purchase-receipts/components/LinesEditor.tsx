@@ -133,9 +133,9 @@ export function LinesEditor({
                     ) : null}
                   </div>
 
-                  {/* Precio */}
+                  {/* Precio sin IVA */}
                   <div className="md:col-span-2">
-                    <label className="text-xs font-semibold text-gray-700">Precio Unit.</label>
+                    <label className="text-xs font-semibold text-gray-700">Precio s/IVA</label>
                     <Input
                       type="number"
                       step="0.01"
@@ -146,6 +146,25 @@ export function LinesEditor({
                         onLineChange(l.poLineId, { unitPrice: Number.isFinite(v) ? v : 0 });
                       }}
                     />
+                    {rate > 0 && <div className="text-[11px] text-gray-500 mt-1">IVA {rate}%</div>}
+                  </div>
+
+                  {/* Precio con IVA */}
+                  <div className="md:col-span-2">
+                    <label className="text-xs font-semibold text-gray-700">Precio c/IVA</label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={rate > 0 ? round2(unitPrice * (1 + rate / 100)) : unitPrice}
+                      onChange={(e) => {
+                        const withIva = Number(e.target.value);
+                        if (!Number.isFinite(withIva)) return;
+                        const sinIva = rate > 0 ? round2(withIva / (1 + rate / 100)) : withIva;
+                        onLineChange(l.poLineId, { unitPrice: sinIva });
+                      }}
+                    />
+                    {rate > 0 && <div className="text-[11px] text-gray-500 mt-1">÷ {(1 + rate / 100).toFixed(2)}</div>}
                   </div>
 
                   {/* Descuento */}
@@ -162,13 +181,7 @@ export function LinesEditor({
                         onLineChange(l.poLineId, { discountPercent: Number.isFinite(v) ? v : 0 });
                       }}
                     />
-                  </div>
-
-                  {/* Costo neto */}
-                  <div className="md:col-span-2">
-                    <label className="text-xs font-semibold text-gray-700">Costo neto</label>
-                    <Input value={money(unitNet)} disabled />
-                    <div className="text-[11px] text-gray-500 mt-1">UnitPrice con descuento (sin IVA)</div>
+                    <div className="text-[11px] text-gray-500 mt-1">Neto: {money(unitNet)}</div>
                   </div>
 
                   {/* Lote */}

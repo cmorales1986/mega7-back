@@ -213,6 +213,7 @@ export default function NewSalesInvoicePage() {
   const [creditTermId, setCreditTermId] = useState<number | null>(null);
   const [fiscalSeries, setFiscalSeries] = useState<FiscalSeries[]>([]);
   const [fiscalSeriesId, setFiscalSeriesId] = useState<number | null>(null);
+  const [taxes,        setTaxes]        = useState<{id:number;rate:number}[]>([]);
 
   // Direct-mode lookups
   const [customers,  setCustomers]  = useState<Customer[]>([]);
@@ -271,13 +272,14 @@ export default function NewSalesInvoicePage() {
         }
       };
 
-      const [soRes, prodRes, termRes, seriesRes, whRes, custRes] = await Promise.all([
+      const [soRes, prodRes, termRes, seriesRes, whRes, custRes, taxRes] = await Promise.all([
         api.get("/salesorders/open"),
         api.get("/products"),
         api.get("/creditterms"),
         api.get("/fiscaldocumentseries?documentType=FACTURA&onlyActive=true"),
         api.get("/warehouses"),
         getCust(),
+        api.get("/taxes"),
       ]);
 
       setOpenSOs(soRes.data ?? []);
@@ -293,6 +295,7 @@ export default function NewSalesInvoicePage() {
 
       setWarehouses(whRes.data ?? []);
       setCustomers(custRes.data ?? []);
+      setTaxes((taxRes.data ?? []).map((t: any) => ({ id: t.id, rate: Number(t.rate ?? 0) })));
     } catch (e: any) {
       Swal.fire("Error", toErrorMsg(e, "No se pudo cargar datos"), "error");
     }
@@ -390,6 +393,10 @@ export default function NewSalesInvoicePage() {
   // ─── Derived / memos ────────────────────────────────────────────────────
 
   const productMap = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
+  const taxMap     = useMemo(() => new Map(taxes.map((t) => [t.id, t.rate])), [taxes]);
+  const getTaxRate = (taxId: number | null) => (taxId ? (taxMap.get(taxId) ?? 0) : 0);
+  const calcWithIva = (price: number, taxId: number | null) => { const r = getTaxRate(taxId); return r > 0 ? Math.round(price * (1 + r / 100) * 100) / 100 : price; };
+  const calcSinIva  = (priceC: number, taxId: number | null) => { const r = getTaxRate(taxId); return r > 0 ? Math.round(priceC / (1 + r / 100) * 100) / 100 : priceC; };
 
   // SO tracking line
   const trackLine = useMemo(
@@ -1235,7 +1242,7 @@ export default function NewSalesInvoicePage() {
                         </div>
                       </div>
 
-                      <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-3">
                         <div>
                           <label className="text-xs font-semibold text-gray-600">Cantidad a facturar</label>
                           <Input
@@ -1250,13 +1257,28 @@ export default function NewSalesInvoicePage() {
                         </div>
 
                         <div>
-                          <label className="text-xs font-semibold text-gray-600">Precio</label>
+                          <label className="text-xs font-semibold text-gray-600">Precio s/IVA</label>
                           <Input
                             type="text" inputMode="numeric"
                             value={fmtMoneyInput(String(l.unitPrice ?? ""))}
                             onChange={(e) => setLine(l.soLineId, { unitPrice: moneyToNumber(e.target.value) })}
                             className="bg-white"
                           />
+                          {getTaxRate(l.taxId) > 0 && <div className="text-[11px] text-gray-500 mt-1">IVA {getTaxRate(l.taxId)}%</div>}
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-gray-600">Precio c/IVA</label>
+                          <Input
+                            type="text" inputMode="numeric"
+                            value={fmtMoneyInput(String(calcWithIva(l.unitPrice ?? 0, l.taxId)))}
+                            onChange={(e) => {
+                              const v = moneyToNumber(e.target.value);
+                              setLine(l.soLineId, { unitPrice: calcSinIva(v, l.taxId) });
+                            }}
+                            className="bg-white"
+                          />
+                          {getTaxRate(l.taxId) > 0 && <div className="text-[11px] text-gray-500 mt-1">÷ {(1 + getTaxRate(l.taxId) / 100).toFixed(2)}</div>}
                         </div>
 
                         <div>
@@ -1311,7 +1333,7 @@ export default function NewSalesInvoicePage() {
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
 
                       {/* Producto */}
-                      <div className="md:col-span-4">
+                      <div className="md:col-span-3">
                         <label className="text-xs font-semibold text-gray-600">Producto</label>
                         <Select
                           value={l.productId ? String(l.productId) : ""}
@@ -1342,7 +1364,7 @@ export default function NewSalesInvoicePage() {
                       </div>
 
                       {/* Cantidad */}
-                      <div className="md:col-span-2">
+                      <div className="md:col-span-1">
                         <label className="text-xs font-semibold text-gray-600">Cantidad</label>
                         <Input
                           type="number" min={0} step={isSerial ? 1 : "0.01"}
@@ -1352,15 +1374,31 @@ export default function NewSalesInvoicePage() {
                         />
                       </div>
 
-                      {/* Precio */}
+                      {/* Precio s/IVA */}
                       <div className="md:col-span-2">
-                        <label className="text-xs font-semibold text-gray-600">Precio</label>
+                        <label className="text-xs font-semibold text-gray-600">Precio s/IVA</label>
                         <Input
                           type="text" inputMode="numeric"
                           value={fmtMoneyInput(String(l.unitPrice ?? ""))}
                           onChange={(e) => setDirectLine(l.id, { unitPrice: moneyToNumber(e.target.value) })}
                           className="bg-white"
                         />
+                        {getTaxRate(l.taxId) > 0 && <div className="text-[11px] text-gray-500 mt-1">IVA {getTaxRate(l.taxId)}%</div>}
+                      </div>
+
+                      {/* Precio c/IVA */}
+                      <div className="md:col-span-2">
+                        <label className="text-xs font-semibold text-gray-600">Precio c/IVA</label>
+                        <Input
+                          type="text" inputMode="numeric"
+                          value={fmtMoneyInput(String(calcWithIva(l.unitPrice ?? 0, l.taxId)))}
+                          onChange={(e) => {
+                            const v = moneyToNumber(e.target.value);
+                            setDirectLine(l.id, { unitPrice: calcSinIva(v, l.taxId) });
+                          }}
+                          className="bg-white"
+                        />
+                        {getTaxRate(l.taxId) > 0 && <div className="text-[11px] text-gray-500 mt-1">÷ {(1 + getTaxRate(l.taxId) / 100).toFixed(2)}</div>}
                       </div>
 
                       {/* Desc % */}

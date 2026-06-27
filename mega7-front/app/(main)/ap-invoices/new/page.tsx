@@ -297,7 +297,7 @@ export default function NewAPInvoicePage() {
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                       {isItem ? (
                         <div className="col-span-2">
                           <label className="block text-xs font-medium mb-1">Producto *</label>
@@ -318,8 +318,22 @@ export default function NewAPInvoicePage() {
                         <Input type="number" min="0.0001" step="0.0001" className="bg-white h-9 text-sm" value={line.quantity} onChange={(e) => setLF(line._id, "quantity", parseFloat(e.target.value) || 0)} />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium mb-1">Precio unitario</label>
-                        <Input type="number" min="0" step="0.01" className="bg-white h-9 text-sm" value={line.unitPrice} onChange={(e) => setLF(line._id, "unitPrice", parseFloat(e.target.value) || 0)} />
+                        <label className="block text-xs font-medium mb-1">Precio s/IVA</label>
+                        <Input type="number" min="0" step="0.01" className="bg-white h-9 text-sm" value={line.unitPrice}
+                          onChange={(e) => setLF(line._id, "unitPrice", parseFloat(e.target.value) || 0)} />
+                        {(taxObj?.rate ?? 0) > 0 && <div className="text-[11px] text-gray-500 mt-0.5">IVA {taxObj!.rate}%</div>}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Precio c/IVA</label>
+                        <Input type="number" min="0" step="0.01" className="bg-white h-9 text-sm"
+                          value={(taxObj?.rate ?? 0) > 0 ? Math.round(line.unitPrice * (1 + (taxObj!.rate) / 100) * 100) / 100 : line.unitPrice}
+                          onChange={(e) => {
+                            const withIva = parseFloat(e.target.value) || 0;
+                            const r = taxObj?.rate ?? 0;
+                            const sinIva = r > 0 ? Math.round(withIva / (1 + r / 100) * 100) / 100 : withIva;
+                            setLF(line._id, "unitPrice", sinIva);
+                          }} />
+                        {(taxObj?.rate ?? 0) > 0 && <div className="text-[11px] text-gray-500 mt-0.5">÷ {(1 + (taxObj!.rate) / 100).toFixed(2)}</div>}
                       </div>
                       <div>
                         <label className="block text-xs font-medium mb-1">Desc %</label>

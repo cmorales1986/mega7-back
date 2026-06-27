@@ -34,16 +34,24 @@ namespace Mega7.API.Controllers
 
         [RequirePermission(Perms.PurchaseReceiptsView)]
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] bool? notInvoiced = null, [FromQuery] bool? notCancelled = null)
         {
-            var list = await _ctx.PurchaseReceipts
+            var q = _ctx.PurchaseReceipts
                 .AsNoTracking()
                 .Include(x => x.Supplier)
                 .Include(x => x.Warehouse)
                 .Include(x => x.PurchaseOrder)
                 .Include(x => x.Documents)
                 .OrderByDescending(x => x.Id)
-                .Select(x => new
+                .AsQueryable();
+
+            if (notInvoiced == true)
+                q = q.Where(x => !x.IsInvoiced);
+
+            if (notCancelled == true)
+                q = q.Where(x => !x.IsCancelled && (x.Status ?? "").ToUpper() != "CANCELLED");
+
+            var list = await q.Select(x => new
                 {
                     x.Id,
                     x.DocNumber,

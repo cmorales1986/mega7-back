@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Save, Trash2, ReceiptText, Package, Wrench } from "lucide-react";
+import { ArrowLeft, Plus, Save, Trash2, ReceiptText, Package, Wrench, Truck } from "lucide-react";
 import { api } from "@/lib/api";
 import { PageShell, Chip } from "@/components/ui/page-shell";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -17,7 +17,9 @@ type WarehouseMini = { id: number; name: string };
 type ProductOption = { id: number; code: string; name: string; price?: number | null; taxId?: number | null; isBatchManaged?: boolean; isSerialManaged?: boolean };
 type TaxOption     = { id: number; name: string; rate: number };
 type CreditTerm    = { id: number; name: string; days: number; isActive: boolean };
-type RemisionMini  = { id: number; docNumber: string; supplierName: string };
+type RemisionMini  = { id: number; docNumber: string; supplierName: string; supplierId: number; total: number };
+type ReceiptLine   = { id: number; productId: number; productName: string; quantity: number; unitPrice: number; lineTotal: number; taxId: number | null; taxName: string; batchNumber: string | null; serialNumbers: string | null };
+type ReceiptDetail = { id: number; docNumber: string; supplierId: number; supplierName: string; warehouseId: number | null; total: number; lines: ReceiptLine[] };
 
 type LineType = "ITEM" | "SERVICE";
 
@@ -76,6 +78,19 @@ export default function NewAPInvoicePage() {
   const [saving, setSaving] = useState(false);
   const [error,  setError]  = useState<string | null>(null);
 
+  // ── modo: directa | remision ───────────────────────────────────────────────
+  const [mode, setMode] = useState<"directo" | "remision">("directo");
+
+  // estado exclusivo del modo "Desde Remisión"
+  const [selectedRcId,     setSelectedRcId]     = useState<number | "">("");
+  const [rcDetail,         setRcDetail]         = useState<ReceiptDetail | null>(null);
+  const [rcInvoiceNumber,  setRcInvoiceNumber]  = useState("");
+  const [rcDate,           setRcDate]           = useState(new Date().toISOString().slice(0, 10));
+  const [rcDueDate,        setRcDueDate]        = useState("");
+  const [rcTotalOverride,  setRcTotalOverride]  = useState<number | "">("");
+  const [rcIsCredit,       setRcIsCredit]       = useState(false);
+  const [rcCreditTermId,   setRcCreditTermId]   = useState<number | "">("");
+
   // ── load lookups ───────────────────────────────────────────────────────────
   useEffect(() => {
     Promise.all([
@@ -84,7 +99,7 @@ export default function NewAPInvoicePage() {
       api.get<ProductOption[]>("/products"),
       api.get<TaxOption[]>("/taxes"),
       api.get<CreditTerm[]>("/creditterms"),
-      api.get("/purchasereceipts"),
+      api.get("/purchasereceipts?notInvoiced=true&notCancelled=true"),
     ]).then(([supRes, whRes, prodRes, taxRes, termRes, remRes]) => {
       const supData = supRes.data ?? [];
       setSuppliers(Array.isArray(supData) ? supData.filter((s: any) => s.partnerType === "S" || s.razonSocial).map((s: any) => ({ id: s.id, razonSocial: s.razonSocial })) : []);
@@ -92,8 +107,8 @@ export default function NewAPInvoicePage() {
       setProducts(prodRes.data ?? []);
       setTaxes((taxRes.data ?? []).filter((t: TaxOption) => t.rate > 0));
       setCreditTerms((termRes.data ?? []).filter((t: CreditTerm) => t.isActive));
-      const remData = (remRes.data ?? []).filter((r: any) => !r.isCancelled && !r.isInvoiced);
-      setRemisions(remData.map((r: any) => ({ id: r.id, docNumber: r.docNumber, supplierName: r.supplierName })));
+      const remData = remRes.data ?? [];
+      setRemisions(remData.map((r: any) => ({ id: r.id, docNumber: r.docNumber, supplierName: r.supplierName, supplierId: r.supplierId, total: r.total ?? 0 })));
     });
   }, []);
 
@@ -181,17 +196,55 @@ export default function NewAPInvoicePage() {
     }
   }
 
+  // ── cargar detalle de remisión al seleccionarla ───────────────────────────
+  useEffect(() => {
+    if (!selectedRcId) { setRcDetail(null); setRcTotalOverride(""); return; }
+    api.get(`/purchasereceipts/${selectedRcId}`).then((res) => {
+      const d = res.data;
+      setRcDetail(d);
+      setRcTotalOverride(d.total ?? "");
+    }).catch(() => setRcDetail(null));
+  }, [selectedRcId]);
+
+  // ── guardar desde remisión ─────────────────────────────────────────────────
+  async function handleSaveFromReceipt() {
+    setError(null);
+    if (!selectedRcId)          return setError("Seleccioná una remisión.");
+    if (!rcInvoiceNumber.trim()) return setError("Ingresá el número de factura del proveedor.");
+    setSaving(true);
+    try {
+      const total = rcTotalOverride !== "" ? Number(rcTotalOverride) : (rcDetail?.total ?? 0);
+      await api.post(`/purchasereceipts/${selectedRcId}/invoice`, {
+        invoiceNumber:        rcInvoiceNumber.trim(),
+        invoiceDate:          rcDate || null,
+        invoiceDueDate:       rcDueDate || null,
+        invoiceTotal:         total > 0 ? total : null,
+        isCredit:             rcIsCredit,
+        creditTermId:         rcCreditTermId ? Number(rcCreditTermId) : null,
+        installments:         null,
+        upsertInvoiceDocument: true,
+      });
+      router.push("/ap-invoices");
+    } catch (e: any) {
+      setError(toErrorMsg(e, "Error al registrar la factura."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   // ── render ─────────────────────────────────────────────────────────────────
   return (
     <PageShell
       icon={<ReceiptText className="h-6 w-6 text-emerald-600" />}
       title="Nueva Factura Proveedor"
-      subtitle="Factura directa con líneas de inventario (ITEM) y/o servicios (SERVICE)."
+      subtitle={mode === "remision" ? "Registrar factura de un proveedor a partir de una Remisión recibida (sin mover stock)." : "Factura directa con líneas de inventario (ITEM) y/o servicios (SERVICE)."}
       chips={
         <>
-          {lines.filter((l) => l.lineType === "ITEM").length > 0 && <Chip tone="ok">{lines.filter((l) => l.lineType === "ITEM").length} ITEM</Chip>}
-          {lines.filter((l) => l.lineType === "SERVICE").length > 0 && <Chip tone="info">{lines.filter((l) => l.lineType === "SERVICE").length} SERVICIO</Chip>}
-          {totals.total > 0 && <Chip tone="neutral">Total: {money(totals.total)}</Chip>}
+          {mode === "directo" && lines.filter((l) => l.lineType === "ITEM").length > 0 && <Chip tone="ok">{lines.filter((l) => l.lineType === "ITEM").length} ITEM</Chip>}
+          {mode === "directo" && lines.filter((l) => l.lineType === "SERVICE").length > 0 && <Chip tone="info">{lines.filter((l) => l.lineType === "SERVICE").length} SERVICIO</Chip>}
+          {mode === "directo" && totals.total > 0 && <Chip tone="neutral">Total: {money(totals.total)}</Chip>}
+          {mode === "remision" && rcDetail && <Chip tone="ok">Remisión: {rcDetail.docNumber}</Chip>}
+          {mode === "remision" && rcDetail && <Chip tone="neutral">Total remisión: {money(rcDetail.total)}</Chip>}
         </>
       }
       right={
@@ -199,16 +252,173 @@ export default function NewAPInvoicePage() {
           <Button variant="outline" className="bg-white" onClick={() => router.push("/ap-invoices")}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Volver
           </Button>
-          <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow" onClick={handleSave} disabled={saving}>
+          <Button
+            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+            onClick={mode === "remision" ? handleSaveFromReceipt : handleSave}
+            disabled={saving}
+          >
             <Save className="mr-2 h-4 w-4" />{saving ? "Guardando..." : "Guardar Factura"}
           </Button>
         </div>
       }
     >
       <div className="space-y-4">
+        {/* ── Selector de modo ────────────────────────────────────────────── */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setMode("directo")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${mode === "directo" ? "bg-emerald-600 text-white border-emerald-600 shadow" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+          >
+            <Package className="h-4 w-4" /> Factura Directa
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("remision")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${mode === "remision" ? "bg-emerald-600 text-white border-emerald-600 shadow" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+          >
+            <Truck className="h-4 w-4" /> Desde Remisión
+          </button>
+        </div>
+
         {error && <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
+        {/* ══════════════════════════════════════════════════════════════════
+            MODO: DESDE REMISIÓN
+        ══════════════════════════════════════════════════════════════════ */}
+        {mode === "remision" && (
+          <div className="space-y-4">
+            {/* Selección de Remisión */}
+            <Card className="border-slate-200 p-4 shadow-sm">
+              <SectionHeader icon={<Truck className="h-5 w-5 text-emerald-600" />} title="Seleccionar Remisión" subtitle="Elegí una remisión recibida y pendiente de facturación." />
+              <Separator className="my-4" />
+              <div className="max-w-xl">
+                <label className="block text-sm font-medium mb-1">Remisión *</label>
+                <select
+                  className="w-full h-10 rounded-md border px-3 text-sm bg-white"
+                  value={selectedRcId}
+                  onChange={(e) => { setSelectedRcId(e.target.value ? Number(e.target.value) : ""); setError(null); }}
+                >
+                  <option value="">-- Seleccionar remisión --</option>
+                  {remisions.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.docNumber} · {r.supplierName} · {money(r.total)}
+                    </option>
+                  ))}
+                </select>
+                {remisions.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1">No hay remisiones pendientes de facturación.</p>
+                )}
+              </div>
+
+              {rcDetail && (
+                <div className="mt-4 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-sm space-y-1">
+                  <div><strong>Proveedor:</strong> {rcDetail.supplierName}</div>
+                  <div><strong>Remisión:</strong> {rcDetail.docNumber} · <strong>Total:</strong> {money(rcDetail.total)}</div>
+                  <div><strong>Líneas:</strong> {rcDetail.lines.length} ítem(s)</div>
+                </div>
+              )}
+            </Card>
+
+            {/* Líneas de la remisión (sólo lectura) */}
+            {rcDetail && rcDetail.lines.length > 0 && (
+              <Card className="border-slate-200 p-4 shadow-sm">
+                <SectionHeader icon={<Package className="h-5 w-5 text-emerald-600" />} title="Líneas de la Remisión" subtitle="El stock ya fue registrado al recepcionar. Esta factura es sólo financiera." />
+                <Separator className="my-4" />
+                <div className="overflow-x-auto rounded-lg border">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 text-xs text-slate-600 uppercase">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Producto</th>
+                        <th className="px-3 py-2 text-right">Cantidad</th>
+                        <th className="px-3 py-2 text-right">Precio Unit.</th>
+                        <th className="px-3 py-2 text-right">Total</th>
+                        <th className="px-3 py-2 text-left">Impuesto</th>
+                        <th className="px-3 py-2 text-left">Lote/Serie</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {rcDetail.lines.map((l) => (
+                        <tr key={l.id} className="bg-white">
+                          <td className="px-3 py-2">{l.productName}</td>
+                          <td className="px-3 py-2 text-right">{l.quantity}</td>
+                          <td className="px-3 py-2 text-right">{money(l.unitPrice)}</td>
+                          <td className="px-3 py-2 text-right font-medium">{money(l.lineTotal)}</td>
+                          <td className="px-3 py-2 text-slate-500 text-xs">{l.taxName || "—"}</td>
+                          <td className="px-3 py-2 text-slate-500 text-xs">{l.batchNumber || l.serialNumbers || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+
+            {/* Datos de la Factura del Proveedor */}
+            {rcDetail && (
+              <Card className="border-slate-200 p-4 shadow-sm">
+                <SectionHeader icon={<ReceiptText className="h-5 w-5 text-emerald-600" />} title="Datos de la Factura" subtitle="Completá los datos de la factura emitida por el proveedor." />
+                <Separator className="my-4" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Nro. Factura Proveedor *</label>
+                    <Input placeholder="001-001-0000001" className="bg-white" value={rcInvoiceNumber} onChange={(e) => setRcInvoiceNumber(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Fecha Factura *</label>
+                    <Input type="date" className="bg-white" value={rcDate} onChange={(e) => setRcDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Vencimiento</label>
+                    <Input type="date" className="bg-white" value={rcDueDate} onChange={(e) => setRcDueDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Total Factura
+                      <span className="ml-1 text-xs font-normal text-muted-foreground">(deja vacío para usar total de remisión)</span>
+                    </label>
+                    <Input
+                      type="number" min="0" step="0.01" className="bg-white"
+                      placeholder={String(rcDetail.total)}
+                      value={rcTotalOverride}
+                      onChange={(e) => setRcTotalOverride(e.target.value ? Number(e.target.value) : "")}
+                    />
+                    {rcTotalOverride !== "" && Number(rcTotalOverride) !== rcDetail.total && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        Diferencia: {money(Number(rcTotalOverride) - rcDetail.total)} respecto a la remisión.
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Tipo de pago</label>
+                    <div className="flex gap-2 mt-1">
+                      <button type="button" onClick={() => setRcIsCredit(false)}
+                        className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${!rcIsCredit ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}>
+                        Contado
+                      </button>
+                      <button type="button" onClick={() => setRcIsCredit(true)}
+                        className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${rcIsCredit ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}>
+                        Crédito
+                      </button>
+                    </div>
+                  </div>
+                  {rcIsCredit && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Condición de crédito</label>
+                      <select className="w-full h-10 rounded-md border px-3 text-sm bg-white" value={rcCreditTermId} onChange={(e) => setRcCreditTermId(e.target.value ? Number(e.target.value) : "")}>
+                        <option value="">-- Usar condición del proveedor --</option>
+                        {creditTerms.map((t) => <option key={t.id} value={t.id}>{t.name} ({t.days} días)</option>)}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* ── Header ──────────────────────────────────────────────────────── */}
+        {mode === "directo" && (<>
         <Card className="border-slate-200 p-4 shadow-sm">
           <SectionHeader icon={<ReceiptText className="h-5 w-5 text-emerald-600" />} title="Datos de la Factura" subtitle="Proveedor, número y fechas." />
           <Separator className="my-4" />
@@ -399,6 +609,7 @@ export default function NewAPInvoicePage() {
             </div>
           )}
         </Card>
+        </>)}
       </div>
     </PageShell>
   );

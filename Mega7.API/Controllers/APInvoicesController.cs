@@ -548,7 +548,7 @@ namespace Mega7.API.Controllers
                     PurchaseReceiptId = dto.PurchaseReceiptId,
                     PurchaseOrderId   = dto.PurchaseOrderId,
                     WarehouseId       = dto.WarehouseId,
-                    SourceType        = hasItemLines ? "DIRECT" : "SERVICE",
+                    SourceType        = dto.PurchaseReceiptId.HasValue ? "GOODS" : (hasItemLines ? "DIRECT" : "SERVICE"),
                     SupplierId        = sup.Id,
                     SocioNegocioId    = sup.Id,
                     SupplierName      = sup.RazonSocial,
@@ -574,7 +574,9 @@ namespace Mega7.API.Controllers
                 await _ctx.SaveChangesAsync();
 
                 // ── Stock update para líneas ITEM ───────────────────────────────────
-                if (hasItemLines)
+                // Si viene de una Remisión (PurchaseReceiptId), el stock ya fue creado
+                // por la recepción → NO duplicar. Solo crear stock en factura directa.
+                if (hasItemLines && !dto.PurchaseReceiptId.HasValue)
                 {
                     var stockEntry = new StockEntry
                     {

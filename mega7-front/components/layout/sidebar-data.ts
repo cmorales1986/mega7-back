@@ -93,10 +93,10 @@ export const menu: MenuItem[] = [
     icon: Handshake,
     color: "text-orange-600",
     children: [
-      { title: "Órdenes de Venta",         href: "/sales-orders",       icon: ClipboardList },
-      { title: "Entregas",                  href: "/deliveries",          icon: Truck },
-      { title: "Nueva Factura Cliente",     href: "/sales-invoices/new",  icon: ReceiptText },
-      { title: "Facturas Clientes x Estado",href: "/ar-invoices",         icon: FileText },
+      { title: "Órdenes de Venta",     href: "/sales-orders",      icon: ClipboardList },
+      { title: "Entregas",              href: "/deliveries",         icon: Truck },
+      { title: "Facturas Cliente",      href: "/ar-invoices",        icon: FileText },
+      { title: "Nueva Factura Cliente", href: "/sales-invoices/new", icon: ReceiptText },
     ],
   },
 

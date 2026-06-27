@@ -81,10 +81,9 @@ export const menu: MenuItem[] = [
     icon: ShoppingCart,
     color: "text-emerald-600",
     children: [
-      { title: "Órdenes de Compra",       href: "/purchase-orders", icon: ClipboardList },
-      { title: "Remisiones",              href: "/remissions",      icon: Truck },
-      { title: "Facturas Proveedor",      href: "/ap-invoices",     icon: FileText },
-      { title: "Nueva Factura Proveedor", href: "/ap-invoices/new", icon: ReceiptText },
+      { title: "Órdenes de Compra",  href: "/purchase-orders", icon: ClipboardList },
+      { title: "Remisiones",         href: "/remissions",      icon: Truck },
+      { title: "Facturas Proveedor", href: "/ap-invoices",     icon: FileText },
     ],
   },
 

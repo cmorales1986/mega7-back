@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
-import { RefreshCcw, FileDown, Eye, ReceiptText, List, HandCoins } from "lucide-react";
+import { RefreshCcw, FileDown, Eye, ReceiptText, List, HandCoins, FilePlus } from "lucide-react";
 
 // ✅ Premium shell
 import { PageShell, Chip } from "@/components/ui/page-shell";
@@ -312,11 +312,17 @@ export default function APInvoicesPage() {
 
           {canCreate && (
             <Link href="/payments/made/new">
-              <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+              <Button variant="outline" className="bg-white">
                 <HandCoins className="mr-2 h-4 w-4" /> Nuevo pago
               </Button>
             </Link>
           )}
+
+          <Link href="/ap-invoices/new">
+            <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+              <FilePlus className="mr-2 h-4 w-4" /> Nueva Factura
+            </Button>
+          </Link>
         </>
       }
     >

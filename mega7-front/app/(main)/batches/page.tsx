@@ -381,7 +381,7 @@ export default function LotSeriesPage() {
               </label>
             </div>
 
-            <Button type="submit" className="w-full bg-[#2563eb] text-white">
+            <Button type="submit" className="w-full bg-[#C5A05A] text-white">
               Guardar
             </Button>
           </form>

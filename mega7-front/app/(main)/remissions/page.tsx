@@ -175,7 +175,7 @@ export default function RemisionsListPage() {
           <Button variant="outline" className="bg-white" onClick={load} disabled={loading}><RefreshCcw className="mr-2 h-4 w-4" /> Refrescar</Button>
           {canCreate && (
             <Link href="/remissions/new">
-              <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"><Plus className="mr-2 h-4 w-4" /> Nueva (con OC)</Button>
+              <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"><Plus className="mr-2 h-4 w-4" /> Nueva (con OC)</Button>
             </Link>
           )}
         </div>

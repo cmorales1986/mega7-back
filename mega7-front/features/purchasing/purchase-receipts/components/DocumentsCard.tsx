@@ -17,14 +17,14 @@ export function DocumentsCard({
   return (
     <Card className="border-slate-200 p-4 shadow-sm">
       <SectionHeader
-        icon={<ClipboardList className="h-5 w-5 text-[#2563eb]" />}
+        icon={<ClipboardList className="h-5 w-5 text-[#C5A05A]" />}
         title="Documentos asociados"
         subtitle="Opcional: remisión y/o factura."
         right={
           <label className="flex items-center gap-2 text-sm text-gray-700 select-none">
             <input
               type="checkbox"
-              className="h-4 w-4 accent-[#2563eb]"
+              className="h-4 w-4 accent-[#C5A05A]"
               checked={draft.attachDocs}
               onChange={(e) => onChange({ attachDocs: e.target.checked })}
             />

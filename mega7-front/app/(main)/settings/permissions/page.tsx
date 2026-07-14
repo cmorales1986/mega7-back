@@ -158,8 +158,8 @@ export default function PermissionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#2563eb]/10 rounded-lg">
-            <Shield className="text-[#2563eb]" size={24} />
+          <div className="p-2 bg-[#C5A05A]/10 rounded-lg">
+            <Shield className="text-[#C5A05A]" size={24} />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Gestión de Permisos</h1>
@@ -172,7 +172,7 @@ export default function PermissionsPage() {
         <button
           onClick={save}
           disabled={saving || loading || !selectedRole}
-          className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-5 py-2.5 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed shadow"
+          className="flex items-center gap-2 bg-[#C5A05A] hover:bg-[#b8934f] text-white px-5 py-2.5 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed shadow"
         >
           {saving ? (
             <Loader2 size={16} className="animate-spin" />
@@ -196,8 +196,8 @@ export default function PermissionsPage() {
                 onClick={() => setSelectedRole(role)}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition border ${
                   selectedRole === role
-                    ? "bg-[#2563eb] text-white border-[#2563eb] shadow"
-                    : "bg-white text-gray-700 border-gray-200 hover:border-[#2563eb] hover:text-[#2563eb]"
+                    ? "bg-[#C5A05A] text-white border-[#C5A05A] shadow"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-[#C5A05A] hover:text-[#C5A05A]"
                 }`}
               >
                 {role}
@@ -259,7 +259,7 @@ export default function PermissionsPage() {
                         ref={(el) => { if (el) el.indeterminate = someInGroupChecked; }}
                         onChange={() => toggleGroup(group)}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-4 h-4 accent-[#2563eb] cursor-pointer"
+                        className="w-4 h-4 accent-[#C5A05A] cursor-pointer"
                       />
                     </button>
 
@@ -288,7 +288,7 @@ export default function PermissionsPage() {
                             type="checkbox"
                             checked={checked.has(perm.code)}
                             onChange={() => toggle(perm.code)}
-                            className="w-4 h-4 accent-[#2563eb] cursor-pointer flex-shrink-0"
+                            className="w-4 h-4 accent-[#C5A05A] cursor-pointer flex-shrink-0"
                           />
                           <div className="min-w-0">
                             <p className="text-sm text-gray-700 truncate">{perm.displayName}</p>
@@ -310,7 +310,7 @@ export default function PermissionsPage() {
         <button
           onClick={save}
           disabled={saving || loading || !selectedRole}
-          className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-6 py-2.5 rounded-lg font-medium transition disabled:opacity-50 shadow"
+          className="flex items-center gap-2 bg-[#C5A05A] hover:bg-[#b8934f] text-white px-6 py-2.5 rounded-lg font-medium transition disabled:opacity-50 shadow"
         >
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           Guardar cambios

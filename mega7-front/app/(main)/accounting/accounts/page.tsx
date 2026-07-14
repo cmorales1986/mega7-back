@@ -434,7 +434,7 @@ export default function AccountsPage() {
           <Button onClick={loadAll} variant="outline" className="bg-white" disabled={loading}>
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
-          <Button onClick={openNew} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow">
+          <Button onClick={openNew} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
             <Plus className="mr-2 h-4 w-4" /> Nueva Cuenta
           </Button>
         </>
@@ -668,7 +668,7 @@ export default function AccountsPage() {
             </Button>
             <Button
               onClick={save} disabled={saving}
-              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white"
+              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white"
             >
               {saving ? "Guardando…" : editing ? "Actualizar" : "Crear"}
             </Button>

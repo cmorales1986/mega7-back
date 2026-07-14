@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -843,7 +843,7 @@ export default function NewSalesInvoicePage() {
 
   return (
     <PageShell
-      icon={<ReceiptText className="h-6 w-6 text-[#2563eb]" />}
+      icon={<ReceiptText className="h-6 w-6 text-[#C5A05A]" />}
       title="Nueva Factura de Venta"
       subtitle={
         mode === "so"       ? "Genera FV desde OV OPEN, con soporte de Tracking (lote/serial), Serie fiscal (Timbrado) y crédito a cuotas." :
@@ -872,7 +872,7 @@ export default function NewSalesInvoicePage() {
           <Button onClick={loadLookups} variant="outline" disabled={loading}>
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
-          <Button onClick={save} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow" disabled={loading}>
+          <Button onClick={save} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow" disabled={loading}>
             <Save className="mr-2 h-4 w-4" /> Guardar
           </Button>
         </>
@@ -882,14 +882,14 @@ export default function NewSalesInvoicePage() {
       <div className="flex gap-2 mb-2 flex-wrap">
         <Button
           variant={mode === "so" ? "default" : "outline"}
-          className={mode === "so" ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white" : "bg-white"}
+          className={mode === "so" ? "bg-[#C5A05A] hover:bg-[#b8934f] text-white" : "bg-white"}
           onClick={() => setMode("so")}
         >
           Con Orden de Venta
         </Button>
         <Button
           variant={mode === "direct" ? "default" : "outline"}
-          className={mode === "direct" ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white" : "bg-white"}
+          className={mode === "direct" ? "bg-[#C5A05A] hover:bg-[#b8934f] text-white" : "bg-white"}
           onClick={() => setMode("direct")}
         >
           <User2 className="mr-2 h-4 w-4" />
@@ -897,7 +897,7 @@ export default function NewSalesInvoicePage() {
         </Button>
         <Button
           variant={mode === "delivery" ? "default" : "outline"}
-          className={mode === "delivery" ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white" : "bg-white"}
+          className={mode === "delivery" ? "bg-[#C5A05A] hover:bg-[#b8934f] text-white" : "bg-white"}
           onClick={() => setMode("delivery")}
         >
           <ShoppingCart className="mr-2 h-4 w-4" />
@@ -912,7 +912,7 @@ export default function NewSalesInvoicePage() {
         <div className="space-y-4">
           {/* Selección de Entrega */}
           <Card className="border-slate-200 p-4 shadow-sm">
-            <SectionHeader icon={<ShoppingCart className="h-5 w-5 text-[#2563eb]" />} title="Seleccionar Entrega" subtitle="Elegí una entrega ya despachada y pendiente de facturación." />
+            <SectionHeader icon={<ShoppingCart className="h-5 w-5 text-[#C5A05A]" />} title="Seleccionar Entrega" subtitle="Elegí una entrega ya despachada y pendiente de facturación." />
             <Separator className="my-4" />
             <div className="max-w-xl">
               <label className="text-sm font-semibold text-gray-700 block mb-1">Entrega *</label>
@@ -940,7 +940,7 @@ export default function NewSalesInvoicePage() {
           {/* Líneas de la entrega (sólo lectura) */}
           {deliveryDetail && deliveryDetail.lines.length > 0 && (
             <Card className="border-slate-200 p-4 shadow-sm">
-              <SectionHeader icon={<ListChecks className="h-5 w-5 text-[#2563eb]" />} title="Líneas de la Entrega" subtitle="El stock ya fue descontado al despachar. Esta factura es sólo financiera." />
+              <SectionHeader icon={<ListChecks className="h-5 w-5 text-[#C5A05A]" />} title="Líneas de la Entrega" subtitle="El stock ya fue descontado al despachar. Esta factura es sólo financiera." />
               <Separator className="my-4" />
               <div className="overflow-x-auto rounded-lg border">
                 <table className="w-full text-sm">
@@ -979,7 +979,7 @@ export default function NewSalesInvoicePage() {
           {/* Datos de la Factura */}
           {deliveryDetail && (
             <Card className="border-slate-200 p-4 shadow-sm">
-              <SectionHeader icon={<ReceiptText className="h-5 w-5 text-[#2563eb]" />} title="Datos de la Factura" subtitle="Completá fecha, serie fiscal y condición de pago." />
+              <SectionHeader icon={<ReceiptText className="h-5 w-5 text-[#C5A05A]" />} title="Datos de la Factura" subtitle="Completá fecha, serie fiscal y condición de pago." />
               <Separator className="my-4" />
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
@@ -1004,7 +1004,7 @@ export default function NewSalesInvoicePage() {
                   <div className="flex gap-2 mt-1">
                     {(["CASH", "CREDIT"] as const).map((pt) => (
                       <button key={pt} type="button" onClick={() => setPaymentType(pt)}
-                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${paymentType === pt ? "bg-[#2563eb] text-white border-[#2563eb]" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}>
+                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${paymentType === pt ? "bg-[#C5A05A] text-white border-[#C5A05A]" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}>
                         {pt === "CASH" ? "Contado" : "Crédito"}
                       </button>
                     ))}
@@ -1037,7 +1037,7 @@ export default function NewSalesInvoicePage() {
       {mode !== "delivery" && (
       <Card className="border-slate-200 p-6 shadow-sm">
         <SectionHeader
-          icon={<ShoppingCart className="h-5 w-5 text-[#2563eb]" />}
+          icon={<ShoppingCart className="h-5 w-5 text-[#C5A05A]" />}
           title="Cabecera"
           subtitle={
             mode === "so"
@@ -1197,7 +1197,7 @@ export default function NewSalesInvoicePage() {
         <Separator className="my-5" />
 
         <SectionHeader
-          icon={<CreditCard className="h-5 w-5 text-[#2563eb]" />}
+          icon={<CreditCard className="h-5 w-5 text-[#C5A05A]" />}
           title="Condición de pago"
           subtitle="Contado / Crédito, término, días y (opcional) crédito a cuotas."
         />
@@ -1259,7 +1259,7 @@ export default function NewSalesInvoicePage() {
 
                 <div>
                   <label className="flex items-center gap-3 select-none mt-6 md:mt-0">
-                    <input type="checkbox" className="h-4 w-4 accent-[#2563eb]" checked={creditInstallments} onChange={(e) => setCreditInstallments(e.target.checked)} />
+                    <input type="checkbox" className="h-4 w-4 accent-[#C5A05A]" checked={creditInstallments} onChange={(e) => setCreditInstallments(e.target.checked)} />
                     <span className="text-sm font-semibold text-gray-700">Crédito a cuotas</span>
                   </label>
                   <div className="text-[11px] text-gray-500 mt-1">Si desactivás cuotas, se usa vencimiento normal (invoiceDate + creditDays).</div>
@@ -1361,7 +1361,7 @@ export default function NewSalesInvoicePage() {
       {mode !== "delivery" && (
       <Card className="border-slate-200 p-6 shadow-sm">
         <SectionHeader
-          icon={<ListChecks className="h-5 w-5 text-[#2563eb]" />}
+          icon={<ListChecks className="h-5 w-5 text-[#C5A05A]" />}
           title={mode === "so" ? "Líneas pendientes" : "Líneas de factura"}
           subtitle={mode === "so" ? "Editá cantidades, precios, descuentos y completá tracking si aplica." : "Añadí los productos a facturar directamente."}
           right={<div className="text-sm text-gray-600">Total estimado: <b>{money(totals.total)}</b></div>}
@@ -1616,7 +1616,7 @@ export default function NewSalesInvoicePage() {
             )}
 
             <Button
-              className="mt-4 border border-[#2563eb] text-[#2563eb] bg-white hover:bg-blue-50"
+              className="mt-4 border border-[#C5A05A] text-[#C5A05A] bg-white hover:bg-blue-50"
               variant="outline"
               onClick={addDirectLine}
             >
@@ -1779,7 +1779,7 @@ export default function NewSalesInvoicePage() {
                 </Button>
 
                 <Button
-                  className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
+                  className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
                   onClick={() => {
                     const csv = selectedSerials.join(",");
                     setDialogLine({ serialNumbers: csv });

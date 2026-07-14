@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -58,7 +58,7 @@ export default function Sidebar() {
       >
         <div
           className={`
-            flex items-center justify-center rounded-full border-2 border-[#2563eb]
+            flex items-center justify-center rounded-full border-2 border-[#C5A05A]
             bg-white transition-all duration-300 overflow-hidden
             ${showOpen ? "w-20 h-20" : "w-12 h-12"}
           `}

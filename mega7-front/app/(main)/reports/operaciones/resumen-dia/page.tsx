@@ -104,7 +104,7 @@ export default function ResumenDiaPage() {
             type="date"
             value={date}
             onChange={handleDate}
-            className="no-print border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+            className="no-print border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#C5A05A]"
           />
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function ResumenDiaPage() {
               label="Total facturado"
               value={`₲ ${money(data.totalFacturado)}`}
               sub={`${data.cantFacturas} factura(s)`}
-              color="bg-[#2563eb]"
+              color="bg-[#C5A05A]"
             />
             <KpiCard
               icon={<HandCoins size={20} className="text-white" />}

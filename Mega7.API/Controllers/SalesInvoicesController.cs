@@ -962,12 +962,14 @@ namespace Mega7.API.Controllers
         [HttpPost("{id:int}/update-comments")]
         public async Task<IActionResult> UpdateComments(int id, [FromBody] UpdateCommentsDto dto)
         {
-            var ar = await _ctx.ARInvoices.FindAsync(id);
-            if (ar == null) return NotFound();
-            ar.Comments = string.IsNullOrWhiteSpace(dto.Comments) ? null : dto.Comments.Trim();
-            ar.UpdatedAt = DateTime.UtcNow;
-            await _ctx.SaveChangesAsync();
-            return Ok(new { ar.Id, ar.Comments });
+            var trimmed = string.IsNullOrWhiteSpace(dto?.Comments) ? null : dto.Comments!.Trim();
+            var rows = await _ctx.ARInvoices
+                .Where(a => a.Id == id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(a => a.Comments, trimmed)
+                    .SetProperty(a => a.UpdatedAt, DateTime.UtcNow));
+            if (rows == 0) return NotFound();
+            return Ok(new { id, comments = trimmed });
         }
 
         private Task<string> GenerateNextDocNumber() => _docNumbers.NextAsync("FV");

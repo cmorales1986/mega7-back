@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace Mega7.SHARED.DTOs
 {
+    public class UpdateCommentsDto
+    {
+        public string? Comments { get; set; }
+    }
+
     public class SalesInvoiceCreateDto
     {
         // null = modo directo (sin OV)

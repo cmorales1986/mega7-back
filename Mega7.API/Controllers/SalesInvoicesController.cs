@@ -957,6 +957,19 @@ namespace Mega7.API.Controllers
             }
         }
 
+        // PATCH: api/salesinvoices/{id}/comments
+        [RequirePermission(Perms.SalesInvoicesCreate)]
+        [HttpPatch("{id:int}/comments")]
+        public async Task<IActionResult> UpdateComments(int id, [FromBody] UpdateCommentsDto dto)
+        {
+            var ar = await _ctx.ARInvoices.FindAsync(id);
+            if (ar == null) return NotFound();
+            ar.Comments = string.IsNullOrWhiteSpace(dto.Comments) ? null : dto.Comments.Trim();
+            ar.UpdatedAt = DateTime.UtcNow;
+            await _ctx.SaveChangesAsync();
+            return Ok(new { ar.Id, ar.Comments });
+        }
+
         private Task<string> GenerateNextDocNumber() => _docNumbers.NextAsync("FV");
 
         private static DateTime ClampDueDay(int year, int month, int dueDay)

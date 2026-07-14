@@ -17,6 +17,9 @@ import {
   List,
   Printer,
   Ban,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 
 // ✅ Premium shell
@@ -39,6 +42,7 @@ type ARInvoice = {
   total: number;
   balance: number;
   status: string;
+  comments?: string | null;
 
   isCancelled?: boolean;
   cancelledAt?: string | null;
@@ -181,6 +185,30 @@ export default function ARInvoiceDetailPage() {
       );
   }, [installments]);
 
+  // ========= nota referencial =========
+  const [editingComment, setEditingComment] = useState(false);
+  const [commentDraft, setCommentDraft] = useState("");
+  const [savingComment, setSavingComment] = useState(false);
+
+  const startEditComment = () => {
+    setCommentDraft(ar?.comments ?? "");
+    setEditingComment(true);
+  };
+
+  const saveComment = async () => {
+    if (!ar) return;
+    setSavingComment(true);
+    try {
+      await api.patch(`/salesinvoices/${ar.id}/comments`, { comments: commentDraft });
+      setAr({ ...ar, comments: commentDraft || null });
+      setEditingComment(false);
+    } catch (e: any) {
+      Swal.fire("Error", toErrorMsg(e, "No se pudo guardar la nota"), "error");
+    } finally {
+      setSavingComment(false);
+    }
+  };
+
   // ========= chips =========
   const st = normStatus(ar?.status);
   const total = Number(ar?.total ?? 0);
@@ -320,6 +348,57 @@ export default function ARInvoiceDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* Nota referencial */}
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-amber-800">Nota referencial</span>
+                {!editingComment && (
+                  <button
+                    onClick={startEditComment}
+                    className="flex items-center gap-1 text-xs text-amber-700 hover:text-amber-900"
+                  >
+                    <Pencil size={13} /> Editar
+                  </button>
+                )}
+              </div>
+
+              {editingComment ? (
+                <div className="flex flex-col gap-2">
+                  <textarea
+                    className="w-full rounded-lg border border-amber-300 bg-white p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    rows={3}
+                    placeholder="Ej: Crédito por saldo anterior de mercadería — temporada 2025"
+                    value={commentDraft}
+                    onChange={(e) => setCommentDraft(e.target.value)}
+                    maxLength={500}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={saveComment}
+                      disabled={savingComment}
+                      className="flex items-center gap-1 px-3 py-1 rounded-lg bg-[#C5A05A] hover:bg-[#b8934f] text-white text-xs font-medium"
+                    >
+                      <Check size={13} /> Guardar
+                    </button>
+                    <button
+                      onClick={() => setEditingComment(false)}
+                      disabled={savingComment}
+                      className="flex items-center gap-1 px-3 py-1 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 text-xs"
+                    >
+                      <X size={13} /> Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-amber-900">
+                  {ar.comments
+                    ? ar.comments
+                    : <span className="italic text-amber-600">Sin nota. Hacé clic en Editar para agregar una descripción del crédito.</span>
+                  }
+                </p>
+              )}
+            </div>
           </>
         )}
       </Card>

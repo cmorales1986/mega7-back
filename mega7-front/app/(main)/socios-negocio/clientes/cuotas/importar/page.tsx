@@ -27,6 +27,8 @@ type ParsedRow = {
   totalAmount: number;
   paidAmount: number;
   pendingAmount: number;
+  firstDue: string;    // fecha primera cuota
+  lastDue: string;     // fecha última cuota (vencimiento final)
 };
 
 type MappingEntry = {
@@ -38,6 +40,14 @@ type Warehouse = { id: number; name: string };
 
 const fmtPY = new Intl.NumberFormat("es-PY");
 const money = (n: number) => fmtPY.format(n || 0);
+
+// "2025-10-01" → "oct-25"
+function fmtMonth(iso: string): string {
+  const [y, m] = iso.split("-").map(Number);
+  return new Date(y, m - 1, 1)
+    .toLocaleDateString("es-ES", { month: "short", year: "2-digit" })
+    .replace(".", "");
+}
 
 // Convierte serial de Excel a fecha ISO
 function xlSerialToDate(serial: number): string {
@@ -117,6 +127,8 @@ function parseSheet(sheet: XLSX.WorkSheet): ParsedRow[] {
     const paidAmount = withAmounts.filter((i) => i.isPaid).reduce((s, i) => s + i.amount, 0);
     const pendingAmount = withAmounts.filter((i) => !i.isPaid).reduce((s, i) => s + i.amount, 0);
 
+    const sorted = [...withAmounts].sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+
     rows.push({
       excelName: name.trim(),
       description: extractDescription(name.trim()),
@@ -126,6 +138,8 @@ function parseSheet(sheet: XLSX.WorkSheet): ParsedRow[] {
       totalAmount: paidAmount + pendingAmount,
       paidAmount,
       pendingAmount,
+      firstDue: sorted[0].dueDate,
+      lastDue: sorted[sorted.length - 1].dueDate,
     });
   }
 
@@ -440,11 +454,14 @@ export default function ImportarCuoteroPage() {
                     {/* Conceptos (productos) de ese cliente */}
                     <div className="ml-1 space-y-1 border-l-2 border-slate-100 pl-3">
                       {rowsForKey.map((r) => (
-                        <div key={r.excelName} className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span className="font-medium text-slate-600">
+                        <div key={r.excelName} className="flex items-center justify-between text-xs text-muted-foreground gap-2">
+                          <span className="font-medium text-slate-600 truncate">
                             {r.description || r.excelName}
                           </span>
-                          <span className="flex gap-3 shrink-0">
+                          <span className="flex gap-3 shrink-0 items-center">
+                            <span className="text-slate-400">
+                              {fmtMonth(r.firstDue)} → <span className="font-semibold text-rose-600">{fmtMonth(r.lastDue)}</span>
+                            </span>
                             <span className="text-emerald-600">{r.paidCount} PDO</span>
                             <span className="text-amber-600">{r.pendingCount} pend.</span>
                             <span className="font-semibold text-slate-700">{money(r.pendingAmount)} Gs.</span>

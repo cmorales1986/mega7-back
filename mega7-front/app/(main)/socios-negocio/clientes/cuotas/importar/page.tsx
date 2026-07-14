@@ -220,15 +220,14 @@ export default function ImportarCuoteroPage() {
 
         setParsedRows(rows);
 
-        // Inicializar mappings y dueDays con nombre raíz como clave
+        // mappings: por nombre raíz de cliente
+        // dueDays: por excelName completo (cada producto tiene su propio día)
         const init: Record<string, number | null> = {};
         const initDays: Record<string, number> = {};
         for (const row of rows) {
           const key = extractClientName(row.excelName);
-          if (!(key in init)) {
-            init[key] = null;
-            initDays[key] = 1; // default: día 1
-          }
+          if (!(key in init)) init[key] = null;
+          initDays[row.excelName] = 1; // día 1 por defecto por producto
         }
         setMappings(init);
         setDueDays(initDays);
@@ -251,7 +250,7 @@ export default function ImportarCuoteroPage() {
     const rows = parsedRows.map((row) => {
       const key = extractClientName(row.excelName);
       const customerId = mappings[key] ?? null;
-      const day = Math.min(Math.max(dueDays[key] ?? 1, 1), 31);
+      const day = Math.min(Math.max(dueDays[row.excelName] ?? 1, 1), 31);
 
       return {
         customerId,
@@ -436,8 +435,8 @@ export default function ImportarCuoteroPage() {
                       isMapped ? "border-purple-200" : "border-slate-200"
                     }`}
                   >
-                    {/* Fila principal: nombre + día de vencimiento + dropdown */}
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_90px_2fr] gap-3 items-start">
+                    {/* Fila principal: nombre + dropdown */}
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-3 items-start">
                       <div>
                         <p className="text-sm font-semibold">{key}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
@@ -448,21 +447,6 @@ export default function ImportarCuoteroPage() {
                             {money(rowsForKey.reduce((s, r) => s + r.pendingAmount, 0))} Gs.
                           </span>
                         </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Día vence</p>
-                        <input
-                          type="number"
-                          min={1}
-                          max={31}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-center font-semibold"
-                          value={dueDays[key] ?? 1}
-                          onChange={(e) => {
-                            const v = Math.min(Math.max(Number(e.target.value) || 1, 1), 31);
-                            setDueDays((prev) => ({ ...prev, [key]: v }));
-                          }}
-                        />
                       </div>
 
                       <select
@@ -486,11 +470,11 @@ export default function ImportarCuoteroPage() {
                       </select>
                     </div>
 
-                    {/* Conceptos (productos) de ese cliente */}
-                    <div className="ml-1 space-y-1 border-l-2 border-slate-100 pl-3">
+                    {/* Conceptos (productos) de ese cliente — día de vencimiento por producto */}
+                    <div className="ml-1 space-y-1.5 border-l-2 border-slate-100 pl-3">
                       {rowsForKey.map((r) => (
                         <div key={r.excelName} className="flex items-center justify-between text-xs text-muted-foreground gap-2">
-                          <span className="font-medium text-slate-600 truncate">
+                          <span className="font-medium text-slate-600 truncate flex-1 min-w-0">
                             {r.description || r.excelName}
                           </span>
                           <span className="flex gap-3 shrink-0 items-center">
@@ -500,6 +484,20 @@ export default function ImportarCuoteroPage() {
                             <span className="text-emerald-600">{r.paidCount} PDO</span>
                             <span className="text-amber-600">{r.pendingCount} pend.</span>
                             <span className="font-semibold text-slate-700">{money(r.pendingAmount)} Gs.</span>
+                            <span className="flex items-center gap-1">
+                              <span className="text-slate-400">día</span>
+                              <input
+                                type="number"
+                                min={1}
+                                max={31}
+                                className="w-12 rounded border border-slate-300 bg-white px-1 py-0.5 text-xs text-center font-semibold"
+                                value={dueDays[r.excelName] ?? 1}
+                                onChange={(e) => {
+                                  const v = Math.min(Math.max(Number(e.target.value) || 1, 1), 31);
+                                  setDueDays((prev) => ({ ...prev, [r.excelName]: v }));
+                                }}
+                              />
+                            </span>
                           </span>
                         </div>
                       ))}

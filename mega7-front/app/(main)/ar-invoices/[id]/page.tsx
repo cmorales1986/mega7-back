@@ -200,8 +200,8 @@ export default function ARInvoiceDetailPage() {
     setSavingComment(true);
     try {
       await api.post(`/salesinvoices/${ar.id}/update-comments`, { comments: commentDraft });
-      setAr({ ...ar, comments: commentDraft || null });
       setEditingComment(false);
+      await loadAll(); // recarga desde el servidor para confirmar que persistió
     } catch (e: any) {
       Swal.fire("Error", toErrorMsg(e, "No se pudo guardar la nota"), "error");
     } finally {

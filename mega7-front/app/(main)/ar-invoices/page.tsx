@@ -385,7 +385,7 @@ export default function ARInvoicesPage() {
                 onClick={() => setTypeFilter(t)}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium border transition ${
                   active
-                    ? "bg-blue-600 text-white border-blue-600 shadow"
+                    ? "bg-[#C5A05A] text-white border-[#C5A05A] shadow"
                     : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
                 }`}
               >

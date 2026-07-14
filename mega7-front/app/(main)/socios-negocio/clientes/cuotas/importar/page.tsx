@@ -475,57 +475,58 @@ export default function ImportarCuoteroPage() {
 
                     {/* Conceptos (productos) de ese cliente — día de vencimiento por producto */}
                     <div className="ml-1 space-y-1.5 border-l-2 border-slate-100 pl-3">
-                      {rowsForKey.map((r) => {
-                        const isExcluded = !!excluded[r.excelName];
-                        return (
-                          <div
-                            key={r.excelName}
-                            className={`flex items-center justify-between text-xs gap-2 transition-opacity ${
-                              isExcluded ? "opacity-40 line-through" : "text-muted-foreground"
-                            }`}
-                          >
-                            <span className="font-medium text-slate-600 truncate flex-1 min-w-0">
-                              {r.description || r.excelName}
+                      {rowsForKey.map((r) => (
+                        <div
+                          key={r.excelName}
+                          className={`flex items-center justify-between text-xs gap-2 transition-opacity ${
+                            excluded[r.excelName]
+                              ? "opacity-40 line-through text-slate-400"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          <span className="font-medium text-slate-600 truncate flex-1 min-w-0">
+                            {r.description || r.excelName}
+                          </span>
+                          <span className="flex gap-3 shrink-0 items-center">
+                            <span className="text-slate-400">
+                              {fmtMonth(r.firstDue)} → <span className="font-semibold text-rose-600">{fmtMonth(r.lastDue)}</span>
                             </span>
-                            <span className="flex gap-3 shrink-0 items-center">
-                              <span className="text-slate-400">
-                                {fmtMonth(r.firstDue)} → <span className="font-semibold text-rose-600">{fmtMonth(r.lastDue)}</span>
-                              </span>
-                              <span className="text-emerald-600">{r.paidCount} PDO</span>
-                              <span className="text-amber-600">{r.pendingCount} pend.</span>
-                              <span className="font-semibold text-slate-700">{money(r.pendingAmount)} Gs.</span>
-                              {!isExcluded && (
-                                <span className="flex items-center gap-1">
-                                  <span className="text-slate-400">día</span>
-                                  <input
-                                    type="number"
-                                    min={1}
-                                    max={31}
-                                    className="w-12 rounded border border-slate-300 bg-white px-1 py-0.5 text-xs text-center font-semibold"
-                                    value={dueDays[r.excelName] ?? 1}
-                                    onChange={(e) => {
-                                      const v = Math.min(Math.max(Number(e.target.value) || 1, 1), 31);
-                                      setDueDays((prev) => ({ ...prev, [r.excelName]: v }));
-                                    }}
-                                  />
-                                </span>
-                              )}
-                              <button
-                                type="button"
-                                title={isExcluded ? "Restaurar" : "Excluir de la importación"}
-                                className={`rounded p-0.5 transition-colors ${
-                                  isExcluded
-                                    ? "text-slate-400 hover:text-emerald-600"
-                                    : "text-slate-300 hover:text-red-500"
-                                }`}
-                                onClick={() => setExcluded((prev) => ({ ...prev, [r.excelName]: !isExcluded }))}
-                              >
-                                {isExcluded ? <Check className="h-3.5 w-3.5" /> : <Trash2 className="h-3.5 w-3.5" />}
-                              </button>
+                            <span className="text-emerald-600">{r.paidCount} PDO</span>
+                            <span className="text-amber-600">{r.pendingCount} pend.</span>
+                            <span className="font-semibold text-slate-700">{money(r.pendingAmount)} Gs.</span>
+                            <span className="flex items-center gap-1">
+                              <span className="text-slate-400">día</span>
+                              <input
+                                type="number"
+                                min={1}
+                                max={31}
+                                className="w-12 rounded border border-slate-300 bg-white px-1 py-0.5 text-xs text-center font-semibold"
+                                value={dueDays[r.excelName] ?? 1}
+                                onChange={(e) => {
+                                  const v = Math.min(Math.max(Number(e.target.value) || 1, 1), 31);
+                                  setDueDays((prev) => ({ ...prev, [r.excelName]: v }));
+                                }}
+                              />
                             </span>
-                          </div>
-                        );
-                      })}
+                            <button
+                              type="button"
+                              title={excluded[r.excelName] ? "Restaurar" : "Excluir de la importación"}
+                              className={`rounded p-0.5 transition-colors ${
+                                excluded[r.excelName]
+                                  ? "text-slate-400 hover:text-emerald-600"
+                                  : "text-slate-300 hover:text-red-500"
+                              }`}
+                              onClick={() =>
+                                setExcluded((prev) => ({ ...prev, [r.excelName]: !prev[r.excelName] }))
+                              }
+                            >
+                              {excluded[r.excelName]
+                                ? <Check className="h-3.5 w-3.5" />
+                                : <Trash2 className="h-3.5 w-3.5" />}
+                            </button>
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 );

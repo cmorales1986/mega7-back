@@ -41,6 +41,14 @@ type Warehouse = { id: number; name: string };
 const fmtPY = new Intl.NumberFormat("es-PY");
 const money = (n: number) => fmtPY.format(n || 0);
 
+// "2025-10-01", 15 → "2025-10-15" (clampea al último día del mes)
+function applyDay(iso: string, day: number): string {
+  const [y, m] = iso.split("-").map(Number);
+  const lastDay = new Date(y, m, 0).getDate(); // último día del mes
+  const d = Math.min(day, lastDay);
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
 // "2025-10-01" → "oct-25"
 function fmtMonth(iso: string): string {
   const [y, m] = iso.split("-").map(Number);
@@ -167,6 +175,8 @@ export default function ImportarCuoteroPage() {
   const [warehouseId, setWarehouseId] = useState<number | null>(null);
   // mapa: excelName raíz → customerId
   const [mappings, setMappings] = useState<Record<string, number | null>>({});
+  // mapa: excelName raíz → día de vencimiento (1-31)
+  const [dueDays, setDueDays] = useState<Record<string, number>>({});
 
   // Step 2: result
   const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null);
@@ -210,13 +220,18 @@ export default function ImportarCuoteroPage() {
 
         setParsedRows(rows);
 
-        // Inicializar mappings con nombre raíz como clave
+        // Inicializar mappings y dueDays con nombre raíz como clave
         const init: Record<string, number | null> = {};
+        const initDays: Record<string, number> = {};
         for (const row of rows) {
           const key = extractClientName(row.excelName);
-          if (!(key in init)) init[key] = null;
+          if (!(key in init)) {
+            init[key] = null;
+            initDays[key] = 1; // default: día 1
+          }
         }
         setMappings(init);
+        setDueDays(initDays);
         setStep(1);
       } catch (err) {
         Swal.fire("Error", "No se pudo leer el archivo. Asegurate de que sea .xlsb o .xlsx.", "error");
@@ -236,12 +251,16 @@ export default function ImportarCuoteroPage() {
     const rows = parsedRows.map((row) => {
       const key = extractClientName(row.excelName);
       const customerId = mappings[key] ?? null;
+      const day = Math.min(Math.max(dueDays[key] ?? 1, 1), 31);
+
       return {
         customerId,
         excelName: row.excelName,
-        description: row.description || row.excelName, // concepto (parte después del guion)
+        description: row.description || row.excelName,
+        dueDayOfMonth: day,
         installments: row.installments.map((i) => ({
-          dueDate: i.dueDate + "T00:00:00Z",
+          // Reemplazar día: yyyy-MM-DD → yyyy-MM-{day}
+          dueDate: applyDay(i.dueDate, day) + "T00:00:00Z",
           amount: i.amount,
           isPaid: i.isPaid,
         })),
@@ -417,8 +436,8 @@ export default function ImportarCuoteroPage() {
                       isMapped ? "border-purple-200" : "border-slate-200"
                     }`}
                   >
-                    {/* Fila principal: nombre + dropdown */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+                    {/* Fila principal: nombre + día de vencimiento + dropdown */}
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_90px_2fr] gap-3 items-start">
                       <div>
                         <p className="text-sm font-semibold">{key}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
@@ -430,6 +449,22 @@ export default function ImportarCuoteroPage() {
                           </span>
                         </p>
                       </div>
+
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Día vence</p>
+                        <input
+                          type="number"
+                          min={1}
+                          max={31}
+                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-center font-semibold"
+                          value={dueDays[key] ?? 1}
+                          onChange={(e) => {
+                            const v = Math.min(Math.max(Number(e.target.value) || 1, 1), 31);
+                            setDueDays((prev) => ({ ...prev, [key]: v }));
+                          }}
+                        />
+                      </div>
+
                       <select
                         className={`w-full rounded-lg border px-3 py-2 text-sm ${
                           isMapped ? "border-purple-400 bg-purple-50 text-purple-800" : "border-slate-300"

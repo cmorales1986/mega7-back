@@ -256,9 +256,11 @@ namespace Mega7.API.Controllers
                     InvoiceDate       = firstDue,
                     DueDate           = lastDue,
                     WarehouseId       = req.WarehouseId,
-                    Status            = status,
-                    PaymentType       = "CUOTAS",
-                    InstallmentsCount = row.Installments.Count,
+                    Status                  = status,
+                    PaymentType             = "CUOTAS",
+                    InstallmentsCount       = row.Installments.Count,
+                    InstallmentScheduleType = "DAY_OF_MONTH",
+                    DueDayOfMonth           = row.DueDayOfMonth,
                     SubTotal          = totalAmount,
                     TaxTotal          = 0,
                     Total             = totalAmount,
@@ -345,6 +347,7 @@ namespace Mega7.API.Controllers
         public int CustomerId { get; set; }
         public string ExcelName { get; set; } = "";
         public string? Description { get; set; }
+        public int DueDayOfMonth { get; set; } = 1;
         public List<CuoteroImportInstallment> Installments { get; set; } = new();
     }
 

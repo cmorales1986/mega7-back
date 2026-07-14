@@ -225,7 +225,7 @@ export default function ImportarCuoteroPage() {
       return {
         customerId,
         excelName: row.excelName,
-        description: row.excelName, // guardamos el nombre completo como descripción
+        description: row.description || row.excelName, // concepto (parte después del guion)
         installments: row.installments.map((i) => ({
           dueDate: i.dueDate + "T00:00:00Z",
           amount: i.amount,
@@ -392,41 +392,66 @@ export default function ImportarCuoteroPage() {
               Asociá cada nombre del Excel al cliente registrado en el sistema. Las filas sin asignación serán omitidas.
             </p>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               {uniqueKeys.map((key) => {
                 const rowsForKey = parsedRows.filter((r) => extractClientName(r.excelName) === key);
+                const isMapped = !!mappings[key];
                 return (
                   <div
                     key={key}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center rounded-lg border bg-white p-3"
+                    className={`rounded-lg border bg-white p-4 space-y-3 ${
+                      isMapped ? "border-purple-200" : "border-slate-200"
+                    }`}
                   >
-                    <div>
-                      <p className="text-sm font-medium">{key}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {rowsForKey.length} producto(s) ·{" "}
-                        {rowsForKey.reduce((s, r) => s + r.pendingCount, 0)} cuotas pendientes ·{" "}
-                        {money(rowsForKey.reduce((s, r) => s + r.pendingAmount, 0))} Gs.
-                      </p>
+                    {/* Fila principal: nombre + dropdown */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+                      <div>
+                        <p className="text-sm font-semibold">{key}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {rowsForKey.length} concepto(s) ·{" "}
+                          {rowsForKey.reduce((s, r) => s + r.paidCount, 0)} PDO ·{" "}
+                          {rowsForKey.reduce((s, r) => s + r.pendingCount, 0)} pendientes ·{" "}
+                          <span className="font-medium text-slate-700">
+                            {money(rowsForKey.reduce((s, r) => s + r.pendingAmount, 0))} Gs.
+                          </span>
+                        </p>
+                      </div>
+                      <select
+                        className={`w-full rounded-lg border px-3 py-2 text-sm ${
+                          isMapped ? "border-purple-400 bg-purple-50 text-purple-800" : "border-slate-300"
+                        }`}
+                        value={mappings[key] ?? ""}
+                        onChange={(e) =>
+                          setMappings((prev) => ({
+                            ...prev,
+                            [key]: e.target.value ? Number(e.target.value) : null,
+                          }))
+                        }
+                      >
+                        <option value="">— Sin asignar (omitir) —</option>
+                        {socios.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.razonSocial}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    <select
-                      className={`w-full rounded-lg border px-3 py-2 text-sm ${
-                        mappings[key] ? "border-purple-400 bg-purple-50" : "border-slate-300 bg-white"
-                      }`}
-                      value={mappings[key] ?? ""}
-                      onChange={(e) =>
-                        setMappings((prev) => ({
-                          ...prev,
-                          [key]: e.target.value ? Number(e.target.value) : null,
-                        }))
-                      }
-                    >
-                      <option value="">— Sin asignar —</option>
-                      {socios.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.razonSocial}
-                        </option>
+
+                    {/* Conceptos (productos) de ese cliente */}
+                    <div className="ml-1 space-y-1 border-l-2 border-slate-100 pl-3">
+                      {rowsForKey.map((r) => (
+                        <div key={r.excelName} className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span className="font-medium text-slate-600">
+                            {r.description || r.excelName}
+                          </span>
+                          <span className="flex gap-3 shrink-0">
+                            <span className="text-emerald-600">{r.paidCount} PDO</span>
+                            <span className="text-amber-600">{r.pendingCount} pend.</span>
+                            <span className="font-semibold text-slate-700">{money(r.pendingAmount)} Gs.</span>
+                          </span>
+                        </div>
                       ))}
-                    </select>
+                    </div>
                   </div>
                 );
               })}

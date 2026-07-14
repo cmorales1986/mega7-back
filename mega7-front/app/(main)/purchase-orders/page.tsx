@@ -297,7 +297,7 @@ export default function PurchaseOrdersPage() {
 
   return (
     <PageShell
-      icon={<ClipboardList className="h-6 w-6 text-[#C5A05A]" />}
+      icon={<ClipboardList className="h-6 w-6 text-[#2563eb]" />}
       title="Órdenes de Compra"
       subtitle="Gestioná OCs: crear, editar borradores, abrir/cerrar/cancelar y ver el PDF."
       chips={
@@ -318,7 +318,7 @@ export default function PurchaseOrdersPage() {
           {canCreate && (
             <Button
               onClick={() => router.push("/purchase-orders/new")}
-              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
             >
               <Plus className="mr-2 h-4 w-4" /> Nueva OC
             </Button>
@@ -328,7 +328,7 @@ export default function PurchaseOrdersPage() {
     >
       <Card className="border-slate-200 p-6 shadow-sm">
         <SectionHeader
-          icon={<FileSearch className="h-5 w-5 text-[#C5A05A]" />}
+          icon={<FileSearch className="h-5 w-5 text-[#2563eb]" />}
           title="Listado"
           subtitle="Acciones disponibles según el estado: editar solo DRAFT, cerrar solo OPEN."
         />

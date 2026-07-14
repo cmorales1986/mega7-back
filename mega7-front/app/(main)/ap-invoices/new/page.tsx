@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -253,7 +253,7 @@ export default function NewAPInvoicePage() {
             <ArrowLeft className="mr-2 h-4 w-4" /> Volver
           </Button>
           <Button
-            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+            className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
             onClick={mode === "remision" ? handleSaveFromReceipt : handleSave}
             disabled={saving}
           >

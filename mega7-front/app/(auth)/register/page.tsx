@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -167,12 +167,12 @@ export default function RegisterPage() {
         {/* Botón registrar */}
         <Button
           className="w-full text-white font-medium py-2 rounded-lg"
-          style={{ backgroundColor: "#C5A05A" }}
+          style={{ backgroundColor: "#2563eb" }}
           onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#A88446")
+            (e.currentTarget.style.backgroundColor = "#1d4ed8")
           }
           onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#C5A05A")
+            (e.currentTarget.style.backgroundColor = "#2563eb")
           }
           disabled={loading}
           onClick={handleRegister}
@@ -190,7 +190,7 @@ export default function RegisterPage() {
         {/* Volver a login */}
         <Button
           variant="outline"
-          className="w-full border-[#C5A05A] text-[#C5A05A] hover:bg-[#C5A05A]/10"
+          className="w-full border-[#2563eb] text-[#2563eb] hover:bg-[#2563eb]/10"
           onClick={() => (window.location.href = "/login")}
           disabled={loading}
         >

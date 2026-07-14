@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
@@ -120,7 +120,7 @@ export default function DashboardReportPage() {
           icon={<TrendingUp size={20} className="text-white" />}
           label="Ventas del mes"
           value={`₲ ${money(ventasMes)}`}
-          color="bg-[#C5A05A]"
+          color="bg-[#2563eb]"
         />
         <KpiCard
           icon={<HandCoins size={20} className="text-white" />}
@@ -167,7 +167,7 @@ export default function DashboardReportPage() {
                 labelStyle={{ fontWeight: 600 }}
               />
               <Legend />
-              <Bar dataKey="sales" name="Ventas" fill="#C5A05A" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="sales" name="Ventas" fill="#2563eb" radius={[4, 4, 0, 0]} />
               <Bar dataKey="collected" name="Cobros" fill="#10b981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

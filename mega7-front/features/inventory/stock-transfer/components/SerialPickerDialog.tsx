@@ -1,4 +1,4 @@
-// src/features/inventory/stock-transfer/components/SerialPickerDialog.tsx
+﻿// src/features/inventory/stock-transfer/components/SerialPickerDialog.tsx
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -77,7 +77,7 @@ export function SerialPickerDialog(props: {
               <Button variant="outline" onClick={() => setSelected([])}>
                 Limpiar
               </Button>
-              <Button className="bg-[#C5A05A] text-white" onClick={() => onOpenChange(false)}>
+              <Button className="bg-[#2563eb] text-white" onClick={() => onOpenChange(false)}>
                 Aplicar
               </Button>
             </div>

@@ -364,7 +364,7 @@ export default function NewDeliveryPage() {
         <>
           <Button onClick={() => router.push("/deliveries")} variant="outline">Volver</Button>
           <Button onClick={loadLookups} variant="outline" disabled={loading}><RefreshCcw className="mr-2 h-4 w-4" />Refrescar</Button>
-          <Button onClick={save} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow" disabled={loading}>
+          <Button onClick={save} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow" disabled={loading}>
             <Save className="mr-2 h-4 w-4" /> Guardar Entrega
           </Button>
         </>
@@ -372,10 +372,10 @@ export default function NewDeliveryPage() {
     >
       {/* MODE TOGGLE */}
       <div className="flex gap-2 mb-2">
-        <Button variant={mode === "so" ? "default" : "outline"} className={mode === "so" ? "bg-[#C5A05A] hover:bg-[#b8934f] text-white" : "bg-white"} onClick={() => setMode("so")}>
+        <Button variant={mode === "so" ? "default" : "outline"} className={mode === "so" ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white" : "bg-white"} onClick={() => setMode("so")}>
           Con Orden de Venta
         </Button>
-        <Button variant={mode === "direct" ? "default" : "outline"} className={mode === "direct" ? "bg-[#C5A05A] hover:bg-[#b8934f] text-white" : "bg-white"} onClick={() => setMode("direct")}>
+        <Button variant={mode === "direct" ? "default" : "outline"} className={mode === "direct" ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white" : "bg-white"} onClick={() => setMode("direct")}>
           <User2 className="mr-2 h-4 w-4" /> Sin OV (Directa)
         </Button>
       </div>
@@ -611,7 +611,7 @@ export default function NewDeliveryPage() {
             {directLines.length === 0 && (
               <div className="text-gray-400 text-sm py-4 text-center border-2 border-dashed rounded-xl">No hay líneas. Hacé clic en "Agregar línea" para comenzar.</div>
             )}
-            <Button className="mt-4 border border-[#C5A05A] text-[#C5A05A] bg-white hover:bg-amber-50" variant="outline" onClick={addDirLine}>
+            <Button className="mt-4 border border-[#2563eb] text-[#2563eb] bg-white hover:bg-blue-50" variant="outline" onClick={addDirLine}>
               <Plus className="mr-2 h-4 w-4" /> Agregar línea
             </Button>
           </div>
@@ -693,7 +693,7 @@ export default function NewDeliveryPage() {
               <div className="text-sm text-gray-600">Seleccionados: <b>{selSerials.length}</b> / {Math.trunc(diagQty || 0)}</div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => { setSelSerials([]); setDlgLine({ serialNumbers: "" }); }}>Limpiar</Button>
-                <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow" onClick={() => { setDlgLine({ serialNumbers: selSerials.join(",") }); setOpenSerialPick(false); }}>Aplicar</Button>
+                <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow" onClick={() => { setDlgLine({ serialNumbers: selSerials.join(",") }); setOpenSerialPick(false); }}>Aplicar</Button>
               </div>
             </div>
           </div>

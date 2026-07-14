@@ -296,7 +296,7 @@ export default function SalesOrdersPage() {
           <div>
             <div className="flex items-center gap-3">
               <div className="rounded-xl border bg-white p-2 shadow-sm">
-                <ClipboardList className="h-5 w-5 text-[#C5A05A]" />
+                <ClipboardList className="h-5 w-5 text-[#2563eb]" />
               </div>
               <h1 className="text-3xl font-semibold">Órdenes de Venta</h1>
             </div>
@@ -322,7 +322,7 @@ export default function SalesOrdersPage() {
             {canCreate && (
               <Button
                 onClick={() => router.push("/sales-orders/new")}
-                className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
                 disabled={loading}
               >
                 <Plus className="mr-2 h-4 w-4" /> Nueva OV

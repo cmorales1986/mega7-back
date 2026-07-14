@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send, Circle, Wifi, WifiOff } from "lucide-react";
@@ -17,7 +17,7 @@ function Avatar({ name, self }: { name: string; self: boolean }) {
   return (
     <div
       className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white
-        ${self ? "bg-[#C5A05A]" : "bg-slate-500"}`}
+        ${self ? "bg-[#2563eb]" : "bg-slate-500"}`}
     >
       {getInitials(name)}
     </div>
@@ -74,7 +74,7 @@ export function ChatPanel() {
           style={{ height: "460px" }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#C5A05A] to-[#d8b56c] text-white flex-shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white flex-shrink-0">
             <div className="flex items-center gap-2">
               <MessageCircle size={18} />
               <span className="font-semibold text-sm">Chat del equipo</span>
@@ -121,7 +121,7 @@ export function ChatPanel() {
                     <div
                       className={`px-3 py-2 rounded-2xl text-sm break-words leading-snug
                         ${isSelf
-                          ? "bg-[#C5A05A] text-white rounded-tr-sm"
+                          ? "bg-[#2563eb] text-white rounded-tr-sm"
                           : "bg-white text-gray-800 border border-gray-200 rounded-tl-sm shadow-sm"
                         }`}
                     >
@@ -158,12 +158,12 @@ export function ChatPanel() {
               onKeyDown={handleKey}
               placeholder="Escribí un mensaje..."
               maxLength={500}
-              className="flex-1 text-sm border border-gray-200 rounded-full px-3 py-1.5 outline-none focus:border-[#C5A05A] bg-gray-50 transition"
+              className="flex-1 text-sm border border-gray-200 rounded-full px-3 py-1.5 outline-none focus:border-[#2563eb] bg-gray-50 transition"
             />
             <button
               onClick={handleSend}
               disabled={!draft.trim() || !connected}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-[#C5A05A] text-white disabled:opacity-40 hover:bg-[#b8934f] transition flex-shrink-0"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-[#2563eb] text-white disabled:opacity-40 hover:bg-[#1d4ed8] transition flex-shrink-0"
             >
               <Send size={14} />
             </button>
@@ -174,7 +174,7 @@ export function ChatPanel() {
       {/* Botón flotante */}
       <button
         onClick={() => setIsOpen((v) => !v)}
-        className="fixed bottom-6 right-6 z-[1000] w-12 h-12 rounded-full bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow-lg flex items-center justify-center transition hover:scale-105 active:scale-95"
+        className="fixed bottom-6 right-6 z-[1000] w-12 h-12 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-lg flex items-center justify-center transition hover:scale-105 active:scale-95"
         title="Chat del equipo"
       >
         <MessageCircle size={22} />

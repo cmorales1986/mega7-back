@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Swal from "sweetalert2";
 import { Card } from "@/components/ui/card";
@@ -42,7 +42,7 @@ export function LinesEditor({
   return (
     <Card className="border-slate-200 p-6 shadow-sm">
       <SectionHeader
-        icon={<ClipboardList className="h-5 w-5 text-[#C5A05A]" />}
+        icon={<ClipboardList className="h-5 w-5 text-[#2563eb]" />}
         title="Líneas a recepcionar"
         subtitle="Ajustá cantidades. Si es lote/serial, completá los campos."
         right={

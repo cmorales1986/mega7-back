@@ -359,7 +359,7 @@ export default function BankDepositsPage() {
           {canCreate && (
             <Button
               onClick={doDeposit}
-              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
               disabled={selectedIds.length === 0 || !bankAccountId}
               title={!bankAccountId ? "Seleccioná una cuenta bancaria" : "Depositar"}
             >

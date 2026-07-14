@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -60,7 +60,7 @@ type SalesVsCollectionsRow = {
 const fmtPY = new Intl.NumberFormat("es-PY");
 
 // 🎨 Mega7
-const BAR_COLOR = "#C5A05A";
+const BAR_COLOR = "#2563eb";
 const LINE_COLOR = "#2563EB";
 
 // años disponibles (como pediste)

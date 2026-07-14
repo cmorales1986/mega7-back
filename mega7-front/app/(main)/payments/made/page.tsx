@@ -250,7 +250,7 @@ export default function PaymentsMadePage() {
 
           {canCreate && (
             <Link href="/payments/made/new">
-              <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+              <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow">
                 <Plus className="mr-2 h-4 w-4" /> Nuevo pago
               </Button>
             </Link>

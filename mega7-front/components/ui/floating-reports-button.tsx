@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { BarChart3 } from "lucide-react";
@@ -14,7 +14,7 @@ export function FloatingReportsButton() {
         className="
           fixed bottom-6 right-6 z-[1200]
           h-14 w-14 rounded-full
-          bg-[#C5A05A] hover:bg-[#b8934f]
+          bg-[#2563eb] hover:bg-[#1d4ed8]
           text-white shadow-xl
           flex items-center justify-center
           transition

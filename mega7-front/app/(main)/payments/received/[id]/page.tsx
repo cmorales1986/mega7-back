@@ -109,7 +109,7 @@ export default function PaymentReceivedDetailPage() {
 
           <Button
             onClick={() => openReceiptPdfById(id)}
-            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+            className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
             disabled={!data}
           >
             <Printer className="mr-2 h-4 w-4" /> Imprimir PDF

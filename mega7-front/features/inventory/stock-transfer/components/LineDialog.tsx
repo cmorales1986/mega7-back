@@ -1,4 +1,4 @@
-// src/features/inventory/stock-transfer/components/LineDialog.tsx
+﻿// src/features/inventory/stock-transfer/components/LineDialog.tsx
 "use client";
 
 import Swal from "sweetalert2";
@@ -262,7 +262,7 @@ export function LineDialog(props: {
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button className="bg-[#C5A05A] text-white" onClick={save}>
+              <Button className="bg-[#2563eb] text-white" onClick={save}>
                 Guardar línea
               </Button>
             </div>

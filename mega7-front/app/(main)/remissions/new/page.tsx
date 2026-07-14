@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
@@ -26,7 +26,7 @@ export default function Page() {
 
   return (
     <PageShell
-      icon={<PackageCheck className="h-6 w-6 text-[#C5A05A]" />}
+      icon={<PackageCheck className="h-6 w-6 text-[#2563eb]" />}
       title="Nueva Remisión (con OC)"
       subtitle="Recepción de inventario vinculada a una Orden de Compra."
       right={
@@ -37,7 +37,7 @@ export default function Page() {
           <Button variant="outline" className="bg-white" onClick={pr.refreshLookups} disabled={pr.loading}>
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
-          <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white" onClick={onSave} disabled={pr.loading}>
+          <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white" onClick={onSave} disabled={pr.loading}>
             <Save className="mr-2 h-4 w-4" /> Guardar
           </Button>
         </div>

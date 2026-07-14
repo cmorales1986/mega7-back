@@ -350,8 +350,8 @@ namespace Mega7.API.Controllers
                 HttpOnly = true,
                 Secure = isProd,
                 SameSite = sameSite,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(15),
-                MaxAge = TimeSpan.FromMinutes(15),
+                Expires = DateTimeOffset.UtcNow.AddMinutes(480),
+                MaxAge = TimeSpan.FromMinutes(480),
                 Path = "/"
             });
 

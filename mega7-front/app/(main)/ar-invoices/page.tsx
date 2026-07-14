@@ -100,6 +100,8 @@ export default function ARInvoicesPage() {
     "ALL" | "OPEN" | "PARTIAL" | "PAID" | "CANCELLED"
   >("ALL");
 
+  const [typeFilter, setTypeFilter] = useState<"ALL" | "FACTURAS" | "CUOTAS">("ALL");
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -134,10 +136,15 @@ export default function ARInvoicesPage() {
   }, [showCancelled, statusFilter]);
 
   const filteredRows = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return rows;
+    let base = rows;
 
-    return rows.filter((r) => {
+    if (typeFilter === "FACTURAS") base = base.filter((r) => !String(r.docNumber ?? "").startsWith("CIMP-"));
+    else if (typeFilter === "CUOTAS") base = base.filter((r) => String(r.docNumber ?? "").startsWith("CIMP-"));
+
+    const q = search.toLowerCase().trim();
+    if (!q) return base;
+
+    return base.filter((r) => {
       return (
         String(r.docNumber ?? "").toLowerCase().includes(q) ||
         String(r.customerName ?? "").toLowerCase().includes(q) ||
@@ -146,7 +153,7 @@ export default function ARInvoicesPage() {
         String(r.status ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, search]);
+  }, [rows, search, typeFilter]);
 
   // ===== Si querés mantener cancel/reopen (auditoría) =====
   const cancelInvoice = async (id: number) => {
@@ -312,6 +319,8 @@ export default function ARInvoicesPage() {
   const paidCount = rows.filter((r) => normStatus(r) === "PAID").length;
   const cancelledCount = rows.filter((r) => normStatus(r) === "CANCELLED").length;
   const overdueCount = rows.filter((r) => !!r.isOverdue && normStatus(r) !== "CANCELLED").length;
+  const cuotasCount = rows.filter((r) => String(r.docNumber ?? "").startsWith("CIMP-")).length;
+  const facturasCount = rows.filter((r) => !String(r.docNumber ?? "").startsWith("CIMP-")).length;
 
   return (
     <PageShell
@@ -321,6 +330,8 @@ export default function ARInvoicesPage() {
       chips={
         <>
           <Chip tone="info">Total: {totalCount}</Chip>
+          <Chip tone="neutral">Facturas: {facturasCount}</Chip>
+          <Chip tone="neutral">Con Cuotas: {cuotasCount}</Chip>
           <Chip tone="warn">OPEN: {openCount}</Chip>
           <Chip tone="info">PARTIAL: {partialCount}</Chip>
           <Chip tone="ok">PAID: {paidCount}</Chip>
@@ -362,6 +373,27 @@ export default function ARInvoicesPage() {
         />
 
         <Separator className="my-4" />
+
+        {/* Tabs tipo */}
+        <div className="flex gap-2 flex-wrap mb-1">
+          {(["ALL", "FACTURAS", "CUOTAS"] as const).map((t) => {
+            const label = t === "ALL" ? `Todas (${totalCount})` : t === "FACTURAS" ? `Facturas (${facturasCount})` : `Con Cuotas (${cuotasCount})`;
+            const active = typeFilter === t;
+            return (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition ${
+                  active
+                    ? "bg-blue-600 text-white border-blue-600 shadow"
+                    : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <Input

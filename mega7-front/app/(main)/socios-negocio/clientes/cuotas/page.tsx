@@ -774,40 +774,54 @@ export default function CuoteroClientesPage() {
               </div>
 
               <div>
-                <div className="font-semibold mb-2">Productos</div>
-                <div className="rounded-xl border bg-white overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-slate-50">
-                      <tr>
-                        <th className="text-left p-2">Producto</th>
-                        <th className="text-right p-2">Cant.</th>
-                        <th className="text-right p-2">Precio</th>
-                        <th className="text-right p-2">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(invoiceDetail.lines ?? []).map((l) => (
-                        <tr key={l.id} className="border-t">
-                          <td className="p-2">
-                            {(l.productCode ? `${l.productCode} - ` : "")}
-                            {l.productName ?? ""}
-                          </td>
-                          <td className="p-2 text-right">{money(l.quantity)}</td>
-                          <td className="p-2 text-right">{money(l.unitPrice)}</td>
-                          <td className="p-2 text-right">{money(l.lineTotal)}</td>
-                        </tr>
-                      ))}
-
-                      {(invoiceDetail.lines ?? []).length === 0 && (
-                        <tr>
-                          <td className="p-3 text-muted-foreground" colSpan={4}>
-                            Sin líneas. Verificá que <b>/salesinvoices/{`{id}`}</b> incluya <b>Lines</b>.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                {(invoiceDetail.lines ?? []).length === 0 ? (
+                  invoiceDetail.docNumber?.startsWith("CIMP-") ? (
+                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 flex gap-3 items-start">
+                      <span className="text-blue-500 text-lg leading-none mt-0.5">ℹ</span>
+                      <div>
+                        <div className="font-semibold mb-1">Crédito en cuotas — a modo referencial</div>
+                        <div className="text-blue-700">
+                          Esta factura fue generada por importación del cuotero. No tiene desglose de
+                          productos ya que corresponde a un crédito preexistente registrado como
+                          referencia. El monto total es <b>{money(invoiceDetail.total)}</b>.
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border bg-gray-50 p-4 text-sm text-gray-500">
+                      Sin líneas de producto registradas.
+                    </div>
+                  )
+                ) : (
+                  <>
+                    <div className="font-semibold mb-2">Productos</div>
+                    <div className="rounded-xl border bg-white overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-slate-50">
+                          <tr>
+                            <th className="text-left p-2">Producto</th>
+                            <th className="text-right p-2">Cant.</th>
+                            <th className="text-right p-2">Precio</th>
+                            <th className="text-right p-2">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(invoiceDetail.lines ?? []).map((l) => (
+                            <tr key={l.id} className="border-t">
+                              <td className="p-2">
+                                {(l.productCode ? `${l.productCode} - ` : "")}
+                                {l.productName ?? ""}
+                              </td>
+                              <td className="p-2 text-right">{money(l.quantity)}</td>
+                              <td className="p-2 text-right">{money(l.unitPrice)}</td>
+                              <td className="p-2 text-right">{money(l.lineTotal)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
               </div>
 
               <DialogFooter>

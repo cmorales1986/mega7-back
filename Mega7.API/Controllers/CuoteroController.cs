@@ -199,6 +199,44 @@ namespace Mega7.API.Controllers
         }
 
         // =========================
+        // PATCH: api/cuotero/{arInvoiceId}/reschedule-day
+        // Cambia el día de vencimiento de todas las cuotas PENDIENTES de una factura
+        // =========================
+        [RequirePermission(Perms.ARInvoicesView)]
+        [HttpPatch("{arInvoiceId:int}/reschedule-day")]
+        public async Task<IActionResult> RescheduleDay(int arInvoiceId, [FromBody] RescheduleDayRequest req)
+        {
+            if (req.DueDayOfMonth < 1 || req.DueDayOfMonth > 31)
+                return BadRequest("El día debe estar entre 1 y 31.");
+
+            var invoice = await _ctx.ARInvoices
+                .Include(x => x.Installments)
+                .FirstOrDefaultAsync(x => x.Id == arInvoiceId);
+
+            if (invoice == null) return NotFound();
+
+            var now = DateTime.UtcNow;
+            var pending = invoice.Installments.Where(i => !i.IsPaid && i.Balance > 0).ToList();
+
+            foreach (var inst in pending)
+            {
+                var d = inst.DueDate;
+                var lastDay = DateTime.DaysInMonth(d.Year, d.Month);
+                var newDay = Math.Min(req.DueDayOfMonth, lastDay);
+                inst.DueDate = new DateTime(d.Year, d.Month, newDay, 0, 0, 0, DateTimeKind.Utc);
+                inst.UpdatedAt = now;
+            }
+
+            invoice.DueDayOfMonth = req.DueDayOfMonth;
+            invoice.InstallmentScheduleType = "DAY_OF_MONTH";
+            invoice.UpdatedAt = now;
+
+            await _ctx.SaveChangesAsync();
+
+            return Ok(new { updated = pending.Count, dueDayOfMonth = req.DueDayOfMonth });
+        }
+
+        // =========================
         // POST: api/cuotero/import
         // Importa cuotas desde Excel (frontend parsea el archivo y envía JSON)
         // =========================
@@ -333,6 +371,11 @@ namespace Mega7.API.Controllers
 
             return cols;
         }
+    }
+
+    public class RescheduleDayRequest
+    {
+        public int DueDayOfMonth { get; set; }
     }
 
     // DTO para el endpoint de importación

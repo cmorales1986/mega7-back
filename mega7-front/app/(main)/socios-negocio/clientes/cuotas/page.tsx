@@ -25,6 +25,7 @@ import {
   CalendarDays,
   Eye,
   Upload,
+  CalendarClock,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -232,6 +233,11 @@ export default function CuoteroClientesPage() {
   const [openInvoice, setOpenInvoice] = useState(false);
   const [invoiceDetail, setInvoiceDetail] = useState<SalesInvoiceDetail | null>(null);
 
+  // dialog reprogramar día de vencimiento
+  const [rescheduleInvoiceId, setRescheduleInvoiceId] = useState<number | null>(null);
+  const [rescheduleDocNumber, setRescheduleDocNumber] = useState<string>("");
+  const [reschedulePendingCount, setReschedulePendingCount] = useState<number>(0);
+
   // =====================
   // Loaders
   // =====================
@@ -272,6 +278,38 @@ export default function CuoteroClientesPage() {
       setOpenInvoice(true);
     } catch (e: any) {
       Swal.fire("Error", toErrorMsg(e, "Error"), "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReschedule = async (arInvoiceId: number, docNumber: string, pendingCount: number) => {
+    const { value: dayStr } = await Swal.fire({
+      title: `Reprogramar día de vencimiento`,
+      html: `<b>${docNumber}</b><br/><span style="font-size:13px;color:#666">${pendingCount} cuota(s) pendiente(s) serán reprogramadas</span>`,
+      input: "number",
+      inputLabel: "Nuevo día del mes (1-31)",
+      inputAttributes: { min: "1", max: "31", step: "1" },
+      inputValue: "1",
+      showCancelButton: true,
+      confirmButtonText: "Reprogramar",
+      cancelButtonText: "Cancelar",
+      icon: "question",
+      inputValidator: (v) => {
+        const n = Number(v);
+        if (!v || n < 1 || n > 31) return "Ingresá un día entre 1 y 31";
+      },
+    });
+    if (dayStr === undefined) return;
+    setLoading(true);
+    try {
+      const r = await api.patch<{ updated: number }>(`/cuotero/${arInvoiceId}/reschedule-day`, {
+        dueDayOfMonth: Number(dayStr),
+      });
+      Swal.fire("Listo", `${r.data.updated} cuota(s) reprogramadas al día ${dayStr} de cada mes.`, "success");
+      if (selectedCustomer) await loadMatrix(selectedCustomer.id, selectedCustomer.name);
+    } catch (e: any) {
+      Swal.fire("Error", toErrorMsg(e, "No se pudo reprogramar"), "error");
     } finally {
       setLoading(false);
     }
@@ -430,7 +468,7 @@ export default function CuoteroClientesPage() {
       {
         field: "view",
         headerName: "",
-        width: 70,
+        width: 110,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -438,19 +476,42 @@ export default function CuoteroClientesPage() {
         align: "center",
         renderCell: (p: GridRenderCellParams<MatrixRow>) => {
           const row = p.row;
+          // contar cuotas pendientes de esta fila
+          const pendingCount = Object.values(row?.cells ?? {})
+            .filter((c) => c && (c as any).status !== "PAID").length;
           return (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 w-9 p-0 bg-white"
-              title="Ver factura"
-              onClick={(e) => {
-                e.stopPropagation();
-                openInvoiceDetail(row.arInvoiceId);
-              }}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0 bg-white"
+                title="Ver factura"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openInvoiceDetail(row.arInvoiceId);
+                }}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              {pendingCount > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-9 p-0 bg-white text-purple-600 border-purple-200 hover:bg-purple-50"
+                  title="Reprogramar día de vencimiento"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleReschedule(
+                      row.arInvoiceId,
+                      row.docNumber ?? `#${row.arInvoiceId}`,
+                      pendingCount
+                    );
+                  }}
+                >
+                  <CalendarClock className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           );
         },
       },

@@ -384,9 +384,7 @@ export default function NewPaymentMadePage() {
   }, [selectedConcept]);
 
   useEffect(() => {
-    if (conceptIsSupplier) setApplyToInvoices(true);
-    else setApplyToInvoices(false);
-
+    // solo resetea proveedor y facturas cuando cambia el concepto; NO toca applyToInvoices
     setSupplierId(null);
     setRows([]);
     setSelection(emptySelectionModel());
@@ -396,7 +394,7 @@ export default function NewPaymentMadePage() {
     setApplyExcessToNextMap({});
     setManualTotalUI("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conceptIsSupplier, conceptId]);
+  }, [conceptId]);
 
   const totalToApply = useMemo(() => {
     return selectedIds.reduce((acc, id) => acc + (applyMap[id] ?? 0), 0);
@@ -695,10 +693,47 @@ export default function NewPaymentMadePage() {
 
           <Separator className="my-4" />
 
+          {/* TIPO DE PAGO — visible siempre, controla el modo */}
+          <div className="mb-4 flex gap-2">
+            {(["invoices", "direct"] as const).map((m) => {
+              const isActive = m === "invoices" ? applyToInvoices : !applyToInvoices;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => {
+                    const next = m === "invoices";
+                    setApplyToInvoices(next);
+                    setSelection(emptySelectionModel());
+                    setApplyMap({});
+                    setInstallmentsMap({});
+                    setTargetInstallmentMap({});
+                    setApplyExcessToNextMap({});
+                    setRows([]);
+                    setManualTotalUI("");
+                    if (next && supplierId) loadInvoicesForSupplier(supplierId);
+                  }}
+                  className={`px-5 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-[#C5A05A] text-white border-[#C5A05A]"
+                      : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {m === "invoices" ? "Aplicar a Facturas" : "Pago Directo"}
+                </button>
+              );
+            })}
+            <span className="self-center text-xs text-gray-500 ml-2">
+              {applyToInvoices
+                ? "Seleccioná un proveedor y sus facturas pendientes."
+                : "Pago sin facturas: sueldos, IPS, impuestos, otros."}
+            </span>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
             {/* CONCEPTO */}
             <div className="space-y-2 lg:col-span-2">
-              <Label>Concepto</Label>
+              <Label>Concepto *</Label>
               <Select
                 value={conceptId ? String(conceptId) : ""}
                 onValueChange={(v) => setConceptId(Number(v))}
@@ -714,12 +749,6 @@ export default function NewPaymentMadePage() {
                   ))}
                 </SelectContent>
               </Select>
-
-              <div className="text-xs text-gray-600">
-                {conceptIsSupplier
-                  ? "Este concepto se aplica a facturas (crédito)."
-                  : "Este concepto es un pago directo (sin facturas)."}
-              </div>
             </div>
 
             {/* MÉTODO */}
@@ -770,7 +799,6 @@ export default function NewPaymentMadePage() {
                   setSupplierId(id);
                   if (applyToInvoices) loadInvoicesForSupplier(id);
                 }}
-                disabled={!conceptId}
               >
                 <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Seleccionar proveedor…" />
@@ -791,46 +819,6 @@ export default function NewPaymentMadePage() {
               )}
             </div>
 
-            {/* MODO (solo si es proveedor) */}
-            {conceptIsSupplier && (
-              <div className="space-y-2 lg:col-span-2">
-                <Label>Modo</Label>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="applyToInvoices"
-                    type="checkbox"
-                    className="h-4 w-4"
-                    checked={applyToInvoices}
-                    onChange={(e) => {
-                      const v = e.target.checked;
-                      setApplyToInvoices(v);
-
-                      setSelection(emptySelectionModel());
-                      setApplyMap({});
-                      setInstallmentsMap({});
-                      setTargetInstallmentMap({});
-                      setApplyExcessToNextMap({});
-                      setRows([]);
-                      setManualTotalUI("");
-
-                      if (v && supplierId) loadInvoicesForSupplier(supplierId);
-                    }}
-                  />
-                  <label
-                    htmlFor="applyToInvoices"
-                    className="text-sm text-gray-700 select-none"
-                  >
-                    Aplicar a facturas (crédito) — imprime siempre
-                  </label>
-                </div>
-
-                {!applyToInvoices && (
-                  <div className="text-xs text-gray-600">
-                    Si desmarcás, registrás un pago directo al proveedor (sin facturas).
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* TOTAL MANUAL (sin facturas) */}
             {!applyToInvoices && (

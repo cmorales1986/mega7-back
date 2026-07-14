@@ -199,7 +199,7 @@ export default function ARInvoiceDetailPage() {
     if (!ar) return;
     setSavingComment(true);
     try {
-      await api.patch(`/salesinvoices/${ar.id}/comments`, { comments: commentDraft });
+      await api.post(`/salesinvoices/${ar.id}/update-comments`, { comments: commentDraft });
       setAr({ ...ar, comments: commentDraft || null });
       setEditingComment(false);
     } catch (e: any) {

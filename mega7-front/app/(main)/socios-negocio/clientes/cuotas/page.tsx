@@ -24,7 +24,9 @@ import {
   Users,
   CalendarDays,
   Eye,
+  Upload,
 } from "lucide-react";
+import Link from "next/link";
 
 // MUI DataGrid
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
@@ -543,7 +545,7 @@ export default function CuoteroClientesPage() {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {view === "matrix" ? (
               <Button
                 variant="outline"
@@ -557,6 +559,12 @@ export default function CuoteroClientesPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" /> Volver
               </Button>
             ) : null}
+
+            <Link href="/socios-negocio/clientes/cuotas/importar">
+              <Button variant="outline" className="bg-white border-purple-200 text-purple-700 hover:bg-purple-50">
+                <Upload className="mr-2 h-4 w-4" /> Importar Excel
+              </Button>
+            </Link>
 
             <Button variant="outline" onClick={refresh} disabled={loading} className="bg-white">
               <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar

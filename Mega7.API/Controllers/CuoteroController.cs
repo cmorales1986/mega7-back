@@ -1,6 +1,7 @@
 ﻿using Mega7.API.Attributes;
 using Mega7.API.Data;
 using Mega7.API.Utils;
+using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -198,6 +199,107 @@ namespace Mega7.API.Controllers
         }
 
         // =========================
+        // POST: api/cuotero/import
+        // Importa cuotas desde Excel (frontend parsea el archivo y envía JSON)
+        // =========================
+        [RequirePermission(Perms.ARInvoicesView)]
+        [HttpPost("import")]
+        public async Task<IActionResult> Import([FromBody] CuoteroImportRequest req)
+        {
+            if (req.Rows == null || req.Rows.Count == 0)
+                return BadRequest("No hay filas para importar.");
+
+            var warehouse = await _ctx.Warehouses.FindAsync(req.WarehouseId);
+            if (warehouse == null)
+                return BadRequest("Depósito no encontrado.");
+
+            // Número correlativo para DocNumber (máx existente con prefijo CIMP-)
+            var existing = await _ctx.ARInvoices
+                .Where(x => x.DocNumber.StartsWith("CIMP-"))
+                .Select(x => x.DocNumber)
+                .ToListAsync();
+
+            int nextSeq = 1;
+            foreach (var dn in existing)
+            {
+                if (int.TryParse(dn.Replace("CIMP-", ""), out var n) && n >= nextSeq)
+                    nextSeq = n + 1;
+            }
+
+            var now = DateTime.UtcNow;
+            var created = 0;
+            var errors = new List<string>();
+
+            foreach (var row in req.Rows)
+            {
+                if (row.Installments == null || row.Installments.Count == 0) continue;
+
+                var customer = await _ctx.SociosNegocio.FindAsync(row.CustomerId);
+                if (customer == null)
+                {
+                    errors.Add($"Cliente ID {row.CustomerId} no encontrado — fila '{row.ExcelName}' omitida.");
+                    continue;
+                }
+
+                var totalAmount  = row.Installments.Sum(i => i.Amount);
+                var paidAmount   = row.Installments.Where(i => i.IsPaid).Sum(i => i.Amount);
+                var balance      = totalAmount - paidAmount;
+                var status       = balance <= 0 ? "PAID" : (paidAmount > 0 ? "PARTIAL" : "OPEN");
+                var firstDue     = row.Installments.OrderBy(i => i.DueDate).First().DueDate;
+                var lastDue      = row.Installments.OrderBy(i => i.DueDate).Last().DueDate;
+
+                var invoice = new ARInvoice
+                {
+                    CustomerId        = row.CustomerId,
+                    CustomerName      = customer.RazonSocial,
+                    DocNumber         = $"CIMP-{nextSeq:D4}",
+                    InvoiceDate       = firstDue,
+                    DueDate           = lastDue,
+                    WarehouseId       = req.WarehouseId,
+                    Status            = status,
+                    PaymentType       = "CUOTAS",
+                    InstallmentsCount = row.Installments.Count,
+                    SubTotal          = totalAmount,
+                    TaxTotal          = 0,
+                    Total             = totalAmount,
+                    PaidAmount        = paidAmount,
+                    Balance           = balance,
+                    Comments          = string.IsNullOrWhiteSpace(row.Description)
+                                            ? null
+                                            : row.Description.Length > 500
+                                                ? row.Description[..500]
+                                                : row.Description,
+                    CreatedAt         = now,
+                };
+
+                _ctx.ARInvoices.Add(invoice);
+                await _ctx.SaveChangesAsync();
+
+                var num = 1;
+                foreach (var inst in row.Installments.OrderBy(i => i.DueDate))
+                {
+                    _ctx.ARInvoiceInstallments.Add(new ARInvoiceInstallment
+                    {
+                        ARInvoiceId = invoice.Id,
+                        Number      = num++,
+                        DueDate     = inst.DueDate,
+                        Amount      = inst.Amount,
+                        PaidAmount  = inst.IsPaid ? inst.Amount : 0,
+                        Balance     = inst.IsPaid ? 0 : inst.Amount,
+                        IsPaid      = inst.IsPaid,
+                        CreatedAt   = now,
+                    });
+                }
+
+                await _ctx.SaveChangesAsync();
+                created++;
+                nextSeq++;
+            }
+
+            return Ok(new { imported = created, errors });
+        }
+
+        // =========================
         // Helpers
         // =========================
         private static (DateTime from, DateTime to) NormalizeRange(DateTime? from, DateTime? to)
@@ -229,5 +331,27 @@ namespace Mega7.API.Controllers
 
             return cols;
         }
+    }
+
+    // DTO para el endpoint de importación
+    public class CuoteroImportRequest
+    {
+        public int WarehouseId { get; set; }
+        public List<CuoteroImportRow> Rows { get; set; } = new();
+    }
+
+    public class CuoteroImportRow
+    {
+        public int CustomerId { get; set; }
+        public string ExcelName { get; set; } = "";
+        public string? Description { get; set; }
+        public List<CuoteroImportInstallment> Installments { get; set; } = new();
+    }
+
+    public class CuoteroImportInstallment
+    {
+        public DateTime DueDate { get; set; }
+        public decimal Amount { get; set; }
+        public bool IsPaid { get; set; }
     }
 }

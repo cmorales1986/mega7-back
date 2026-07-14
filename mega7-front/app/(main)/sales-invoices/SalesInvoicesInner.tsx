@@ -293,7 +293,7 @@ export default function SalesInvoicesInner() {
 
   return (
     <PageShell
-      icon={<ReceiptText className="h-6 w-6 text-[#C5A05A]" />}
+      icon={<ReceiptText className="h-6 w-6 text-[#2563eb]" />}
       title="Facturas de Venta (CxC)"
       subtitle="Listado, PDF, detalle y cancelación (con auditoría)."
       chips={
@@ -323,7 +323,7 @@ export default function SalesInvoicesInner() {
           {canCreate && (
             <Button
               onClick={() => router.push("/sales-invoices/new")}
-              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
               disabled={loading}
             >
               <Plus className="mr-2 h-4 w-4" /> Nueva FV

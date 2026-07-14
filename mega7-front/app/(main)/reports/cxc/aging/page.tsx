@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
@@ -82,7 +82,7 @@ export default function AgingCxCPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar cliente…"
-            className="no-print border rounded-lg px-3 py-2 text-sm bg-white w-56 focus:outline-none focus:ring-2 focus:ring-[#C5A05A]"
+            className="no-print border rounded-lg px-3 py-2 text-sm bg-white w-56 focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
           />
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function AgingCxCPage() {
                     ₲ {money(totals[b.key] ?? 0)}
                   </td>
                 ))}
-                <td className="px-4 py-3 text-right text-[#C5A05A]">₲ {money(grandTotal)}</td>
+                <td className="px-4 py-3 text-right text-[#2563eb]">₲ {money(grandTotal)}</td>
               </tr>
             </tfoot>
           </table>

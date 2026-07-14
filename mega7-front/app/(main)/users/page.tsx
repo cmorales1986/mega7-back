@@ -407,7 +407,7 @@ export default function UsersPage() {
               <p className="text-sm text-muted-foreground">Creá roles personalizados y asignalos a usuarios. Los del sistema no se pueden eliminar.</p>
             </div>
           </div>
-          <Button onClick={() => setRoleOpen(true)} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+          <Button onClick={() => setRoleOpen(true)} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow">
             <Plus className="mr-2 h-4 w-4" /> Nuevo Rol
           </Button>
         </div>
@@ -476,7 +476,7 @@ export default function UsersPage() {
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" className="bg-white" onClick={() => setRoleOpen(false)} disabled={savingRole}>Cancelar</Button>
-            <Button onClick={createRole} disabled={savingRole} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white">Crear Rol</Button>
+            <Button onClick={createRole} disabled={savingRole} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white">Crear Rol</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

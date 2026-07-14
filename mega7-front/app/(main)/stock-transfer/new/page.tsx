@@ -1,4 +1,4 @@
-// app/stock-transfer/new/page.tsx
+﻿// app/stock-transfer/new/page.tsx
 "use client";
 
 import Swal from "sweetalert2";
@@ -138,7 +138,7 @@ export default function StockTransferNewPage() {
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
 
-          <Button onClick={onSave} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+          <Button onClick={onSave} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow">
             <Save className="mr-2 h-4 w-4" /> Guardar
           </Button>
         </div>

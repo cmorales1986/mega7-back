@@ -294,7 +294,7 @@ export default function BrandsPage() {
             {canCreate && (
               <Button
                 onClick={openCreate}
-                className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Nueva
@@ -374,7 +374,7 @@ export default function BrandsPage() {
               </label>
             </div>
 
-            <Button type="submit" className="w-full bg-[#C5A05A] text-white">
+            <Button type="submit" className="w-full bg-[#2563eb] text-white">
               Guardar
             </Button>
           </form>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
@@ -381,7 +381,7 @@ export default function LotSeriesPage() {
               </label>
             </div>
 
-            <Button type="submit" className="w-full bg-[#C5A05A] text-white">
+            <Button type="submit" className="w-full bg-[#2563eb] text-white">
               Guardar
             </Button>
           </form>

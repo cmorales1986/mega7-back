@@ -287,7 +287,7 @@ export default function PurchaseOrderForm({ editingId }: { editingId?: number })
 
   return (
     <PageShell
-      icon={<ClipboardList className="h-6 w-6 text-[#C5A05A]" />}
+      icon={<ClipboardList className="h-6 w-6 text-[#2563eb]" />}
       title={editingId ? "Editar Orden de Compra" : "Nueva Orden de Compra"}
       subtitle="Completá cabecera y líneas. El total se calcula automáticamente con impuestos y descuentos."
       right={
@@ -296,7 +296,7 @@ export default function PurchaseOrderForm({ editingId }: { editingId?: number })
             <ArrowLeft className="mr-2 h-4 w-4" /> Volver
           </Button>
 
-          <Button onClick={save} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
+          <Button onClick={save} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow">
             Guardar
           </Button>
         </>
@@ -305,7 +305,7 @@ export default function PurchaseOrderForm({ editingId }: { editingId?: number })
       {/* CABECERA */}
       <Card className="border-slate-200 p-6 shadow-sm">
         <SectionHeader
-          icon={<FileText className="h-5 w-5 text-[#C5A05A]" />}
+          icon={<FileText className="h-5 w-5 text-[#2563eb]" />}
           title="Cabecera"
           subtitle="Proveedor, depósito, fecha y comentarios."
         />
@@ -329,7 +329,7 @@ export default function PurchaseOrderForm({ editingId }: { editingId?: number })
                   className={cn(
                     "w-full h-10 px-3 flex items-center justify-between rounded-md border bg-white text-sm",
                     "hover:bg-gray-50",
-                    "focus:outline-none focus:ring-2 focus:ring-[#C5A05A]/30 focus:border-[#C5A05A]/40"
+                    "focus:outline-none focus:ring-2 focus:ring-[#2563eb]/30 focus:border-[#2563eb]/40"
                   )}
                 >
                   <span className={cn(!supplierId && "text-gray-400 bg-white")}>
@@ -423,7 +423,7 @@ export default function PurchaseOrderForm({ editingId }: { editingId?: number })
       {/* LÍNEAS */}
       <Card className="border-slate-200 p-6 shadow-sm">
         <SectionHeader
-          icon={<ClipboardList className="h-5 w-5 text-[#C5A05A]" />}
+          icon={<ClipboardList className="h-5 w-5 text-[#2563eb]" />}
           title="Líneas"
           subtitle="Agregá productos, cantidades, descuentos e impuestos."
           right={

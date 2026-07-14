@@ -419,7 +419,7 @@ export default function SociosProveedoresPage() {
           {canCreate && (
             <Button
               onClick={openNew}
-              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
             >
               <Plus className="mr-2 h-4 w-4" />
               Nuevo
@@ -669,7 +669,7 @@ export default function SociosProveedoresPage() {
               <Button
                 onClick={save}
                 disabled={saving}
-                className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
               >
                 {saving ? "Guardando..." : "Guardar"}
               </Button>

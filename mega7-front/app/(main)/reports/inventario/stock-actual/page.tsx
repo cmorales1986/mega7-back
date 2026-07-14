@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
@@ -93,13 +93,13 @@ export default function StockActualPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar producto…"
-          className="border rounded-lg px-3 py-2 text-sm bg-white w-56 focus:outline-none focus:ring-2 focus:ring-[#C5A05A]"
+          className="border rounded-lg px-3 py-2 text-sm bg-white w-56 focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
         />
 
         <select
           value={warehouseId}
           onChange={(e) => setWarehouseId(Number(e.target.value))}
-          className="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#C5A05A]"
+          className="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
         >
           <option value={0}>Todos los depósitos</option>
           {warehouses.map((w) => (
@@ -121,7 +121,7 @@ export default function StockActualPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <Card className="p-4 shadow-sm flex gap-3 items-center">
-          <div className="bg-[#C5A05A] rounded-xl p-2.5">
+          <div className="bg-[#2563eb] rounded-xl p-2.5">
             <Package size={18} className="text-white" />
           </div>
           <div>

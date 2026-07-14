@@ -56,7 +56,7 @@ export default function Navbar() {
     <>
     <header
       className="w-full h-16 flex items-center justify-between px-6 border-b shadow
-        bg-gradient-to-r from-[#C5A05A] to-[#d8b56c] text-white"
+        bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] text-white"
     >
       <h1 className="text-lg font-semibold tracking-wide">{title}</h1>
 

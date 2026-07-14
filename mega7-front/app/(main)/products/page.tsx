@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -590,7 +590,7 @@ export default function ProductsPage() {
           {canCreate && (
             <Button
               onClick={openCreate}
-              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
             >
               <Plus className="mr-2 h-4 w-4" />
               Nuevo
@@ -878,7 +878,7 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full bg-[#C5A05A] hover:bg-[#b8934f] text-white">
+            <Button type="submit" className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white">
               Guardar
             </Button>
           </form>

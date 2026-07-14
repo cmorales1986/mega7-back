@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePermission } from "@/hooks/use-permission";
@@ -293,7 +293,7 @@ export default function SubCategoriesPage() {
           </Button>
 
           {canCreate && (
-            <Button onClick={openCreate} className="bg-[#C5A05A] text-white">
+            <Button onClick={openCreate} className="bg-[#2563eb] text-white">
               <Plus className="mr-2 h-4 w-4" /> Nueva
             </Button>
           )}
@@ -386,7 +386,7 @@ export default function SubCategoriesPage() {
               </label>
             </div>
 
-            <Button type="submit" className="w-full bg-[#C5A05A] text-white">
+            <Button type="submit" className="w-full bg-[#2563eb] text-white">
               Guardar
             </Button>
           </form>

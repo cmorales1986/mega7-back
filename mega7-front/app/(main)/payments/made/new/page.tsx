@@ -677,7 +677,7 @@ export default function NewPaymentMadePage() {
 
             <Button
               onClick={save}
-              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
+              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
             >
               <Save className="mr-2 h-4 w-4" /> Guardar
             </Button>
@@ -715,7 +715,7 @@ export default function NewPaymentMadePage() {
                   }}
                   className={`px-5 py-2 rounded-lg border text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-[#C5A05A] text-white border-[#C5A05A]"
+                      ? "bg-[#2563eb] text-white border-[#2563eb]"
                       : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
                   }`}
                 >

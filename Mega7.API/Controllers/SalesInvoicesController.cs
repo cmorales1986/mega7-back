@@ -957,9 +957,9 @@ namespace Mega7.API.Controllers
             }
         }
 
-        // PATCH: api/salesinvoices/{id}/comments
+        // POST: api/salesinvoices/{id}/update-comments
         [RequirePermission(Perms.SalesInvoicesCreate)]
-        [HttpPatch("{id:int}/comments")]
+        [HttpPost("{id:int}/update-comments")]
         public async Task<IActionResult> UpdateComments(int id, [FromBody] UpdateCommentsDto dto)
         {
             var ar = await _ctx.ARInvoices.FindAsync(id);

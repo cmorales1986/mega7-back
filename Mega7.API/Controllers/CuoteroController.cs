@@ -1,5 +1,6 @@
 ﻿using Mega7.API.Attributes;
 using Mega7.API.Data;
+using Mega7.API.Services;
 using Mega7.API.Utils;
 using Mega7.SHARED.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -14,10 +15,12 @@ namespace Mega7.API.Controllers
     public class CuoteroController : ControllerBase
     {
         private readonly Mega7DbContext _ctx;
+        private readonly DocNumberService _docNumbers;
 
-        public CuoteroController(Mega7DbContext ctx)
+        public CuoteroController(Mega7DbContext ctx, DocNumberService docNumbers)
         {
             _ctx = ctx;
+            _docNumbers = docNumbers;
         }
 
         // =========================
@@ -251,18 +254,6 @@ namespace Mega7.API.Controllers
             if (warehouse == null)
                 return BadRequest("Depósito no encontrado.");
 
-            // Número correlativo para DocNumber (máx existente con prefijo CIMP-)
-            var existing = await _ctx.ARInvoices
-                .Where(x => x.DocNumber.StartsWith("CIMP-"))
-                .Select(x => x.DocNumber)
-                .ToListAsync();
-
-            int nextSeq = 1;
-            foreach (var dn in existing)
-            {
-                if (int.TryParse(dn.Replace("CIMP-", ""), out var n) && n >= nextSeq)
-                    nextSeq = n + 1;
-            }
 
             var now = DateTime.UtcNow;
             var created = 0;
@@ -290,7 +281,7 @@ namespace Mega7.API.Controllers
                 {
                     CustomerId        = row.CustomerId,
                     CustomerName      = customer.RazonSocial,
-                    DocNumber         = $"CIMP-{nextSeq:D4}",
+                    DocNumber         = await _docNumbers.NextAsync("CIMP-", 4),
                     InvoiceDate       = firstDue,
                     DueDate           = lastDue,
                     WarehouseId       = req.WarehouseId,
@@ -333,7 +324,6 @@ namespace Mega7.API.Controllers
 
                 await _ctx.SaveChangesAsync();
                 created++;
-                nextSeq++;
             }
 
             return Ok(new { imported = created, errors });

@@ -1,5 +1,6 @@
 using Mega7.API.Attributes;
 using Mega7.API.Data;
+using Mega7.API.Services;
 using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
 using Mega7.SHARED.Entities;
@@ -17,10 +18,12 @@ namespace Mega7.API.Controllers
     public class SalesDeliveriesController : ControllerBase
     {
         private readonly Mega7DbContext _ctx;
+        private readonly DocNumberService _docNumbers;
 
-        public SalesDeliveriesController(Mega7DbContext ctx)
+        public SalesDeliveriesController(Mega7DbContext ctx, DocNumberService docNumbers)
         {
             _ctx = ctx;
+            _docNumbers = docNumbers;
         }
 
         // GET: api/salesdeliveries
@@ -378,20 +381,7 @@ namespace Mega7.API.Controllers
             }
         }
 
-        private async Task<string> GenerateNextDocNumber()
-        {
-            var last = await _ctx.SalesDeliveries
-                .OrderByDescending(x => x.Id)
-                .Select(x => x.DocNumber)
-                .FirstOrDefaultAsync();
-
-            if (string.IsNullOrWhiteSpace(last)) return "EV000001";
-
-            var numPart = new string(last.Where(char.IsDigit).ToArray());
-            if (!int.TryParse(numPart, out var n)) n = 0;
-            n++;
-            return $"EV{n:D6}";
-        }
+        private Task<string> GenerateNextDocNumber() => _docNumbers.NextAsync("EV");
     }
 
 }

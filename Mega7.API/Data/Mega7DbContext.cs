@@ -114,6 +114,9 @@ namespace Mega7.API.Data
         // ── RRHH ──────────────────────────────────────────────────────────────
         public DbSet<Employee> Employees => Set<Employee>();
 
+        // ── Contadores de documentos (race-condition-safe) ─────────────────────
+        public DbSet<DocCounter> DocCounters => Set<DocCounter>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

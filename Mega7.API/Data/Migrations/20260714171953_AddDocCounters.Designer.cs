@@ -3,17 +3,20 @@ using System;
 using Mega7.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Mega7.API.Migrations
+namespace Mega7.API.Data.Migrations
 {
     [DbContext(typeof(Mega7DbContext))]
-    partial class Mega7DbContextModelSnapshot : ModelSnapshot
+    [Migration("20260714171953_AddDocCounters")]
+    partial class AddDocCounters
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

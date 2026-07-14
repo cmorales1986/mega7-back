@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, Check, FileUp, Wallet } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileUp, Trash2, Wallet } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────
 type SocioMini = { id: number; razonSocial: string; tipo: string };
@@ -177,6 +177,8 @@ export default function ImportarCuoteroPage() {
   const [mappings, setMappings] = useState<Record<string, number | null>>({});
   // mapa: excelName raíz → día de vencimiento (1-31)
   const [dueDays, setDueDays] = useState<Record<string, number>>({});
+  // mapa: excelName completo → excluido de la importación
+  const [excluded, setExcluded] = useState<Record<string, boolean>>({});
 
   // Step 2: result
   const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null);
@@ -231,6 +233,7 @@ export default function ImportarCuoteroPage() {
         }
         setMappings(init);
         setDueDays(initDays);
+        setExcluded({});
         setStep(1);
       } catch (err) {
         Swal.fire("Error", "No se pudo leer el archivo. Asegurate de que sea .xlsb o .xlsx.", "error");
@@ -247,7 +250,7 @@ export default function ImportarCuoteroPage() {
     }
 
     // Construir payload: una fila por cada parsedRow, usando el mapping del nombre raíz
-    const rows = parsedRows.map((row) => {
+    const rows = parsedRows.filter((row) => !excluded[row.excelName]).map((row) => {
       const key = extractClientName(row.excelName);
       const customerId = mappings[key] ?? null;
       const day = Math.min(Math.max(dueDays[row.excelName] ?? 1, 1), 31);
@@ -299,7 +302,7 @@ export default function ImportarCuoteroPage() {
   // ── Unique client keys for mapping UI ──────────────────────────────
   const uniqueKeys = Object.keys(mappings);
   const mappedCount = uniqueKeys.filter((k) => mappings[k] !== null).length;
-  const rowsWithMapping = parsedRows.filter((r) => mappings[extractClientName(r.excelName)] !== null).length;
+  const rowsWithMapping = parsedRows.filter((r) => !excluded[r.excelName] && mappings[extractClientName(r.excelName)] !== null).length;
 
   // ── Render ─────────────────────────────────────────────────────────
   return (
@@ -473,7 +476,14 @@ export default function ImportarCuoteroPage() {
                     {/* Conceptos (productos) de ese cliente — día de vencimiento por producto */}
                     <div className="ml-1 space-y-1.5 border-l-2 border-slate-100 pl-3">
                       {rowsForKey.map((r) => (
-                        <div key={r.excelName} className="flex items-center justify-between text-xs text-muted-foreground gap-2">
+                        <div
+                          key={r.excelName}
+                          className={`flex items-center justify-between text-xs gap-2 transition-opacity ${
+                            excluded[r.excelName]
+                              ? "opacity-40 line-through text-slate-400"
+                              : "text-muted-foreground"
+                          }`}
+                        >
                           <span className="font-medium text-slate-600 truncate flex-1 min-w-0">
                             {r.description || r.excelName}
                           </span>
@@ -498,6 +508,22 @@ export default function ImportarCuoteroPage() {
                                 }}
                               />
                             </span>
+                            <button
+                              type="button"
+                              title={excluded[r.excelName] ? "Restaurar" : "Excluir de la importación"}
+                              className={`rounded p-0.5 transition-colors ${
+                                excluded[r.excelName]
+                                  ? "text-slate-400 hover:text-emerald-600"
+                                  : "text-slate-300 hover:text-red-500"
+                              }`}
+                              onClick={() =>
+                                setExcluded((prev) => ({ ...prev, [r.excelName]: !prev[r.excelName] }))
+                              }
+                            >
+                              {excluded[r.excelName]
+                                ? <Check className="h-3.5 w-3.5" />
+                                : <Trash2 className="h-3.5 w-3.5" />}
+                            </button>
                           </span>
                         </div>
                       ))}

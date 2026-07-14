@@ -108,7 +108,7 @@ export default function DeliveryDetailPage() {
           </Button>
           {!isCancelled && !doc?.isInvoiced && (
             <Link href={`/sales-invoices/new?deliveryId=${idNum}`}>
-              <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow">
+              <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
                 <ReceiptText className="mr-2 h-4 w-4" /> Facturar
               </Button>
             </Link>

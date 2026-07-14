@@ -14,7 +14,7 @@ export function FloatingReportsButton() {
         className="
           fixed bottom-6 right-6 z-[1200]
           h-14 w-14 rounded-full
-          bg-[#2563eb] hover:bg-[#1d4ed8]
+          bg-[#C5A05A] hover:bg-[#b8934f]
           text-white shadow-xl
           flex items-center justify-center
           transition

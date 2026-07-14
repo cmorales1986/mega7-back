@@ -235,7 +235,7 @@ export default function FiscalDocumentSeriesPage() {
             <RefreshCcw className="h-4 w-4 mr-2" /> Refrescar
           </Button>
           {canCreate && (
-            <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white" onClick={openAdd}>
+            <Button className="bg-[#C5A05A] hover:bg-[#b8934f] text-white" onClick={openAdd}>
               <Plus className="h-4 w-4 mr-2" /> Nuevo
             </Button>
           )}
@@ -327,7 +327,7 @@ export default function FiscalDocumentSeriesPage() {
                   type="checkbox"
                   checked={form.isActive}
                   onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.checked }))}
-                  className="h-4 w-4 accent-[#2563eb]"
+                  className="h-4 w-4 accent-[#C5A05A]"
                 />
                 <span className="text-sm font-semibold text-gray-700">Activa</span>
               </label>
@@ -398,7 +398,7 @@ export default function FiscalDocumentSeriesPage() {
             <Button
               onClick={save}
               disabled={loading}
-              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white"
+              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white"
             >
               Guardar
             </Button>

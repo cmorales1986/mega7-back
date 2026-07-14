@@ -456,7 +456,7 @@ export default function StockOutputNewPage() {
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
 
-          <Button onClick={saveOutput} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow">
+          <Button onClick={saveOutput} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
             <Save className="mr-2 h-4 w-4" /> Guardar salida
           </Button>
         </div>
@@ -685,7 +685,7 @@ export default function StockOutputNewPage() {
               >
                 Cancelar
               </Button>
-              <Button className="bg-[#2563eb] text-white" onClick={saveLineFromModal}>
+              <Button className="bg-[#C5A05A] text-white" onClick={saveLineFromModal}>
                 Guardar línea
               </Button>
             </div>
@@ -756,7 +756,7 @@ export default function StockOutputNewPage() {
                   Limpiar
                 </Button>
                 <Button
-                  className="bg-[#2563eb] text-white"
+                  className="bg-[#C5A05A] text-white"
                   onClick={() => {
                     setSelectedSerials((prev) => Array.from(new Set(prev)));
                     setOpenSerialPicker(false);

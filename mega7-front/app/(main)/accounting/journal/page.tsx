@@ -459,7 +459,7 @@ export default function JournalPage() {
           <Button onClick={loadEntries} variant="outline" className="bg-white" disabled={loading}>
             <RefreshCcw className="mr-2 h-4 w-4" /> Refrescar
           </Button>
-          <Button onClick={openNew} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow">
+          <Button onClick={openNew} className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow">
             <Plus className="mr-2 h-4 w-4" /> Nuevo Asiento
           </Button>
         </>

@@ -68,7 +68,7 @@ export default function VentasVsCobroPage() {
           <select
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
-          className="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+          className="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#C5A05A]"
         >
           {years.map((y) => (
             <option key={y} value={y}>{y}</option>
@@ -80,7 +80,7 @@ export default function VentasVsCobroPage() {
       {/* Resumen */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Total facturado", value: totalVentas, color: "text-[#2563eb]" },
+          { label: "Total facturado", value: totalVentas, color: "text-[#C5A05A]" },
           { label: "Total cobrado",   value: totalCobros, color: "text-emerald-600" },
           { label: "Diferencia (pendiente)", value: diferencia, color: diferencia > 0 ? "text-red-600" : "text-emerald-600" },
         ].map((k) => (
@@ -104,7 +104,7 @@ export default function VentasVsCobroPage() {
               <YAxis tickFormatter={(v) => `${(v / 1_000_000).toFixed(1)}M`} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(v) => [`₲ ${money(Number(v ?? 0))}`, ""]} labelStyle={{ fontWeight: 600 }} />
               <Legend />
-              <Bar dataKey="sales"     name="Ventas"  fill="#2563eb" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="sales"     name="Ventas"  fill="#C5A05A" radius={[4, 4, 0, 0]} />
               <Bar dataKey="collected" name="Cobros"  fill="#10b981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -135,7 +135,7 @@ export default function VentasVsCobroPage() {
               <YAxis tickFormatter={(v) => `${(v / 1_000_000).toFixed(1)}M`} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(v) => [`₲ ${money(Number(v ?? 0))}`, ""]} labelStyle={{ fontWeight: 600 }} />
               <Legend />
-              <Line type="monotone" dataKey="accSales"     name="Ventas acum."  stroke="#2563eb" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="accSales"     name="Ventas acum."  stroke="#C5A05A" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="accCollected" name="Cobros acum."  stroke="#10b981" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>

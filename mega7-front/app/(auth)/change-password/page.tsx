@@ -171,12 +171,12 @@ export default function ChangePasswordPage() {
 
         <Button
           className="w-full text-white font-medium py-2 rounded-lg"
-          style={{ backgroundColor: "#2563eb" }}
+          style={{ backgroundColor: "#C5A05A" }}
           onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#1d4ed8")
+            (e.currentTarget.style.backgroundColor = "#b8934f")
           }
           onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#2563eb")
+            (e.currentTarget.style.backgroundColor = "#C5A05A")
           }
           disabled={loading}
           onClick={handleChange}

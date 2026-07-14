@@ -331,7 +331,7 @@ export default function StockEntryListPage() {
           {canCreate && (
             <Button
               onClick={() => router.push("/stock-entry/new")}
-              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
+              className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
             >
               <Plus className="mr-2 h-4 w-4" />
               Nuevo ingreso

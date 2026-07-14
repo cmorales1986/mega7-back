@@ -288,7 +288,7 @@ export default function SalesInvoiceForm() {
 
   return (
     <PageShell
-      icon={<ReceiptText className="h-6 w-6 text-[#2563eb]" />}
+      icon={<ReceiptText className="h-6 w-6 text-[#C5A05A]" />}
       title="Nueva Factura de Venta"
       subtitle="Se genera desde una Orden de Venta OPEN. Permite parcial, lote/serial y contado/crédito."
       chips={
@@ -312,7 +312,7 @@ export default function SalesInvoiceForm() {
           <Button
             onClick={save}
             disabled={loading}
-            className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow"
+            className="bg-[#C5A05A] hover:bg-[#b8934f] text-white shadow"
             title="Crear factura (descuenta stock)"
           >
             <Save className="mr-2 h-4 w-4" /> Guardar
@@ -323,7 +323,7 @@ export default function SalesInvoiceForm() {
       {/* CABECERA */}
       <Card className="border-slate-200 p-6 shadow-sm">
         <SectionHeader
-          icon={<ShoppingCart className="h-5 w-5 text-[#2563eb]" />}
+          icon={<ShoppingCart className="h-5 w-5 text-[#C5A05A]" />}
           title="Cabecera"
           subtitle="Seleccioná la OV, fecha, condición de pago y comentarios."
         />
@@ -425,7 +425,7 @@ export default function SalesInvoiceForm() {
       {/* LÍNEAS */}
       <Card className="border-slate-200 p-6 shadow-sm">
         <SectionHeader
-          icon={<ListChecks className="h-5 w-5 text-[#2563eb]" />}
+          icon={<ListChecks className="h-5 w-5 text-[#C5A05A]" />}
           title="Líneas a facturar"
           subtitle="Permite parcial. Si el producto requiere lote/serial, completalo."
           right={

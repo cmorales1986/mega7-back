@@ -262,7 +262,7 @@ export function LineDialog(props: {
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button className="bg-[#2563eb] text-white" onClick={save}>
+              <Button className="bg-[#C5A05A] text-white" onClick={save}>
                 Guardar línea
               </Button>
             </div>

@@ -19,13 +19,15 @@ namespace Mega7.API.Controllers
         private readonly PeriodService _periods;
         private readonly FiscalNumberService _fiscal;
         private readonly AccountingService _accounting;
+        private readonly DocNumberService _docNumbers;
 
-        public SalesInvoicesController(Mega7DbContext ctx, PeriodService periods, FiscalNumberService fiscal, AccountingService accounting)
+        public SalesInvoicesController(Mega7DbContext ctx, PeriodService periods, FiscalNumberService fiscal, AccountingService accounting, DocNumberService docNumbers)
         {
             _ctx = ctx;
             _periods = periods;
             _fiscal = fiscal;
             _accounting = accounting;
+            _docNumbers = docNumbers;
         }
 
         // GET: api/salesinvoices
@@ -955,22 +957,7 @@ namespace Mega7.API.Controllers
             }
         }
 
-        private async Task<string> GenerateNextDocNumber()
-        {
-            var last = await _ctx.ARInvoices
-                .OrderByDescending(x => x.Id)
-                .Select(x => x.DocNumber)
-                .FirstOrDefaultAsync();
-
-            if (string.IsNullOrWhiteSpace(last))
-                return "FV000001";
-
-            var numPart = new string(last.Where(char.IsDigit).ToArray());
-            if (!int.TryParse(numPart, out var n)) n = 0;
-
-            n++;
-            return $"FV{n:D6}";
-        }
+        private Task<string> GenerateNextDocNumber() => _docNumbers.NextAsync("FV");
 
         private static DateTime ClampDueDay(int year, int month, int dueDay)
         {

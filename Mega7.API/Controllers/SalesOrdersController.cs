@@ -23,12 +23,14 @@ namespace Mega7.API.Controllers
         private readonly Mega7DbContext _ctx;
         private readonly PeriodService _periods;
         private readonly SalesPricingService _pricing;
+        private readonly DocNumberService _docNumbers;
 
-        public SalesOrdersController(Mega7DbContext ctx, PeriodService periods, SalesPricingService pricing)
+        public SalesOrdersController(Mega7DbContext ctx, PeriodService periods, SalesPricingService pricing, DocNumberService docNumbers)
         {
             _ctx = ctx;
             _periods = periods;
             _pricing = pricing;
+            _docNumbers = docNumbers;
         }
 
         // GET: api/salesorders
@@ -759,22 +761,7 @@ namespace Mega7.API.Controllers
             return Ok(doc);
         }
 
-        private async Task<string> GenerateNextDocNumber()
-        {
-            var last = await _ctx.SalesOrders
-                .OrderByDescending(x => x.Id)
-                .Select(x => x.DocNumber)
-                .FirstOrDefaultAsync();
-
-            if (string.IsNullOrWhiteSpace(last))
-                return "OV000001";
-
-            var numPart = new string(last.Where(char.IsDigit).ToArray());
-            if (!int.TryParse(numPart, out var n)) n = 0;
-
-            n++;
-            return $"OV{n:D6}";
-        }
+        private Task<string> GenerateNextDocNumber() => _docNumbers.NextAsync("OV");
 
         // ==========================================
         // PREVIEW PDF (sin guardar)

@@ -19,11 +19,13 @@ namespace Mega7.API.Controllers
     {
         private readonly Mega7DbContext _ctx;
         private readonly PeriodService _periods;
+        private readonly DocNumberService _docNumbers;
 
-        public PurchaseOrdersController(Mega7DbContext ctx, PeriodService periods)
+        public PurchaseOrdersController(Mega7DbContext ctx, PeriodService periods, DocNumberService docNumbers)
         {
             _ctx = ctx;
             _periods = periods;
+            _docNumbers = docNumbers;
         }
 
         // GET: api/purchaseorders
@@ -381,23 +383,7 @@ namespace Mega7.API.Controllers
         // Generador simple de numeración (por ahora)
         // Luego lo convertimos en Series por tipo/doc/año
         // ----------------------------------------------------
-        private async Task<string> GenerateNextDocNumber()
-        {
-            // OC000001
-            var last = await _ctx.PurchaseOrders
-                .OrderByDescending(x => x.Id)
-                .Select(x => x.DocNumber)
-                .FirstOrDefaultAsync();
-
-            if (string.IsNullOrWhiteSpace(last))
-                return "OC000001";
-
-            var numPart = new string(last.Where(char.IsDigit).ToArray());
-            if (!int.TryParse(numPart, out var n)) n = 0;
-
-            n++;
-            return $"OC{n:D6}";
-        }
+        private Task<string> GenerateNextDocNumber() => _docNumbers.NextAsync("OC");
 
         [RequirePermission(Perms.PurchaseOrdersView)]
         [HttpGet("{id}/pdf")]

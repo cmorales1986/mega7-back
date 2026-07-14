@@ -1,4 +1,5 @@
-﻿using Mega7.API.Data;
+﻿using Mega7.API.Attributes;
+using Mega7.API.Data;
 using Mega7.API.DTOs;
 using Mega7.API.Utils;
 using Mega7.SHARED.DTOs;
@@ -196,6 +197,8 @@ namespace Mega7.API.Controllers
         // ---------------------------------------------------------
         // 🔵 REGISTER
         // ---------------------------------------------------------
+        [Authorize]
+        [RequirePermission(Perms.UsersCreate)]
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest req)
         {
@@ -223,6 +226,11 @@ namespace Mega7.API.Controllers
             if (string.IsNullOrWhiteSpace(role))
                 role = "VENTAS";
             role = role.ToUpperInvariant();
+
+            // Solo ADMIN puede crear usuarios ADMIN
+            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+            if (role == "ADMIN" && callerRole != "ADMIN")
+                return Forbid();
 
             // Duplicados (case-insensitive)
             var usernameLower = username.ToLower();

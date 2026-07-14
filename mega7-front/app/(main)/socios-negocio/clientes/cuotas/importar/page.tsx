@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, Check, FileUp, Wallet } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileUp, Trash2, Wallet } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────
 type SocioMini = { id: number; razonSocial: string; tipo: string };
@@ -177,6 +177,8 @@ export default function ImportarCuoteroPage() {
   const [mappings, setMappings] = useState<Record<string, number | null>>({});
   // mapa: excelName raíz → día de vencimiento (1-31)
   const [dueDays, setDueDays] = useState<Record<string, number>>({});
+  // mapa: excelName completo → excluido de la importación
+  const [excluded, setExcluded] = useState<Record<string, boolean>>({});
 
   // Step 2: result
   const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null);
@@ -231,6 +233,7 @@ export default function ImportarCuoteroPage() {
         }
         setMappings(init);
         setDueDays(initDays);
+        setExcluded({});
         setStep(1);
       } catch (err) {
         Swal.fire("Error", "No se pudo leer el archivo. Asegurate de que sea .xlsb o .xlsx.", "error");
@@ -247,7 +250,7 @@ export default function ImportarCuoteroPage() {
     }
 
     // Construir payload: una fila por cada parsedRow, usando el mapping del nombre raíz
-    const rows = parsedRows.map((row) => {
+    const rows = parsedRows.filter((row) => !excluded[row.excelName]).map((row) => {
       const key = extractClientName(row.excelName);
       const customerId = mappings[key] ?? null;
       const day = Math.min(Math.max(dueDays[row.excelName] ?? 1, 1), 31);
@@ -299,7 +302,7 @@ export default function ImportarCuoteroPage() {
   // ── Unique client keys for mapping UI ──────────────────────────────
   const uniqueKeys = Object.keys(mappings);
   const mappedCount = uniqueKeys.filter((k) => mappings[k] !== null).length;
-  const rowsWithMapping = parsedRows.filter((r) => mappings[extractClientName(r.excelName)] !== null).length;
+  const rowsWithMapping = parsedRows.filter((r) => !excluded[r.excelName] && mappings[extractClientName(r.excelName)] !== null).length;
 
   // ── Render ─────────────────────────────────────────────────────────
   return (
@@ -472,35 +475,57 @@ export default function ImportarCuoteroPage() {
 
                     {/* Conceptos (productos) de ese cliente — día de vencimiento por producto */}
                     <div className="ml-1 space-y-1.5 border-l-2 border-slate-100 pl-3">
-                      {rowsForKey.map((r) => (
-                        <div key={r.excelName} className="flex items-center justify-between text-xs text-muted-foreground gap-2">
-                          <span className="font-medium text-slate-600 truncate flex-1 min-w-0">
-                            {r.description || r.excelName}
-                          </span>
-                          <span className="flex gap-3 shrink-0 items-center">
-                            <span className="text-slate-400">
-                              {fmtMonth(r.firstDue)} → <span className="font-semibold text-rose-600">{fmtMonth(r.lastDue)}</span>
+                      {rowsForKey.map((r) => {
+                        const isExcluded = !!excluded[r.excelName];
+                        return (
+                          <div
+                            key={r.excelName}
+                            className={`flex items-center justify-between text-xs gap-2 transition-opacity ${
+                              isExcluded ? "opacity-40 line-through" : "text-muted-foreground"
+                            }`}
+                          >
+                            <span className="font-medium text-slate-600 truncate flex-1 min-w-0">
+                              {r.description || r.excelName}
                             </span>
-                            <span className="text-emerald-600">{r.paidCount} PDO</span>
-                            <span className="text-amber-600">{r.pendingCount} pend.</span>
-                            <span className="font-semibold text-slate-700">{money(r.pendingAmount)} Gs.</span>
-                            <span className="flex items-center gap-1">
-                              <span className="text-slate-400">día</span>
-                              <input
-                                type="number"
-                                min={1}
-                                max={31}
-                                className="w-12 rounded border border-slate-300 bg-white px-1 py-0.5 text-xs text-center font-semibold"
-                                value={dueDays[r.excelName] ?? 1}
-                                onChange={(e) => {
-                                  const v = Math.min(Math.max(Number(e.target.value) || 1, 1), 31);
-                                  setDueDays((prev) => ({ ...prev, [r.excelName]: v }));
-                                }}
-                              />
+                            <span className="flex gap-3 shrink-0 items-center">
+                              <span className="text-slate-400">
+                                {fmtMonth(r.firstDue)} → <span className="font-semibold text-rose-600">{fmtMonth(r.lastDue)}</span>
+                              </span>
+                              <span className="text-emerald-600">{r.paidCount} PDO</span>
+                              <span className="text-amber-600">{r.pendingCount} pend.</span>
+                              <span className="font-semibold text-slate-700">{money(r.pendingAmount)} Gs.</span>
+                              {!isExcluded && (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-slate-400">día</span>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={31}
+                                    className="w-12 rounded border border-slate-300 bg-white px-1 py-0.5 text-xs text-center font-semibold"
+                                    value={dueDays[r.excelName] ?? 1}
+                                    onChange={(e) => {
+                                      const v = Math.min(Math.max(Number(e.target.value) || 1, 1), 31);
+                                      setDueDays((prev) => ({ ...prev, [r.excelName]: v }));
+                                    }}
+                                  />
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                title={isExcluded ? "Restaurar" : "Excluir de la importación"}
+                                className={`rounded p-0.5 transition-colors ${
+                                  isExcluded
+                                    ? "text-slate-400 hover:text-emerald-600"
+                                    : "text-slate-300 hover:text-red-500"
+                                }`}
+                                onClick={() => setExcluded((prev) => ({ ...prev, [r.excelName]: !isExcluded }))}
+                              >
+                                {isExcluded ? <Check className="h-3.5 w-3.5" /> : <Trash2 className="h-3.5 w-3.5" />}
+                              </button>
                             </span>
-                          </span>
-                        </div>
-                      ))}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );

@@ -36,7 +36,6 @@ import {
   Barcode,
   ReceiptText,
   ShoppingCart,
-  CreditCard,
   CalendarDays,
   ListChecks,
   Building2,
@@ -1055,340 +1054,233 @@ export default function NewSalesInvoicePage() {
         </div>
       )}
 
-      {/* ── CABECERA ── */}
+      {/* ── CABECERA + CONDICIÓN DE PAGO ── */}
       {mode !== "delivery" && (
-      <Card className="border-slate-200 p-6 shadow-sm">
-        <SectionHeader
-          icon={<ShoppingCart className="h-5 w-5 text-[#C5A05A]" />}
-          title="Cabecera"
-          subtitle={
-            mode === "so"
-              ? "Seleccioná la OV, fecha, serie fiscal y comentarios."
-              : "Seleccioná el cliente, depósito, fecha, serie fiscal y comentarios."
-          }
-        />
-        <Separator className="my-4" />
+      <Card className="border-slate-200 p-5 shadow-sm">
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Header compacto */}
+        <div className="flex items-center gap-2 mb-4">
+          <ShoppingCart className="h-5 w-5 text-[#C5A05A]" />
+          <div>
+            <p className="font-semibold text-gray-800 leading-tight">Datos de la factura</p>
+            <p className="text-[11px] text-gray-500">Cliente, fechas, serie fiscal y condición de pago.</p>
+          </div>
+        </div>
 
-          {/* ── SO mode header fields ── */}
+        {/* Grid principal — fila 1: campos de cabecera + tipo de pago */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+
+          {/* ── SO mode ── */}
           {mode === "so" && (
             <>
-              <div className="md:col-span-1">
-                <label className="text-sm font-semibold text-gray-700">Orden de Venta (OPEN)</label>
+              <div className="col-span-2">
+                <label className="text-xs font-semibold text-gray-600">Orden de Venta (OPEN)</label>
                 <Select
                   value={soId ? String(soId) : ""}
                   onValueChange={(v) => { const id = Number(v); setSoId(id); loadPending(id); }}
                 >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Seleccione OV abierta" />
-                  </SelectTrigger>
+                  <SelectTrigger className="bg-white mt-1"><SelectValue placeholder="Seleccione OV abierta" /></SelectTrigger>
                   <SelectContent className="bg-white">
                     {openSOs.map((so) => (
-                      <SelectItem key={so.id} value={String(so.id)}>
-                        {so.docNumber} — {so.customerName}
-                      </SelectItem>
+                      <SelectItem key={so.id} value={String(so.id)}>{so.docNumber} — {so.customerName}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <label className="text-sm font-semibold text-gray-700">Fecha Factura</label>
-                <div className="relative">
-                  <CalendarDays className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="pl-9 bg-white" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-700">Serie</label>
-                <Select
-                  value={fiscalSeriesId ? String(fiscalSeriesId) : ""}
-                  onValueChange={(v) => setFiscalSeriesId(v ? Number(v) : null)}
-                >
-                  <SelectTrigger className="bg-white"><SelectValue placeholder="Seleccionar serie..." /></SelectTrigger>
-                  <SelectContent className="bg-white">
-                    {fiscalSeries.map((s) => <SelectItem key={s.id} value={String(s.id)}>{seriesLabel(s)}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                {selectedFiscalSeries && (
-                  <div className="text-[11px] text-gray-500 mt-1">
-                    {selectedFiscalSeries.establishment}-{selectedFiscalSeries.expeditionPoint} · Timbrado {selectedFiscalSeries.timbradoNumber} · Próx {String(selectedFiscalSeries.nextNumber).padStart(7, "0")} (se reserva al guardar)
-                  </div>
-                )}
-                {fiscalSeries.length > 1 && !fiscalSeriesId && (
-                  <div className="text-[11px] text-yellow-700 mt-1">⚠️ Hay más de una serie activa. Debés seleccionar una para facturar.</div>
-                )}
-                {fiscalSeries.length === 0 && (
-                  <div className="text-[11px] text-yellow-700 mt-1">⚠️ No hay series fiscales activas para FACTURA.</div>
-                )}
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-700">Depósito</label>
-                <div className="relative">
+                <label className="text-xs font-semibold text-gray-600">Depósito</label>
+                <div className="relative mt-1">
                   <Building2 className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <Input value={pendingDoc?.warehouseName ?? String(pendingDoc?.warehouseId ?? "")} disabled className="pl-9 bg-white" />
                 </div>
               </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600">Fecha Factura</label>
+                <div className="relative mt-1">
+                  <CalendarDays className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="pl-9 bg-white" />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600">Serie</label>
+                <Select value={fiscalSeriesId ? String(fiscalSeriesId) : ""} onValueChange={(v) => setFiscalSeriesId(v ? Number(v) : null)}>
+                  <SelectTrigger className="bg-white mt-1"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {fiscalSeries.map((s) => <SelectItem key={s.id} value={String(s.id)}>{seriesLabel(s)}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {selectedFiscalSeries && <div className="text-[11px] text-gray-500 mt-1">{selectedFiscalSeries.establishment}-{selectedFiscalSeries.expeditionPoint} · Timbrado {selectedFiscalSeries.timbradoNumber} · Próx {String(selectedFiscalSeries.nextNumber).padStart(7, "0")}</div>}
+                {fiscalSeries.length > 1 && !fiscalSeriesId && <div className="text-[11px] text-yellow-700 mt-1">⚠️ Seleccioná una serie.</div>}
+                {fiscalSeries.length === 0 && <div className="text-[11px] text-yellow-700 mt-1">⚠️ Sin series activas.</div>}
+              </div>
             </>
           )}
 
-          {/* ── Direct mode header fields ── */}
+          {/* ── Direct mode ── */}
           {mode === "direct" && (
             <>
-              <div className="md:col-span-1">
-                <label className="text-sm font-semibold text-gray-700">
-                  Cliente <span className="text-red-500">*</span>
-                </label>
-                <Select
-                  value={directCustomerId ? String(directCustomerId) : ""}
-                  onValueChange={(v) => setDirectCustomerId(Number(v))}
-                >
-                  <SelectTrigger className="bg-white"><SelectValue placeholder="Seleccionar cliente..." /></SelectTrigger>
+              <div className="col-span-2">
+                <label className="text-xs font-semibold text-gray-600">Cliente <span className="text-red-500">*</span></label>
+                <Select value={directCustomerId ? String(directCustomerId) : ""} onValueChange={(v) => setDirectCustomerId(Number(v))}>
+                  <SelectTrigger className="bg-white mt-1"><SelectValue placeholder="Seleccionar cliente..." /></SelectTrigger>
                   <SelectContent className="bg-white">
-                    {customers
-                      .slice()
-                      .sort((a, b) => a.razonSocial.localeCompare(b.razonSocial))
-                      .map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.razonSocial}
-                        </SelectItem>
-                      ))}
+                    {customers.slice().sort((a, b) => a.razonSocial.localeCompare(b.razonSocial)).map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.razonSocial}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <label className="text-sm font-semibold text-gray-700">
-                  Depósito <span className="text-red-500">*</span>
-                </label>
-                <Select
-                  value={directWarehouseId ? String(directWarehouseId) : ""}
-                  onValueChange={(v) => setDirectWarehouseId(Number(v))}
-                >
-                  <SelectTrigger className="bg-white"><SelectValue placeholder="Seleccionar depósito..." /></SelectTrigger>
+                <label className="text-xs font-semibold text-gray-600">Depósito</label>
+                <Select value={directWarehouseId ? String(directWarehouseId) : ""} onValueChange={(v) => setDirectWarehouseId(Number(v))}>
+                  <SelectTrigger className="bg-white mt-1"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                   <SelectContent className="bg-white">
                     {warehouses.map((w) => <SelectItem key={w.id} value={String(w.id)}>{w.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <label className="text-sm font-semibold text-gray-700">Fecha Factura</label>
-                <div className="relative">
+                <label className="text-xs font-semibold text-gray-600">Fecha Factura</label>
+                <div className="relative mt-1">
                   <CalendarDays className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="pl-9 bg-white" />
                 </div>
               </div>
-
               <div>
-                <label className="text-sm font-semibold text-gray-700">Serie</label>
-                <Select
-                  value={fiscalSeriesId ? String(fiscalSeriesId) : ""}
-                  onValueChange={(v) => setFiscalSeriesId(v ? Number(v) : null)}
-                >
-                  <SelectTrigger className="bg-white"><SelectValue placeholder="Seleccionar serie..." /></SelectTrigger>
+                <label className="text-xs font-semibold text-gray-600">Serie</label>
+                <Select value={fiscalSeriesId ? String(fiscalSeriesId) : ""} onValueChange={(v) => setFiscalSeriesId(v ? Number(v) : null)}>
+                  <SelectTrigger className="bg-white mt-1"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                   <SelectContent className="bg-white">
                     {fiscalSeries.map((s) => <SelectItem key={s.id} value={String(s.id)}>{seriesLabel(s)}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                {selectedFiscalSeries && (
-                  <div className="text-[11px] text-gray-500 mt-1">
-                    {selectedFiscalSeries.establishment}-{selectedFiscalSeries.expeditionPoint} · Timbrado {selectedFiscalSeries.timbradoNumber} · Próx {String(selectedFiscalSeries.nextNumber).padStart(7, "0")}
-                  </div>
-                )}
-                {fiscalSeries.length > 1 && !fiscalSeriesId && (
-                  <div className="text-[11px] text-yellow-700 mt-1">⚠️ Hay más de una serie activa. Debés seleccionar una.</div>
-                )}
+                {selectedFiscalSeries && <div className="text-[11px] text-gray-500 mt-1">{selectedFiscalSeries.establishment}-{selectedFiscalSeries.expeditionPoint} · Timbrado {selectedFiscalSeries.timbradoNumber} · Próx {String(selectedFiscalSeries.nextNumber).padStart(7, "0")}</div>}
+                {fiscalSeries.length > 1 && !fiscalSeriesId && <div className="text-[11px] text-yellow-700 mt-1">⚠️ Seleccioná una serie.</div>}
               </div>
             </>
           )}
 
-          <div className="md:col-span-2">
-            <label className="text-sm font-semibold text-gray-700">
-              Nro. Factura <span className="text-xs font-normal text-gray-400">(pre-impreso)</span>
-            </label>
-            <Input
-              placeholder="001-001-0000001"
-              value={externalNumber}
-              onChange={(e) => setExternalNumber(e.target.value)}
-              className="bg-white font-mono"
-            />
-            <div className="text-[11px] text-gray-500 mt-1">Ingresá el número del talonario físico.</div>
+          {/* Tipo de pago — última columna fila 1 */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600">Tipo de pago</label>
+            <Select value={paymentType} onValueChange={(v) => { const nv = v === "CREDIT" ? "CREDIT" : "CASH"; setPaymentType(nv); if (nv === "CASH") setCreditInstallments(false); }}>
+              <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="CASH">CONTADO</SelectItem>
+                <SelectItem value="CREDIT">CRÉDITO</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="md:col-span-2">
-            <label className="text-sm font-semibold text-gray-700">Comentarios</label>
-            <div className="relative">
+          {/* Fila 2: Nro. Factura | Vencimiento | [si CREDIT: Término + Días + Cuotas] | Comentarios */}
+          <div className="col-span-2">
+            <label className="text-xs font-semibold text-gray-600">Nro. Factura <span className="font-normal text-gray-400">(pre-impreso)</span></label>
+            <Input placeholder="001-001-0000001" value={externalNumber} onChange={(e) => setExternalNumber(e.target.value)} className="bg-white font-mono mt-1" />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-600">Vencimiento</label>
+            <Input value={computedDueDate} disabled className="bg-white mt-1" />
+            {paymentType === "CREDIT" && !creditTermId && <div className="text-[11px] text-yellow-700 mt-1">⚠️ Sin CreditTerm asignado.</div>}
+          </div>
+
+          {paymentType === "CREDIT" && (
+            <>
+              <div>
+                <label className="text-xs font-semibold text-gray-600">Término de crédito</label>
+                <Select value={creditTermId ? String(creditTermId) : ""} onValueChange={(v) => setCreditTermId(v ? Number(v) : null)}>
+                  <SelectTrigger className="bg-white mt-1"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {creditTerms.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name} ({t.days} días)</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600">Días de crédito</label>
+                <Input type="number" min={0} value={creditDays} onChange={(e) => setCreditDays(Number(e.target.value))} className="bg-white mt-1" />
+              </div>
+              <div className="flex items-end pb-1">
+                <label className="flex items-center gap-2 select-none cursor-pointer">
+                  <input type="checkbox" className="h-4 w-4 accent-[#C5A05A]" checked={creditInstallments} onChange={(e) => setCreditInstallments(e.target.checked)} />
+                  <span className="text-xs font-semibold text-gray-700">Cuotas</span>
+                </label>
+              </div>
+            </>
+          )}
+
+          <div className={paymentType === "CREDIT" ? "col-span-2 md:col-span-6" : "col-span-2 md:col-span-3"}>
+            <label className="text-xs font-semibold text-gray-600">Comentarios</label>
+            <div className="relative mt-1">
               <MessageSquare className="h-4 w-4 text-slate-400 absolute left-3 top-3" />
-              <Textarea value={comments} onChange={(e) => setComments(e.target.value)} placeholder="Observaciones..." className="pl-9 bg-white" />
+              <Textarea value={comments} onChange={(e) => setComments(e.target.value)} placeholder="Observaciones..." className="pl-9 bg-white" rows={2} />
             </div>
           </div>
         </div>
 
-        {/* PAGO / CRÉDITO / CUOTAS */}
-        <Separator className="my-5" />
-
-        <SectionHeader
-          icon={<CreditCard className="h-5 w-5 text-[#C5A05A]" />}
-          title="Condición de pago"
-          subtitle="Contado / Crédito, término, días y (opcional) crédito a cuotas."
-        />
-
-        <Separator className="my-4" />
-
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        {/* Cuotas — sección expandible cuando CRÉDITO + cuotas activado */}
+        {paymentType === "CREDIT" && creditInstallments && (
+          <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 md:grid-cols-5 gap-3">
             <div>
-              <label className="text-sm font-semibold text-gray-700">Tipo de pago</label>
-              <Select
-                value={paymentType}
-                onValueChange={(v) => {
-                  const nv = v === "CREDIT" ? "CREDIT" : "CASH";
-                  setPaymentType(nv);
-                  if (nv === "CASH") setCreditInstallments(false);
-                }}
-              >
-                <SelectTrigger className="bg-white"><SelectValue placeholder="Seleccione" /></SelectTrigger>
+              <label className="text-xs font-semibold text-gray-600">Cantidad de cuotas</label>
+              <Input type="number" min={2} step={1} value={installmentsCount} onChange={(e) => setInstallmentsCount(Number(e.target.value))} className="bg-white mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-600">Esquema</label>
+              <Select value={installmentScheduleType} onValueChange={(v) => setInstallmentScheduleType(v === "DAY_OF_MONTH" ? "DAY_OF_MONTH" : "INTERVAL")}>
+                <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-white">
-                  <SelectItem value="CASH">CONTADO</SelectItem>
-                  <SelectItem value="CREDIT">CRÉDITO</SelectItem>
+                  <SelectItem value="INTERVAL">Cada X días</SelectItem>
+                  <SelectItem value="DAY_OF_MONTH">Día fijo del mes</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
+            {installmentScheduleType === "INTERVAL" ? (
+              <div>
+                <label className="text-xs font-semibold text-gray-600">Intervalo (días)</label>
+                <Select value={String(intervalDays)} onValueChange={(v) => setIntervalDays(Number(v))}>
+                  <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="7">7</SelectItem>
+                    <SelectItem value="15">15</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div>
+                <label className="text-xs font-semibold text-gray-600">Vence día</label>
+                <Input type="number" min={1} max={31} value={dueDayOfMonth} onChange={(e) => setDueDayOfMonth(Number(e.target.value))} className="bg-white mt-1" />
+              </div>
+            )}
+            {installmentScheduleType === "DAY_OF_MONTH" ? (
+              <div>
+                <label className="text-xs font-semibold text-gray-600">Primera cuota</label>
+                <Select value={firstDueRule} onValueChange={(v) => setFirstDueRule(v === "NEXT_MONTH" ? "NEXT_MONTH" : "AUTO")}>
+                  <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="AUTO">Este mes si no pasó</SelectItem>
+                    <SelectItem value="NEXT_MONTH">Siempre próximo mes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : <div />}
             <div>
-              <label className="text-sm font-semibold text-gray-700">Vencimiento (estimado)</label>
-              <Input value={computedDueDate} disabled className="bg-white" />
-              {paymentType === "CREDIT" && !creditTermId && (
-                <div className="text-[11px] text-yellow-700 mt-1">⚠️ El cliente no tiene CreditTerm asignado. Se usará crédito 0 días (no bloquea).</div>
-              )}
-              {paymentType === "CREDIT" && !!creditTermId && !hasCreditTerm && (
-                <div className="text-[11px] text-yellow-700 mt-1">⚠️ No se pudo leer CreditTerm del cliente desde el pending, pero ya lo recuperamos por ID.</div>
-              )}
+              <label className="text-xs font-semibold text-gray-600">1er vencimiento (opcional)</label>
+              <Input type="date" value={firstDueDate} onChange={(e) => setFirstDueDate(e.target.value)} className="bg-white mt-1" />
             </div>
-
-            {paymentType === "CREDIT" && (
-              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-semibold text-gray-700">Término de crédito</label>
-                  <Select
-                    value={creditTermId ? String(creditTermId) : ""}
-                    onValueChange={(v) => setCreditTermId(v ? Number(v) : null)}
-                  >
-                    <SelectTrigger className="bg-white"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {creditTerms.map((t) => (
-                        <SelectItem key={t.id} value={String(t.id)}>{t.name} ({t.days} días)</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <div className="mt-2">
-                    <label className="text-[11px] font-semibold text-gray-600">Días (editable por factura)</label>
-                    <Input type="number" min={0} value={creditDays} onChange={(e) => setCreditDays(Number(e.target.value))} className="bg-white" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-3 select-none mt-6 md:mt-0">
-                    <input type="checkbox" className="h-4 w-4 accent-[#C5A05A]" checked={creditInstallments} onChange={(e) => setCreditInstallments(e.target.checked)} />
-                    <span className="text-sm font-semibold text-gray-700">Crédito a cuotas</span>
-                  </label>
-                  <div className="text-[11px] text-gray-500 mt-1">Si desactivás cuotas, se usa vencimiento normal (invoiceDate + creditDays).</div>
+            {installmentsPreview.length > 0 && (
+              <div className="col-span-2 md:col-span-5 bg-gray-50 border rounded-lg p-3">
+                <div className="text-xs font-semibold text-gray-700 mb-2">Preview cuotas</div>
+                <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-600">
+                  {installmentsPreview.slice(0, 5).map((x) => (
+                    <span key={x.n}>#{x.n} {x.due} — <b>{money(x.amount)}</b></span>
+                  ))}
+                  {installmentsPreview.length > 5 && <span className="text-gray-400">…+{installmentsPreview.length - 5}</span>}
                 </div>
               </div>
             )}
           </div>
-
-          {paymentType === "CREDIT" && creditInstallments && (
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div>
-                <label className="text-sm font-semibold text-gray-700">Cantidad de cuotas</label>
-                <Input type="number" min={2} step={1} value={installmentsCount} onChange={(e) => setInstallmentsCount(Number(e.target.value))} className="bg-white" />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-700">Esquema</label>
-                <Select
-                  value={installmentScheduleType}
-                  onValueChange={(v) => setInstallmentScheduleType(v === "DAY_OF_MONTH" ? "DAY_OF_MONTH" : "INTERVAL")}
-                >
-                  <SelectTrigger className="bg-white"><SelectValue placeholder="Seleccione" /></SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="INTERVAL">Intervalo (cada X días)</SelectItem>
-                    <SelectItem value="DAY_OF_MONTH">Día fijo del mes</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="text-[11px] text-gray-500 mt-1">Podés dejar FirstDueDate vacío y el sistema calcula desde la factura + días de crédito.</div>
-              </div>
-
-              {installmentScheduleType === "INTERVAL" ? (
-                <div>
-                  <label className="text-sm font-semibold text-gray-700">Intervalo (días)</label>
-                  <Select value={String(intervalDays)} onValueChange={(v) => setIntervalDays(Number(v))}>
-                    <SelectTrigger className="bg-white"><SelectValue placeholder="Seleccione" /></SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="7">7</SelectItem>
-                      <SelectItem value="15">15</SelectItem>
-                      <SelectItem value="30">30</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : (
-                <div className="md:col-span-1">
-                  <label className="text-sm font-semibold text-gray-700">Vence día</label>
-                  <Input type="number" min={1} max={31} value={dueDayOfMonth} onChange={(e) => setDueDayOfMonth(Number(e.target.value))} className="bg-white" />
-                  <div className="text-[11px] text-gray-500 mt-1">Si el mes no tiene ese día (ej 31), cae al último día del mes.</div>
-                </div>
-              )}
-
-              {installmentScheduleType === "DAY_OF_MONTH" ? (
-                <div>
-                  <label className="text-sm font-semibold text-gray-700">Primera cuota</label>
-                  <Select value={firstDueRule} onValueChange={(v) => setFirstDueRule(v === "NEXT_MONTH" ? "NEXT_MONTH" : "AUTO")}>
-                    <SelectTrigger className="bg-white"><SelectValue placeholder="Seleccione" /></SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="AUTO">Este mes si no pasó</SelectItem>
-                      <SelectItem value="NEXT_MONTH">Siempre próximo mes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : (
-                <div />
-              )}
-
-              <div className="md:col-span-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-semibold text-gray-700">Primer Día Vencimiento (opcional)</label>
-                  <Input type="date" value={firstDueDate} onChange={(e) => setFirstDueDate(e.target.value)} className="bg-white" />
-                  <div className="text-[11px] text-gray-500 mt-1">Si lo dejás vacío, se calcula con InvoiceDate + CreditDays.</div>
-                </div>
-
-                <div className="bg-gray-50 border rounded-xl p-3">
-                  <div className="text-sm font-semibold text-gray-800">Preview cuotas</div>
-                  {installmentsPreview.length === 0 ? (
-                    <div className="text-xs text-gray-500 mt-1">Cargá cantidad &gt;= 2 para ver preview.</div>
-                  ) : (
-                    <div className="mt-2 space-y-1 text-xs text-gray-700">
-                      {installmentsPreview.slice(0, 5).map((x) => (
-                        <div key={x.n} className="flex justify-between">
-                          <span>#{x.n} — {x.due}</span>
-                          <span>{money(x.amount)}</span>
-                        </div>
-                      ))}
-                      {installmentsPreview.length > 5 && (
-                        <div className="text-[11px] text-gray-500">…y {installmentsPreview.length - 5} más</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </Card>
       )}
 

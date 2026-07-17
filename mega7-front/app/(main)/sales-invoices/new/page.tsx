@@ -1527,8 +1527,23 @@ export default function NewSalesInvoicePage() {
                         />
                       </div>
 
+                      {/* IVA */}
+                      <div className="md:col-span-1">
+                        <label className="text-xs font-semibold text-gray-600">IVA</label>
+                        <Select
+                          value={l.taxId ? String(l.taxId) : "0"}
+                          onValueChange={(v) => setDirectLine(l.id, { taxId: v && v !== "0" ? Number(v) : null })}
+                        >
+                          <SelectTrigger className="bg-white"><SelectValue placeholder="Sin IVA" /></SelectTrigger>
+                          <SelectContent className="bg-white">
+                            <SelectItem value="0">Sin IVA</SelectItem>
+                            {taxes.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name} ({t.rate}%)</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       {/* Acciones */}
-                      <div className="md:col-span-3 flex gap-1 items-end">
+                      <div className="md:col-span-2 flex gap-1 items-end">
                         {needsTrack && (
                           <Button type="button" variant="outline" size="sm" className="bg-white flex-1"
                             onClick={() => openTrackDialog(l.id, "direct")}>

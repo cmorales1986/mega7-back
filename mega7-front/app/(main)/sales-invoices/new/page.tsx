@@ -44,6 +44,8 @@ import {
   Plus,
   Trash2,
   User2,
+  Wrench,
+  Package,
 } from "lucide-react";
 
 import { PageShell, Chip } from "@/components/ui/page-shell";
@@ -169,6 +171,8 @@ type Warehouse     = { id: number; name: string };
 
 type DirectLineDraft = {
   id:              number;
+  lineType:        "ITEM" | "SERVICE";
+  description:     string;
   productId:       number | null;
   quantity:        number;
   unitPrice:       number;
@@ -256,6 +260,7 @@ export default function NewSalesInvoicePage() {
   const [directCustomerId,  setDirectCustomerId]  = useState<number | null>(null);
   const [directWarehouseId, setDirectWarehouseId] = useState<number | null>(null);
   const [directLines,       setDirectLines]       = useState<DirectLineDraft[]>([]);
+  const [externalNumber,    setExternalNumber]    = useState("");
   const nextDLineId = useRef(1);
   const [trackMode, setTrackMode] = useState<"so" | "direct">("so");
 
@@ -393,11 +398,11 @@ export default function NewSalesInvoicePage() {
     setDirectLines((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   };
 
-  const addDirectLine = () => {
+  const addDirectLine = (type: "ITEM" | "SERVICE" = "ITEM") => {
     const id = nextDLineId.current++;
     setDirectLines((prev) => [
       ...prev,
-      { id, productId: null, quantity: 1, unitPrice: 0, discountPercent: 0, taxId: null, batchNumber: "", serialNumbers: "" },
+      { id, lineType: type, description: "", productId: null, quantity: 1, unitPrice: 0, discountPercent: 0, taxId: null, batchNumber: "", serialNumbers: "" },
     ]);
   };
 
@@ -664,13 +669,24 @@ export default function NewSalesInvoicePage() {
     }
 
     if (mode === "direct") {
-      if (!directCustomerId)  return "Seleccioná el cliente.";
-      if (!directWarehouseId) return "Seleccioná el depósito.";
+      if (!directCustomerId) return "Seleccioná el cliente.";
       if (!directLines.length) return "Añadí al menos una línea.";
-      const used = directLines.filter((l) => l.productId && l.quantity > 0);
-      if (!used.length) return "Debés tener al menos 1 línea con producto y cantidad > 0.";
-      for (const l of used) {
-        if (!l.productId)   return "Seleccioná el producto en todas las líneas.";
+
+      const itemLines = directLines.filter((l) => l.lineType === "ITEM" && l.productId && l.quantity > 0);
+      const serviceLines = directLines.filter((l) => l.lineType === "SERVICE");
+
+      if (itemLines.length > 0 && !directWarehouseId)
+        return "Seleccioná el depósito (requerido para líneas ITEM).";
+      if (itemLines.length === 0 && serviceLines.length === 0)
+        return "Añadí al menos una línea ITEM o SERVICIO con datos válidos.";
+
+      for (const l of serviceLines) {
+        if (!l.description?.trim()) return "Las líneas SERVICIO requieren descripción.";
+        if (l.quantity <= 0) return "Cantidad inválida en línea de servicio.";
+      }
+
+      for (const l of itemLines) {
+        if (!l.productId)   return "Seleccioná el producto en todas las líneas ITEM.";
         if (l.quantity <= 0) return "Cantidad inválida.";
         const p = productMap.get(l.productId);
         if (p?.isBatchManaged && !l.batchNumber?.trim())
@@ -736,6 +752,7 @@ export default function NewSalesInvoicePage() {
         invoiceDate:  new Date(invoiceDate).toISOString(),
         paymentType,
         comments:     comments?.trim() || null,
+        externalNumber: externalNumber?.trim() || null,
         fiscalSeriesId: fiscalSeriesId ?? null,
         creditTermId:   paymentType === "CREDIT" ? creditTermId : null,
         creditDays:     paymentType === "CREDIT" ? Number(creditDays || 0) : 0,
@@ -759,17 +776,22 @@ export default function NewSalesInvoicePage() {
         payload = {
           ...commonPayload,
           customerId:  directCustomerId,
-          warehouseId: directWarehouseId,
+          warehouseId: directWarehouseId || null,
           directLines: directLines
-            .filter((l) => l.productId && l.quantity > 0)
+            .filter((l) =>
+              (l.lineType === "SERVICE" && l.description?.trim() && l.quantity > 0) ||
+              (l.lineType !== "SERVICE" && l.productId && l.quantity > 0)
+            )
             .map((l) => ({
-              productId:       l.productId,
+              lineType:        l.lineType,
+              description:     l.lineType === "SERVICE" ? l.description?.trim() : null,
+              productId:       l.lineType === "SERVICE" ? null : l.productId,
               quantity:        Number(l.quantity),
               unitPrice:       Number(l.unitPrice),
               discountPercent: Number(l.discountPercent || 0),
               taxId:           l.taxId || null,
-              batchNumber:     l.batchNumber?.trim() || null,
-              serialNumbers:   l.serialNumbers?.trim() || null,
+              batchNumber:     l.lineType === "SERVICE" ? null : (l.batchNumber?.trim() || null),
+              serialNumbers:   l.lineType === "SERVICE" ? null : (l.serialNumbers?.trim() || null),
             })),
         };
       } else {
@@ -1184,7 +1206,20 @@ export default function NewSalesInvoicePage() {
             </>
           )}
 
-          <div className="md:col-span-4">
+          <div className="md:col-span-2">
+            <label className="text-sm font-semibold text-gray-700">
+              Nro. Factura <span className="text-xs font-normal text-gray-400">(pre-impreso)</span>
+            </label>
+            <Input
+              placeholder="001-001-0000001"
+              value={externalNumber}
+              onChange={(e) => setExternalNumber(e.target.value)}
+              className="bg-white font-mono"
+            />
+            <div className="text-[11px] text-gray-500 mt-1">Ingresá el número del talonario físico.</div>
+          </div>
+
+          <div className="md:col-span-2">
             <label className="text-sm font-semibold text-gray-700">Comentarios</label>
             <div className="relative">
               <MessageSquare className="h-4 w-4 text-slate-400 absolute left-3 top-3" />
@@ -1489,18 +1524,37 @@ export default function NewSalesInvoicePage() {
           <div>
             <div className="space-y-3">
               {directLines.map((l) => {
-                const prod     = l.productId ? productMap.get(l.productId) : null;
+                const isService = l.lineType === "SERVICE";
+                const prod     = (!isService && l.productId) ? productMap.get(l.productId) : null;
                 const isBatch  = !!prod?.isBatchManaged;
                 const isSerial = !!prod?.isSerialManaged;
                 const needsTrack = isBatch || isSerial;
                 const subtotal = round2(l.quantity * l.unitPrice * (1 - (l.discountPercent || 0) / 100));
 
                 return (
-                  <div key={l.id} className="border rounded-xl p-4 bg-gray-50">
+                  <div key={l.id} className={`border rounded-xl p-4 ${isService ? "bg-blue-50/40 border-blue-200" : "bg-gray-50 border-gray-200"}`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${isService ? "bg-blue-600 text-white" : "bg-[#C5A05A] text-white"}`}>
+                        {isService ? <Wrench className="h-3 w-3" /> : <Package className="h-3 w-3" />}
+                        {isService ? "SERVICIO" : "ITEM"}
+                      </span>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
 
-                      {/* Producto */}
+                      {/* Producto o Descripción */}
                       <div className="md:col-span-3">
+                        {isService ? (
+                          <>
+                            <label className="text-xs font-semibold text-gray-600">Descripción <span className="text-red-500">*</span></label>
+                            <Input
+                              placeholder="Descripción del servicio..."
+                              value={l.description}
+                              onChange={(e) => setDirectLine(l.id, { description: e.target.value })}
+                              className="bg-white"
+                            />
+                          </>
+                        ) : (
+                        <>
                         <label className="text-xs font-semibold text-gray-600">Producto</label>
                         <Select
                           value={l.productId ? String(l.productId) : ""}
@@ -1528,6 +1582,8 @@ export default function NewSalesInvoicePage() {
                               ))}
                           </SelectContent>
                         </Select>
+                        </>
+                        )}
                       </div>
 
                       {/* Cantidad */}
@@ -1611,17 +1667,26 @@ export default function NewSalesInvoicePage() {
 
             {directLines.length === 0 && (
               <div className="text-gray-400 text-sm py-4 text-center border-2 border-dashed rounded-xl">
-                No hay líneas. Hacé clic en "Agregar línea" para comenzar.
+                No hay líneas. Agregá un ITEM o SERVICIO para comenzar.
               </div>
             )}
 
-            <Button
-              className="mt-4 border border-[#C5A05A] text-[#C5A05A] bg-white hover:bg-blue-50"
-              variant="outline"
-              onClick={addDirectLine}
-            >
-              <Plus className="mr-2 h-4 w-4" /> Agregar línea
-            </Button>
+            <div className="mt-4 flex gap-2">
+              <Button
+                className="border border-[#C5A05A] text-[#C5A05A] bg-white hover:bg-[#C5A05A]/10"
+                variant="outline"
+                onClick={() => addDirectLine("ITEM")}
+              >
+                <Plus className="mr-2 h-4 w-4" /> ITEM
+              </Button>
+              <Button
+                className="border border-blue-500 text-blue-600 bg-white hover:bg-blue-50"
+                variant="outline"
+                onClick={() => addDirectLine("SERVICE")}
+              >
+                <Plus className="mr-2 h-4 w-4" /> SERVICIO
+              </Button>
+            </div>
           </div>
         )}
       </Card>

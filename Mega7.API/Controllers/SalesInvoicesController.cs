@@ -457,72 +457,106 @@ namespace Mega7.API.Controllers
                         Comments     = dto.Comments
                     };
 
-                    var dProductIds = dto.DirectLines.Select(l => l.ProductId).Distinct().ToList();
-                    var dProducts   = await _ctx.Products.Where(p => dProductIds.Contains(p.Id)).ToListAsync();
-                    var dTaxIds     = dto.DirectLines.Where(l => l.TaxId.HasValue).Select(l => l.TaxId!.Value).Distinct().ToList();
-                    var dTaxes      = await _ctx.Taxes.Where(t => dTaxIds.Contains(t.Id)).ToListAsync();
+                    var dItemLines = dto.DirectLines
+                        .Where(l => string.IsNullOrEmpty(l.LineType) || l.LineType.ToUpper() == "ITEM")
+                        .ToList();
+
+                    var dProductIds = dItemLines.Where(l => l.ProductId.HasValue)
+                        .Select(l => l.ProductId!.Value).Distinct().ToList();
+                    var dProducts = await _ctx.Products.Where(p => dProductIds.Contains(p.Id)).ToListAsync();
+                    var dTaxIds   = dto.DirectLines.Where(l => l.TaxId.HasValue).Select(l => l.TaxId!.Value).Distinct().ToList();
+                    var dTaxes    = await _ctx.Taxes.Where(t => dTaxIds.Contains(t.Id)).ToListAsync();
 
                     foreach (var dl in dto.DirectLines)
                     {
                         if (dl.Quantity <= 0) return BadRequest("Cantidad inválida en una línea.");
 
-                        var dp = dProducts.FirstOrDefault(pp => pp.Id == dl.ProductId);
-                        if (dp == null) return BadRequest($"Producto {dl.ProductId} no existe.");
+                        var isService = dl.LineType?.ToUpper() == "SERVICE";
 
-                        var dStock = await _ctx.Stocks.FirstOrDefaultAsync(s => s.ProductId == dp.Id && s.WarehouseId == dWarehouse.Id);
-                        if (dStock == null || dStock.Quantity < dl.Quantity)
-                            return BadRequest($"Stock insuficiente de {dp.Name} en el depósito seleccionado.");
+                        var dTax  = dl.TaxId.HasValue ? dTaxes.FirstOrDefault(t => t.Id == dl.TaxId.Value) : null;
+                        var dDisc = (100m - dl.DiscountPercent) / 100m;
+                        var dSub  = Math.Round(dl.Quantity * dl.UnitPrice * dDisc, 2);
+                        var dTaxAmt = Math.Round(dSub * ((dTax?.Rate ?? 0m) / 100m), 2);
 
-                        if (dp.IsBatchManaged)
+                        if (isService)
                         {
-                            if (string.IsNullOrWhiteSpace(dl.BatchNumber))
-                                return BadRequest($"{dp.Name} requiere lote (BatchNumber).");
-                            var dBatch = await _ctx.Batches.FirstOrDefaultAsync(b =>
-                                b.ProductId == dp.Id && b.WarehouseId == dWarehouse.Id && b.BatchNumber == dl.BatchNumber);
-                            if (dBatch == null) return BadRequest($"Lote {dl.BatchNumber} no existe para {dp.Name}.");
-                            if (dBatch.Quantity < dl.Quantity) return BadRequest($"Stock insuficiente en lote {dl.BatchNumber} ({dp.Name}).");
-                            dBatch.Quantity -= dl.Quantity;
-                            dBatch.UpdatedAt = DateTime.UtcNow;
-                        }
+                            if (string.IsNullOrWhiteSpace(dl.Description))
+                                return BadRequest("Las líneas de tipo SERVICIO requieren descripción.");
 
-                        if (dp.IsSerialManaged)
-                        {
-                            if (string.IsNullOrWhiteSpace(dl.SerialNumbers))
-                                return BadRequest($"{dp.Name} requiere seriales.");
-                            var dSerialList = dl.SerialNumbers.Split(",").Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
-                            if (dSerialList.Count != (int)dl.Quantity)
-                                return BadRequest($"Cantidad de seriales no coincide con cantidad para {dp.Name}.");
-                            foreach (var sn in dSerialList)
+                            dAr.Lines.Add(new ARInvoiceLine
                             {
-                                var dSerial = await _ctx.Serials.FirstOrDefaultAsync(s =>
-                                    s.ProductId == dp.Id && s.WarehouseId == dWarehouse.Id && s.SerialNumber == sn && s.IsActive == true);
-                                if (dSerial == null) return BadRequest($"Serial {sn} no disponible en este depósito.");
-                                dSerial.IsActive = false;
-                            }
+                                LineType        = "SERVICE",
+                                ProductId       = null,
+                                ProductCode     = "SVC",
+                                ProductName     = dl.Description!.Trim(),
+                                Quantity        = dl.Quantity,
+                                UnitPrice       = dl.UnitPrice,
+                                DiscountPercent = dl.DiscountPercent,
+                                TaxId           = dl.TaxId,
+                                LineSubTotal    = dSub,
+                                LineTax         = dTaxAmt,
+                                LineTotal       = dSub + dTaxAmt
+                            });
                         }
-
-                        dStock.Quantity -= dl.Quantity;
-
-                        var dTax     = dl.TaxId.HasValue ? dTaxes.FirstOrDefault(t => t.Id == dl.TaxId.Value) : null;
-                        var dDisc    = (100m - dl.DiscountPercent) / 100m;
-                        var dSub     = Math.Round(dl.Quantity * dl.UnitPrice * dDisc, 2);
-                        var dTaxAmt  = Math.Round(dSub * ((dTax?.Rate ?? 0m) / 100m), 2);
-
-                        dAr.Lines.Add(new ARInvoiceLine
+                        else
                         {
-                            ProductId       = dp.Id,
-                            ProductCode     = dp.Code,
-                            ProductName     = dp.Name,
-                            Quantity        = dl.Quantity,
-                            UnitPrice       = dl.UnitPrice,
-                            DiscountPercent = dl.DiscountPercent,
-                            TaxId           = dl.TaxId,
-                            BatchNumber     = dl.BatchNumber?.Trim(),
-                            SerialNumbers   = dl.SerialNumbers?.Trim(),
-                            LineSubTotal    = dSub,
-                            LineTax         = dTaxAmt,
-                            LineTotal       = dSub + dTaxAmt
-                        });
+                            if (!dl.ProductId.HasValue)
+                                return BadRequest("Las líneas de tipo ITEM requieren ProductId.");
+
+                            var dp = dProducts.FirstOrDefault(pp => pp.Id == dl.ProductId.Value);
+                            if (dp == null) return BadRequest($"Producto {dl.ProductId} no existe.");
+
+                            var dStock = await _ctx.Stocks.FirstOrDefaultAsync(s => s.ProductId == dp.Id && s.WarehouseId == dWarehouse.Id);
+                            if (dStock == null || dStock.Quantity < dl.Quantity)
+                                return BadRequest($"Stock insuficiente de {dp.Name} en el depósito seleccionado.");
+
+                            if (dp.IsBatchManaged)
+                            {
+                                if (string.IsNullOrWhiteSpace(dl.BatchNumber))
+                                    return BadRequest($"{dp.Name} requiere lote (BatchNumber).");
+                                var dBatch = await _ctx.Batches.FirstOrDefaultAsync(b =>
+                                    b.ProductId == dp.Id && b.WarehouseId == dWarehouse.Id && b.BatchNumber == dl.BatchNumber);
+                                if (dBatch == null) return BadRequest($"Lote {dl.BatchNumber} no existe para {dp.Name}.");
+                                if (dBatch.Quantity < dl.Quantity) return BadRequest($"Stock insuficiente en lote {dl.BatchNumber} ({dp.Name}).");
+                                dBatch.Quantity -= dl.Quantity;
+                                dBatch.UpdatedAt = DateTime.UtcNow;
+                            }
+
+                            if (dp.IsSerialManaged)
+                            {
+                                if (string.IsNullOrWhiteSpace(dl.SerialNumbers))
+                                    return BadRequest($"{dp.Name} requiere seriales.");
+                                var dSerialList = dl.SerialNumbers.Split(",").Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
+                                if (dSerialList.Count != (int)dl.Quantity)
+                                    return BadRequest($"Cantidad de seriales no coincide con cantidad para {dp.Name}.");
+                                foreach (var sn in dSerialList)
+                                {
+                                    var dSerial = await _ctx.Serials.FirstOrDefaultAsync(s =>
+                                        s.ProductId == dp.Id && s.WarehouseId == dWarehouse.Id && s.SerialNumber == sn && s.IsActive == true);
+                                    if (dSerial == null) return BadRequest($"Serial {sn} no disponible en este depósito.");
+                                    dSerial.IsActive = false;
+                                }
+                            }
+
+                            dStock.Quantity -= dl.Quantity;
+
+                            dAr.Lines.Add(new ARInvoiceLine
+                            {
+                                LineType        = "ITEM",
+                                ProductId       = dp.Id,
+                                ProductCode     = dp.Code,
+                                ProductName     = dp.Name,
+                                Quantity        = dl.Quantity,
+                                UnitPrice       = dl.UnitPrice,
+                                DiscountPercent = dl.DiscountPercent,
+                                TaxId           = dl.TaxId,
+                                BatchNumber     = dl.BatchNumber?.Trim(),
+                                SerialNumbers   = dl.SerialNumbers?.Trim(),
+                                LineSubTotal    = dSub,
+                                LineTax         = dTaxAmt,
+                                LineTotal       = dSub + dTaxAmt
+                            });
+                        }
                     }
 
                     dAr.SubTotal   = dAr.Lines.Sum(l => l.LineSubTotal);

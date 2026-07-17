@@ -15,8 +15,12 @@ namespace Mega7.SHARED.Entities
         public int ARInvoiceId { get; set; }
         public ARInvoice? ARInvoice { get; set; }
 
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
         public Product? Product { get; set; }
+
+        // "ITEM" | "SERVICE" — null se trata como ITEM (retrocompatible)
+        [MaxLength(10)]
+        public string? LineType { get; set; }
 
         [MaxLength(50)]
         public string ProductCode { get; set; } = string.Empty;

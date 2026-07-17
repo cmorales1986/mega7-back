@@ -2,7 +2,12 @@ namespace Mega7.SHARED.DTOs
 {
     public class SalesInvoiceDirectLineDto
     {
-        public int     ProductId       { get; set; }
+        // "ITEM" (default) o "SERVICE"
+        public string? LineType       { get; set; }
+        // SERVICE: descripción del servicio
+        public string? Description    { get; set; }
+        // ITEM: producto requerido
+        public int?    ProductId      { get; set; }
         public decimal Quantity        { get; set; }
         public decimal UnitPrice       { get; set; }
         public decimal DiscountPercent { get; set; }

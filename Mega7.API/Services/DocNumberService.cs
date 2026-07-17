@@ -24,7 +24,7 @@ namespace Mega7.API.Services
         {
             // UPSERT atómico: inserta con LastNumber=1 o incrementa si ya existe,
             // y devuelve el nuevo valor — todo en una sola operación de BD.
-            var result = await _ctx.Database
+            var rows = await _ctx.Database
                 .SqlQueryRaw<int>(
                     """
                     INSERT INTO "DocCounters" ("Prefix", "LastNumber")
@@ -34,9 +34,9 @@ namespace Mega7.API.Services
                     RETURNING "LastNumber"
                     """,
                     prefix)
-                .FirstAsync();
+                .ToListAsync();
 
-            return $"{prefix}{result.ToString().PadLeft(digits, '0')}";
+            return $"{prefix}{rows[0].ToString().PadLeft(digits, '0')}";
         }
     }
 }

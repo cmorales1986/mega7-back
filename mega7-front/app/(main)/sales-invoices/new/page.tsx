@@ -1537,7 +1537,7 @@ export default function NewSalesInvoicePage() {
                           <SelectTrigger className="bg-white"><SelectValue placeholder="Sin IVA" /></SelectTrigger>
                           <SelectContent className="bg-white">
                             <SelectItem value="0">Sin IVA</SelectItem>
-                            {taxes.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name} ({t.rate}%)</SelectItem>)}
+                            {taxes.map((t) => <SelectItem key={t.id} value={String(t.id)}>IVA {t.rate}%</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>

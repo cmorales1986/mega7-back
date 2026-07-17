@@ -94,7 +94,7 @@ export const menu: MenuItem[] = [
     children: [
       { title: "Órdenes de Venta", href: "/sales-orders", icon: ClipboardList },
       { title: "Entregas",         href: "/deliveries",   icon: Truck },
-      { title: "Facturas Cliente", href: "/ar-invoices",  icon: FileText },
+      { title: "Facturas Cliente", href: "/sales-invoices", icon: FileText },
     ],
   },
 

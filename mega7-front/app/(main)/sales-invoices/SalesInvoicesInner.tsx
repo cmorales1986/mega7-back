@@ -49,11 +49,14 @@ type Row = {
   isOverdue?: boolean;
 };
 
+type TabType = "ALL" | "FACTURAS" | "CUOTAS";
+
 export default function SalesInvoicesInner() {
   const router = useRouter();
   const sp = useSearchParams();
 
   const [rows, setRows] = useState<Row[]>([]);
+  const [tab, setTab] = useState<TabType>("ALL");
   const [loading, setLoading] = useState(false);
 
   // --------- query params ----------
@@ -163,6 +166,12 @@ export default function SalesInvoicesInner() {
     }
   };
 
+  const filteredRows = useMemo(() => {
+    if (tab === "FACTURAS") return rows.filter((r) => !String(r.docNumber ?? "").startsWith("CIMP-"));
+    if (tab === "CUOTAS")   return rows.filter((r)  => String(r.docNumber ?? "").startsWith("CIMP-"));
+    return rows;
+  }, [rows, tab]);
+
   const summary = useMemo(() => {
     const total = rows.reduce((a, r) => a + Number(r.total ?? 0), 0);
     const balance = rows.reduce((a, r) => a + Number(r.balance ?? 0), 0);
@@ -171,7 +180,9 @@ export default function SalesInvoicesInner() {
     const paid = rows.filter((r) => String(r.status ?? "").toUpperCase() === "PAID").length;
     const cancelled = rows.filter((r) => String(r.status ?? "").toUpperCase() === "CANCELLED").length;
     const overdueRows = rows.filter((r) => Boolean(r.isOverdue)).length;
-    return { total, balance, open, partial, paid, cancelled, overdueRows, count: rows.length };
+    const cuotasCount   = rows.filter((r) => String(r.docNumber ?? "").startsWith("CIMP-")).length;
+    const facturasCount = rows.length - cuotasCount;
+    return { total, balance, open, partial, paid, cancelled, overdueRows, count: rows.length, cuotasCount, facturasCount };
   }, [rows]);
 
   const filterLabel = useMemo(() => {
@@ -332,11 +343,32 @@ export default function SalesInvoicesInner() {
         </>
       }
     >
+      {/* Tabs de tipo */}
+      <div className="flex gap-2 mb-3">
+        {(["ALL", "FACTURAS", "CUOTAS"] as TabType[]).map((t) => {
+          const label = t === "ALL" ? `Todas (${summary.count})` : t === "FACTURAS" ? `Facturas (${summary.facturasCount})` : `Con Cuotas (${summary.cuotasCount})`;
+          const active = tab === t;
+          return (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
+                active
+                  ? "bg-[#C5A05A] text-white border-[#C5A05A]"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-[#C5A05A] hover:text-[#C5A05A]"
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="bg-white rounded-xl shadow border p-3">
         <ThemeProvider theme={muiTheme}>
           <div style={{ height: 520, width: "100%" }}>
             <DataGrid
-              rows={rows}
+              rows={filteredRows}
               columns={cols}
               getRowId={(r) => r.id}
               loading={loading}

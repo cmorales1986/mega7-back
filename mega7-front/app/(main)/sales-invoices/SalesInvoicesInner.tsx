@@ -257,7 +257,7 @@ export default function SalesInvoicesInner() {
               variant="outline"
               size="sm"
               className="h-8 w-8 p-0"
-              onClick={() => router.push(`/sales-invoices/${row.id}`)}
+              onClick={() => router.push(`/ar-invoices/${row.id}`)}
               title="Ver detalle"
             >
               <Eye className="h-4 w-4" />
